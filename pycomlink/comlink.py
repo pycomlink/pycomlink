@@ -1,14 +1,13 @@
-#-------------------------------------------------------------------------------
+#----------------------------------------------------------------------------
 # Name:         comlink
-# Purpose:
+# Purpose:      Commercial MW link Class to handle all processing steps
 #
 # Authors:      Christian Chwala
 #
 # Created:      01.12.2014
 # Copyright:    (c) Christian Chwala 2014
 # Licence:      The MIT License
-#-------------------------------------------------------------------------------
-#!/usr/bin/env python
+#----------------------------------------------------------------------------
 
 
 from __future__ import division
@@ -16,9 +15,23 @@ import matplotlib.pyplot as plt
 
 
 class Comlink():
-    ''' 
-    Commercial microwave link class for all data processing 
-    '''
+    """
+    Commercial microwave link (CML) class for all data processing 
+    
+    Attributes
+    ----------
+
+    data : pandas.DataFrame
+        DataFrame which holds at minimum the TX- and RX-levels. For each,
+        a far end and near end entry must exists. The naming convention is
+        'TX_far', 'TX_near', 'RX_far', 'RX_near'. Further columns can be
+        present in the DataFrame, e.g. RTT (the round trip time of a SNMP
+        data acquisition request).
+    param : 
+        Metadata for the CML. Important are the site locations and the 
+        CML frequency.
+    
+    """
     def __init__(self, metadata, TXRX_df):
         self.metadata = metadata
         self.data = TXRX_df
@@ -34,6 +47,19 @@ class Comlink():
         self.data['txrx_fn'] = self.data.tx_far - self.data.rx_near
     
     def plot_txrx(self, resampling_time=None, **kwargs):
+        """Plot TX- minus RX-level
+        
+        Parameters
+        ----------
+        
+        resampling_time : str
+            Resampling time according to Pandas resampling time options,
+            e.g. ('min, '5min, 'H', 'D', ...)
+        kwargs : 
+            kwargs for Pandas plotting                        
+            
+        """
+        
         if resampling_time != None:
             df_temp = self.data.resample(resampling_time)
         else:
@@ -44,6 +70,18 @@ class Comlink():
         #plt.title(self.metadata.)
     
     def plot_tx_rx_seperate(self, resampling_time=None, **kwargs):
+        """Plot two linked plots for TX- and TX- minus RX-level
+        
+        Parameters
+        ----------
+        
+        resampling_time : str
+            Resampling time according to Pandas resampling time options,
+            e.g. ('min, '5min, 'H', 'D', ...)
+        kwargs : 
+            kwargs for Pandas plotting                        
+            
+        """
         if resampling_time != None:
             df_temp = self.data.resample(resampling_time)
         else:

@@ -26,11 +26,11 @@ class Comlink():
         far end and near end entries can exists. Furthermore, for protection
         links additional TX- and RX-level may exists. The naming convention 
         is:
-         'TX_far'         = TX level far end 
-         'TX_near'        = TX level near end
-         'RX_far'         = RX level far end
-         'RX_near'        = RX level near end
-         'TX_far_protect' = TX level far end of protection link
+         'tx_far'         = TX level far end 
+         'tx_near'        = TX level near end
+         'rx_far'         = RX level far end
+         'rx_near'        = RX level near end
+         'tx_far_protect' = TX level far end of protection link
          ....
          ...
          ..

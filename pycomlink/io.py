@@ -54,8 +54,8 @@ def get_cml_data_from_IFU_database(cml_id,
                 
         TXRX_df=pd.read_sql("""(SELECT * from """ + cml_id.lower() + 
                        """ WHERE TIMESTAMP >= '""" + str(t1) + 
-                       """'::timestamp);""", 
-                       sql_engine, 
+                       """'::timestamp AND TIMESTAMP <= '"""
+                       + str(t2) + """'::timestamp);""",sql_engine, 
                        index_col='timestamp')
         
         # TODO: Parse metadata

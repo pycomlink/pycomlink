@@ -45,12 +45,6 @@ class Comlink():
     def __init__(self, metadata, TXRX_df):
         self.metadata = metadata
         self.data = TXRX_df
-        
-        self.data.rename(columns={'txf': 'tx_far',
-                                  'txn': 'tx_near',
-                                  'rxf': 'rx_far',
-                                  'rxn': 'rx_near'},
-                                  inplace=True)
 
         # Calculate TX-RX
         self.data['txrx_nf'] = self.data.tx_near - self.data.rx_far

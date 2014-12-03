@@ -1,13 +1,19 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Dec  2 11:18:22 2014
+#-------------------------------------------------------------------------------
+# Name:         comlink
+# Purpose:
+#
+# Authors:      Christian Chwala
+#
+# Created:      01.12.2014
+# Copyright:    (c) Christian Chwala 2014
+# Licence:      The MIT License
+#-------------------------------------------------------------------------------
+#!/usr/bin/env python
 
-@author: chwala-c
-"""
 
 from __future__ import division
 import matplotlib.pyplot as plt
-import numpy as np
+
 
 class Comlink():
     ''' 

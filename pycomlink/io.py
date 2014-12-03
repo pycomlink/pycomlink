@@ -1,26 +1,25 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Dec  2 14:34:51 2014
+#-------------------------------------------------------------------------------
+# Name:         io
+# Purpose:
+#
+# Authors:      Christian Chwala, Felix Keis
+#
+# Created:      01.12.2014
+# Copyright:    (c) Christian Chwala 2014
+# Licence:      The MIT License
+#-------------------------------------------------------------------------------
+#!/usr/bin/env python
 
-@author: chwala-c
-"""
 
-# enable debugging
-#import cgi, cgitb
-#cgitb.enable()
 
 from datetime import datetime
+import pandas as pd
+
 import psycopg2
 import sqlalchemy
 
-import pandas as pd
-
 from comlink import Comlink
 
-#tb=cgi.FieldStorage()
-#tbb=tb["param1"].value
-
-#from_time = pd.DatetimeIndex([dt])[0]
 
 def get_cml_data_from_IFU_database(cml_id, 
                                    t1_str, 

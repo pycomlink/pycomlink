@@ -23,10 +23,20 @@ class Comlink():
 
     data : pandas.DataFrame
         DataFrame which holds at minimum the TX- and RX-levels. For each,
-        a far end and near end entry must exists. The naming convention is
-        'TX_far', 'TX_near', 'RX_far', 'RX_near'. Further columns can be
-        present in the DataFrame, e.g. RTT (the round trip time of a SNMP
-        data acquisition request).
+        far end and near end entries can exists. Furthermore, for protection
+        links additional TX- and RX-level may exists. The naming convention 
+        is:
+         'TX_far'         = TX level far end 
+         'TX_near'        = TX level near end
+         'RX_far'         = RX level far end
+         'RX_near'        = RX level near end
+         'TX_far_protect' = TX level far end of protection link
+         ....
+         ...
+         ..
+         .
+        Further columns can be present in the DataFrame, 
+        e.g. RTT (the round trip time of a SNMP data acquisition request).
     param : 
         Metadata for the CML. Important are the site locations and the 
         CML frequency.
@@ -94,6 +104,57 @@ class Comlink():
         plt.legend(loc='best')
         #plt.title(self.metadata.)
         
+    def do_wet_dry_classification(self, method='std_dev', 
+                                        window_length=128,
+                                        threshold=1,
+                                        f_divide=1e-3,
+                                        t_dry_start=None,
+                                        t_dry_stop=None,
+                                        reuse_last_Pxx=False,
+                                        print_info=False):
+        if method == 'std_dev':
+            if print_info:
+                print 'Performing wet/dry classification'
+                print ' Method = std_dev'
+                print ' window_length = ' + str(window_length)
+                print ' threshold = ' + str(threshold)
+            (self.data['wet'], 
+             roll_std_dev) = wet_dry_std_dev(self.data.rsl.values, 
+                                           window_length, 
+                                           threshold)
+            self.processing_info['wet_dry_method'] = 'std_dev'
+            self.processing_info['wet_dry_window_length'] = window_length
+            self.processing_info['wet_dry_threshold'] = threshold
+            self.processing_info['wet_dry_roll_std_dev'] = roll_std_dev
+            return self.data.wet
+        
+        
+###############################################################            
+# Functions for the wet/dry classification of RSL time series #          
+###############################################################
+        
+#-------------------------------------#        
+# Rolling std deviation window method #
+#-------------------------------------#
+                                                                                                    
+def wet_dry_std_dev(rsl, window_length, threshold):
+    roll_std_dev = rolling_std_dev(rsl, window_length)
+    wet = roll_std_dev > threshold
+    return wet, roll_std_dev
+
+def rolling_window(a, window):
+    import numpy as np
+    shape = a.shape[:-1] + (a.shape[-1] - window + 1, window)
+    strides = a.strides + (a.strides[-1],)
+    return np.lib.stride_tricks.as_strided(a, shape=shape, strides=strides)
+
+def rolling_std_dev(x, window_length):
+    import numpy as np
+    roll_std_dev = np.std(rolling_window(x, window_length), 1)
+    pad_nan = np.zeros(window_length-1)
+    pad_nan[:] = np.NaN
+    roll_std_dev = np.concatenate((pad_nan, roll_std_dev))
+    return roll_std_dev
         
 
     

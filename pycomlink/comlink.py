@@ -45,10 +45,20 @@ class Comlink():
     def __init__(self, metadata, TXRX_df):
         self.metadata = metadata
         self.data = TXRX_df
+        self.processing_info = {}
+
+        # TODO Check column names for the available TX and RX values
+        
+        # TODO resolve protection link data in DataFrame
+
+        tx_rx_pairs = {'txrx_fn': {'tx': 'tx_far', 'rx': 'rx_near'},
+                       'txrx_nf': {'tx': 'tx_near', 'rx': 'rx_far'}}
 
         # Calculate TX-RX
-        self.data['txrx_nf'] = self.data.tx_near - self.data.rx_far
-        self.data['txrx_fn'] = self.data.tx_far - self.data.rx_near
+        for pair_name, column_names in tx_rx_pairs.iteritems():
+            self.data[pair_name] = self.data[column_names['tx']] \
+                                 - self.data[column_names['rx']]
+        self.processing_info['tx_rx_pairs'] = tx_rx_pairs
     
     def plot_txrx(self, resampling_time=None, **kwargs):
         """Plot TX- minus RX-level
@@ -112,15 +122,18 @@ class Comlink():
                 print ' Method = std_dev'
                 print ' window_length = ' + str(window_length)
                 print ' threshold = ' + str(threshold)
-            (self.data['wet'], 
-             roll_std_dev) = wet_dry_std_dev(self.data.rsl.values, 
-                                           window_length, 
-                                           threshold)
+            for tx_rx_pair in self.processing_info['tx_rx_pairs']:
+                (self.data[tx_rx_pair + '_wet'], 
+                 roll_std_dev) = wet_dry_std_dev(self.data[tx_rx_pair].values, 
+                                               window_length, 
+                                               threshold)
+                self.processing_info['wet_dry_roll_std_dev_' 
+                                    + tx_rx_pair] = roll_std_dev
             self.processing_info['wet_dry_method'] = 'std_dev'
             self.processing_info['wet_dry_window_length'] = window_length
             self.processing_info['wet_dry_threshold'] = threshold
-            self.processing_info['wet_dry_roll_std_dev'] = roll_std_dev
-            return self.data.wet
+        else:
+            ValueError('Wet/dry classification method not supported')
         
         
 ###############################################################            

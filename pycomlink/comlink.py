@@ -13,6 +13,9 @@
 from __future__ import division
 import matplotlib.pyplot as plt
 
+from . import wet_dry
+from . import baseline
+from . import A_R_relation
 
 class Comlink():
     """
@@ -43,7 +46,7 @@ class Comlink():
     
     """
     def __init__(self, metadata, TXRX_df):
-        self.metadata = metadata
+        self.metadata = {}
         self.data = TXRX_df
         self.processing_info = {}
 
@@ -51,13 +54,13 @@ class Comlink():
         
         # TODO resolve protection link data in DataFrame
 
-        tx_rx_pairs = {'txrx_fn': {'tx': 'tx_far', 'rx': 'rx_near'},
-                       'txrx_nf': {'tx': 'tx_near', 'rx': 'rx_far'}}
+        tx_rx_pairs = {'fn': {'tx': 'tx_far', 'rx': 'rx_near'},
+                       'nf': {'tx': 'tx_near', 'rx': 'rx_far'}}
 
         # Calculate TX-RX
         for pair_name, column_names in tx_rx_pairs.iteritems():
-            self.data[pair_name] = self.data[column_names['tx']] \
-                                 - self.data[column_names['rx']]
+            self.data['txrx_' + pair_name] = self.data[column_names['tx']] \
+                                           - self.data[column_names['rx']]
         self.processing_info['tx_rx_pairs'] = tx_rx_pairs
     
     def plot_txrx(self, resampling_time=None, **kwargs):
@@ -81,6 +84,7 @@ class Comlink():
         df_temp.txrx_nf.plot(label='near-far', **kwargs)
         df_temp.txrx_fn.plot(label='far-near', **kwargs)
         plt.legend(loc='best')
+        plt.ylabel('TX-RX level in dB')
         #plt.title(self.metadata.)
     
     def plot_tx_rx_seperate(self, resampling_time=None, **kwargs):
@@ -122,48 +126,55 @@ class Comlink():
                 print ' Method = std_dev'
                 print ' window_length = ' + str(window_length)
                 print ' threshold = ' + str(threshold)
-            for tx_rx_pair in self.processing_info['tx_rx_pairs']:
-                (self.data[tx_rx_pair + '_wet'], 
-                 roll_std_dev) = wet_dry_std_dev(self.data[tx_rx_pair].values, 
-                                               window_length, 
-                                               threshold)
+            for pair_name in self.processing_info['tx_rx_pairs']:
+                (self.data['wet_' + pair_name], 
+                 roll_std_dev) = wet_dry.wet_dry_std_dev(
+                                    self.data['txrx_' + pair_name].values, 
+                                    window_length, 
+                                    threshold)
                 self.processing_info['wet_dry_roll_std_dev_' 
-                                    + tx_rx_pair] = roll_std_dev
+                                    + pair_name] = roll_std_dev
             self.processing_info['wet_dry_method'] = 'std_dev'
             self.processing_info['wet_dry_window_length'] = window_length
             self.processing_info['wet_dry_threshold'] = threshold
         else:
             ValueError('Wet/dry classification method not supported')
         
-        
-###############################################################            
-# Functions for the wet/dry classification of RSL time series #          
-###############################################################
-        
-#-------------------------------------#        
-# Rolling std deviation window method #
-#-------------------------------------#
-                                                                                                    
-def wet_dry_std_dev(rsl, window_length, threshold):
-    roll_std_dev = rolling_std_dev(rsl, window_length)
-    wet = roll_std_dev > threshold
-    return wet, roll_std_dev
+    def do_baseline_determination(self, method='constant',print_info=False):
+        if method == 'constant':
+            baseline_func = baseline.baseline_constant
+            if print_info:
+                print 'Setting RSL baseline'
+                print ' Method = constant'
+        elif method == 'linear':
+            baseline_func = baseline.baseline_linear
+            if print_info:
+                print 'Setting RSL baseline'
+                print ' Method = linear'
+        else:
+            ValueError('Wrong baseline method')
+        for pair_name in self.processing_info['tx_rx_pairs']:
+            self.data['baseline_' + pair_name] = \
+                                baseline_func(self.data['txrx_' + pair_name], 
+                                              self.data['wet_' + pair_name])
+        self.processing_info['baseline_method'] = method
 
-def rolling_window(a, window):
-    import numpy as np
-    shape = a.shape[:-1] + (a.shape[-1] - window + 1, window)
-    strides = a.strides + (a.strides[-1],)
-    return np.lib.stride_tricks.as_strided(a, shape=shape, strides=strides)
-
-def rolling_std_dev(x, window_length):
-    import numpy as np
-    roll_std_dev = np.std(rolling_window(x, window_length), 1)
-    pad_nan = np.zeros(window_length-1)
-    pad_nan[:] = np.NaN
-    roll_std_dev = np.concatenate((pad_nan, roll_std_dev))
-    return roll_std_dev
-        
-
-    
-    
-    
+    def calc_A(self, remove_negative_A=True):
+        for pair_name in self.processing_info['tx_rx_pairs']:
+            self.data['A_' + pair_name] = self.data['txrx_' + pair_name] \
+                                        - self.data['baseline_' + pair_name]
+            if remove_negative_A:
+                self.data['A_' + pair_name][self.data['A_' + pair_name]<0] = 0
+                
+    def calc_R_from_A(self, a=None, b=None, approx_type='ITU'):
+        if a==None or b==None:
+            a, b = A_R_relation.a_b(f_GHz=self.metadata['f_GHz'], 
+                                    pol=self.metadata['pol'],
+                                    approx_type=approx_type)
+        for pair_name in self.processing_info['tx_rx_pairs']:
+            self.data['R_' + pair_name] = \
+                A_R_relation.calc_R_from_A(self.data['A_' + pair_name], 
+                                           a, b,
+                                           self.metadata['length_km'])
+                                          
+                

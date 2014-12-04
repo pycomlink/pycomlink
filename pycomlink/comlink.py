@@ -87,7 +87,7 @@ class Comlink():
         plt.ylabel('TX-RX level in dB')
         #plt.title(self.metadata.)
     
-    def plot_tx_rx_seperate(self, resampling_time=None, **kwargs):
+    def plot_tx_txrx_seperate(self, resampling_time=None, **kwargs):
         """Plot two linked plots for TX- and TX- minus RX-level
         
         Parameters
@@ -105,8 +105,8 @@ class Comlink():
         else:
             df_temp = self.data
         fig, ax = plt.subplots(2,1, sharex=True, **kwargs)
-        df_temp.tx_far.plot(label='near-far', ax=ax[0])
-        df_temp.tx_near.plot(label='far-near', ax=ax[0])
+        df_temp.tx_near.plot(label='near-far', ax=ax[0])
+        df_temp.tx_far.plot(label='far-near', ax=ax[0])
         df_temp.txrx_nf.plot(label='near-far', ax=ax[1])
         df_temp.txrx_fn.plot(label='far-near', ax=ax[1])
         plt.legend(loc='best')

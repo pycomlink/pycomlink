@@ -27,7 +27,7 @@ def get_cml_data_from_IFU_database(cml_id,
                                    db_port='5432',
                                    db_user='MW_parser',
                                    db_password='*MW_parser',
-                                   db_name='MW_link'
+                                   db_name='MW_link',
                                    db_schema='data'):
     """Query CML data from a database
     

@@ -27,7 +27,8 @@ def get_cml_data_from_IFU_database(cml_id,
                                    db_port='5432',
                                    db_user='MW_parser',
                                    db_password='*MW_parser',
-                                   db_name='MW_link'):
+                                   db_name='MW_link'
+                                   db_schema='data'):
     """Query CML data from a database
     
     Parameters
@@ -54,6 +55,8 @@ def get_cml_data_from_IFU_database(cml_id,
         Database user password.
     db_name : str, optional
         Database name.
+    db_schema: str, optional
+        Schema name
     
     Returns
     -------
@@ -75,7 +78,7 @@ def get_cml_data_from_IFU_database(cml_id,
                                      port=db_port)
 
     # Check if table with CML ID exists
-    if table_exists(db_connection, cml_id.lower()):
+    if table_exists(db_connection, cml_id.lower(),db_schema):
         # Create SQL engine to be used by Pandas
         sql_engine = sqlalchemy.create_engine('postgresql://' + 
                                               db_user + 
@@ -85,7 +88,8 @@ def get_cml_data_from_IFU_database(cml_id,
                                               '/' + db_name)
                 
         # Query data from database using Pandas
-        TXRX_df=pd.read_sql("""(SELECT * from """ + cml_id.lower() + 
+        TXRX_df=pd.read_sql("""(SELECT * from """ + db_schema + 
+                        """.""" + cml_id.lower() + 
                        """ WHERE TIMESTAMP >= '""" + str(t1) + 
                        """'::timestamp AND TIMESTAMP <= '"""
                        + str(t2) + """'::timestamp);""",sql_engine, 
@@ -102,8 +106,8 @@ def get_cml_data_from_IFU_database(cml_id,
     db_connection.close()
     return cml
     
-    
-def table_exists(con, table_str):
+
+def table_exists(con, table_str,schema_str):
     """Check if a MW_link data table exists in the database
     
     Parameters
@@ -111,8 +115,10 @@ def table_exists(con, table_str):
     
     con : psycopg2.connection
         Database server connection object provided by psycopg2
-    tabes_str : str
+    table_str : str
         String of table name for which the existenst will be checked
+    schema_str : str
+        String of schema name where table is located
         
     Returns
     -------
@@ -125,8 +131,8 @@ def table_exists(con, table_str):
     exists = False
     try:
         cur = con.cursor()
-        cur.execute("select exists(select relname from pg_class where relname='"
-                    + table_str + "')")
+        cur.execute("""select exists(select * from information_schema.tables where
+                    table_name=%s and table_schema=%s)""", (table_str,schema_str))
         exists = cur.fetchone()[0]    
     except psycopg2.Error as e:
          print e  

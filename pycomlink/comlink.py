@@ -46,7 +46,7 @@ class Comlink():
     
     """
     def __init__(self, metadata, TXRX_df):
-        self.metadata = {}
+        self.metadata = metadata
         self.data = TXRX_df
         self.processing_info = {}
 

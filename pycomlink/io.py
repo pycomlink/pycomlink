@@ -14,6 +14,7 @@ from datetime import datetime
 import pandas as pd
 
 import psycopg2
+import psycopg2.extras
 import sqlalchemy
 
 from comlink import Comlink
@@ -28,7 +29,8 @@ def get_cml_data_from_IFU_database(cml_id,
                                    db_user='MW_parser',
                                    db_password='*MW_parser',
                                    db_name='MW_link',
-                                   db_schema='data'):
+                                   db_schema_data='data',
+                                   db_schema_info='info'):
     """Query CML data from a database
     
     Parameters
@@ -78,7 +80,7 @@ def get_cml_data_from_IFU_database(cml_id,
                                      port=db_port)
 
     # Check if table with CML ID exists
-    if table_exists(db_connection, cml_id.lower(),db_schema):
+    if table_exists(db_connection, cml_id.lower(),db_schema_data):
         # Create SQL engine to be used by Pandas
         sql_engine = sqlalchemy.create_engine('postgresql://' + 
                                               db_user + 
@@ -88,15 +90,27 @@ def get_cml_data_from_IFU_database(cml_id,
                                               '/' + db_name)
                 
         # Query data from database using Pandas
-        TXRX_df=pd.read_sql("""(SELECT * from """ + db_schema + 
+        TXRX_df=pd.read_sql("""(SELECT * from """ + db_schema_data + 
                         """.""" + cml_id.lower() + 
                        """ WHERE TIMESTAMP >= '""" + str(t1) + 
                        """'::timestamp AND TIMESTAMP <= '"""
                        + str(t2) + """'::timestamp);""",sql_engine, 
                        index_col='timestamp')
         
-        # TODO: Parse metadata
-        metadata_dict = None
+        # Parse metadata
+        # Get link information
+        db_cursor = db_connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        sql_query="""(SELECT * FROM """+db_schema_info+""".info_links WHERE link_id = %(id)s);"""
+        db_cursor.execute(sql_query, {"id":cml_id})
+        metadata_dict = db_cursor.fetchone()
+        
+        # Get information for both site ips
+        for z in 'ab':
+            sd=get_site_info(db_cursor,db_schema_info,'info_sites',metadata_dict['ip_'+z])
+            metadata_dict['ort_'+z]=sd['ort']
+            metadata_dict['lat_'+z]=sd['lat']
+            metadata_dict['lon_'+z]=sd['lon']
+            metadata_dict['vpsz_'+z]=sd['vpsz']
         
         # Build Comlink object from data and metadata
         cml = Comlink(metadata_dict, TXRX_df)
@@ -107,6 +121,23 @@ def get_cml_data_from_IFU_database(cml_id,
     return cml
     
 
+    
+def get_site_info(db_cursor,schema_str,table_str,site_ip):
+    """Get information for site IP
+    Parameters:
+        db_cursor: cursor of psycopg.connection
+        schema_str,table_str: str
+            Strings of schema.table with site information
+        site_ip: str
+            IP of Site
+    """
+    
+    sql_query="""(SELECT * FROM """+schema_str+"""."""+table_str+""" WHERE ip = %(i)s);"""
+    db_cursor.execute(sql_query, {"i":site_ip})
+    site_dict = db_cursor.fetchone()
+    return site_dict    
+    
+    
 def table_exists(con, table_str,schema_str):
     """Check if a MW_link data table exists in the database
     

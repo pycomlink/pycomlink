@@ -111,6 +111,16 @@ def get_cml_data_from_IFU_database(cml_id,
             metadata_dict['lat_'+z]=sd['lat']
             metadata_dict['lon_'+z]=sd['lon']
             metadata_dict['vpsz_'+z]=sd['vpsz']
+            
+        # Adjust metadata so to pycomlink Comlink class standard
+        #
+        # TODO: Verfiy that 'a' is 'nf'!!!!
+        #
+        metadata_dict['f_GHz_nf'] = metadata_dict['mhz_a']/1e3
+        metadata_dict['f_GHz_fn'] = metadata_dict['mhz_b']/1e3
+        metadata_dict['pol_nf'] = metadata_dict['pol_a']
+        metadata_dict['pol_fn'] = metadata_dict['pol_b']
+        metadata_dict['length_km'] = metadata_dict['length']
         
         # Build Comlink object from data and metadata
         cml = Comlink(metadata_dict, TXRX_df)

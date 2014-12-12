@@ -81,9 +81,9 @@ class Comlink():
         print '     Site A                       Site B'
         print ' IP: ' + self.metadata['ip_a'] + '                  '  \
                       + self.metadata['ip_b']
-        print '  f:   --------- ' + str(self.metadata['f_GHz_a']) \
+        print '  f:   --------- ' + str(self.metadata['f_GHz_nf']) \
                                     + ' GHz ----------> '
-        print '      <--------- ' + str(self.metadata['f_GHz_b']) \
+        print '      <--------- ' + str(self.metadata['f_GHz_fn']) \
                                     + ' GHz ---------- ' 
         print '  L: ' + str(self.metadata['length_km']) + ' km'
         print '============================================================='
@@ -192,7 +192,10 @@ class Comlink():
         else:
             ValueError('Wet/dry classification method not supported')
         
-    def do_baseline_determination(self, method='constant',print_info=False):
+    def do_baseline_determination(self, 
+                                  method='constant',
+                                  wet_external=None,
+                                  print_info=False):
         if method == 'constant':
             baseline_func = baseline.baseline_constant
             if print_info:
@@ -206,9 +209,13 @@ class Comlink():
         else:
             ValueError('Wrong baseline method')
         for pair_id in self.processing_info['tx_rx_pairs']:
+            if wet_external is None:            
+                wet = self.data['wet_' + pair_id]
+            else:
+                wet = wet_external
             self.data['baseline_' + pair_id] = \
                                 baseline_func(self.data['txrx_' + pair_id], 
-                                              self.data['wet_' + pair_id])
+                                              wet)
         self.processing_info['baseline_method'] = method
 
     def calc_A(self, remove_negative_A=True):
@@ -220,10 +227,19 @@ class Comlink():
                 
     def calc_R_from_A(self, a=None, b=None, approx_type='ITU'):
         if a==None or b==None:
-            a, b = A_R_relation.a_b(f_GHz=self.metadata['f_GHz'], 
-                                    pol=self.metadata['pol'],
-                                    approx_type=approx_type)
+            calc_a_b = True
+        else:
+            calc_a_b = False
         for pair_id in self.processing_info['tx_rx_pairs']:
+            if calc_a_b:
+                a, b = A_R_relation.a_b(f_GHz=self.metadata['f_GHz_' \
+                                                            + pair_id], 
+                                        pol=self.metadata['pol_' \
+                                                          + pair_id],
+                                        approx_type=approx_type)
+                self.processing_info['a_' + pair_id] = a
+                self.processing_info['b_' + pair_id] = b
+
             self.data['R_' + pair_id] = \
                 A_R_relation.calc_R_from_A(self.data['A_' + pair_id], 
                                            a, b,

@@ -54,14 +54,39 @@ class Comlink():
         
         # TODO resolve protection link data in DataFrame
 
-        tx_rx_pairs = {'fn': {'tx': 'tx_far', 'rx': 'rx_near'},
-                       'nf': {'tx': 'tx_near', 'rx': 'rx_far'}}
+        tx_rx_pairs = {'fn': {'name': 'far-near', 
+                              'tx': 'tx_far', 'rx': 'rx_near'},
+                       'nf': {'name': 'near-far',
+                              'tx': 'tx_near', 'rx': 'rx_far'}}
 
         # Calculate TX-RX
-        for pair_name, column_names in tx_rx_pairs.iteritems():
-            self.data['txrx_' + pair_name] = self.data[column_names['tx']] \
-                                           - self.data[column_names['rx']]
+        for pair_id, column_names in tx_rx_pairs.iteritems():
+            self.data['txrx_' + pair_id] = self.data[column_names['tx']] \
+                                         - self.data[column_names['rx']]
         self.processing_info['tx_rx_pairs'] = tx_rx_pairs
+    
+    def info(self):
+        """Print MW link info 
+        
+        WIP: Print rudimentary MW link information
+        
+        """
+        
+        # TODO: Deal with protection links or links for which only
+        #       unidirectional data is available
+        
+        print '============================================================='
+        print 'ID: ' + self.metadata['link_id']
+        print '-------------------------------------------------------------'
+        print '     Site A                       Site B'
+        print ' IP: ' + self.metadata['ip_a'] + '                  '  \
+                      + self.metadata['ip_b']
+        print '  f:   --------- ' + str(self.metadata['f_GHz_a']) \
+                                    + ' GHz ----------> '
+        print '      <--------- ' + str(self.metadata['f_GHz_b']) \
+                                    + ' GHz ---------- ' 
+        print '  L: ' + str(self.metadata['length_km']) + ' km'
+        print '============================================================='
     
     def plot_txrx(self, resampling_time=None, **kwargs):
         """Plot TX- minus RX-level
@@ -81,8 +106,8 @@ class Comlink():
             df_temp = self.data.resample(resampling_time)
         else:
             df_temp = self.data
-        df_temp.txrx_nf.plot(label='near-far', **kwargs)
-        df_temp.txrx_fn.plot(label='far-near', **kwargs)
+        df_temp.txrx_fn.plot(label='far-near', color='r', **kwargs)        
+        df_temp.txrx_nf.plot(label='near-far', color='b', **kwargs)        
         plt.legend(loc='best')
         plt.ylabel('TX-RX level in dB')
         #plt.title(self.metadata.)
@@ -153,14 +178,14 @@ class Comlink():
                 print ' Method = std_dev'
                 print ' window_length = ' + str(window_length)
                 print ' threshold = ' + str(threshold)
-            for pair_name in self.processing_info['tx_rx_pairs']:
-                (self.data['wet_' + pair_name], 
+            for pair_id in self.processing_info['tx_rx_pairs']:
+                (self.data['wet_' + pair_id], 
                  roll_std_dev) = wet_dry.wet_dry_std_dev(
-                                    self.data['txrx_' + pair_name].values, 
+                                    self.data['txrx_' + pair_id].values, 
                                     window_length, 
                                     threshold)
-                self.processing_info['wet_dry_roll_std_dev_' 
-                                    + pair_name] = roll_std_dev
+                self.processing_info['wet_dry_roll_std_dev_' + pair_id] \
+                                  = roll_std_dev
             self.processing_info['wet_dry_method'] = 'std_dev'
             self.processing_info['wet_dry_window_length'] = window_length
             self.processing_info['wet_dry_threshold'] = threshold
@@ -180,27 +205,27 @@ class Comlink():
                 print ' Method = linear'
         else:
             ValueError('Wrong baseline method')
-        for pair_name in self.processing_info['tx_rx_pairs']:
-            self.data['baseline_' + pair_name] = \
-                                baseline_func(self.data['txrx_' + pair_name], 
-                                              self.data['wet_' + pair_name])
+        for pair_id in self.processing_info['tx_rx_pairs']:
+            self.data['baseline_' + pair_id] = \
+                                baseline_func(self.data['txrx_' + pair_id], 
+                                              self.data['wet_' + pair_id])
         self.processing_info['baseline_method'] = method
 
     def calc_A(self, remove_negative_A=True):
-        for pair_name in self.processing_info['tx_rx_pairs']:
-            self.data['A_' + pair_name] = self.data['txrx_' + pair_name] \
-                                        - self.data['baseline_' + pair_name]
+        for pair_id in self.processing_info['tx_rx_pairs']:
+            self.data['A_' + pair_id] = self.data['txrx_' + pair_id] \
+                                      - self.data['baseline_' + pair_id]
             if remove_negative_A:
-                self.data['A_' + pair_name][self.data['A_' + pair_name]<0] = 0
+                self.data['A_' + pair_id][self.data['A_' + pair_id]<0] = 0
                 
     def calc_R_from_A(self, a=None, b=None, approx_type='ITU'):
         if a==None or b==None:
             a, b = A_R_relation.a_b(f_GHz=self.metadata['f_GHz'], 
                                     pol=self.metadata['pol'],
                                     approx_type=approx_type)
-        for pair_name in self.processing_info['tx_rx_pairs']:
-            self.data['R_' + pair_name] = \
-                A_R_relation.calc_R_from_A(self.data['A_' + pair_name], 
+        for pair_id in self.processing_info['tx_rx_pairs']:
+            self.data['R_' + pair_id] = \
+                A_R_relation.calc_R_from_A(self.data['A_' + pair_id], 
                                            a, b,
                                            self.metadata['length_km'])
                                           

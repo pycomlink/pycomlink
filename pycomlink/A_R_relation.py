@@ -7,7 +7,7 @@ def calc_R_from_A(A, a, b, L):
     R = (A/(a*L))**(1/b)
     return R
 
-def a_b(f_GHz, pol=None, approx_type='ITU'):
+def a_b(f_GHz, pol, approx_type='ITU'):
     from scipy.interpolate import interp1d
     
     if f_GHz>=1 and f_GHz<=100:

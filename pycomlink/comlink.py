@@ -11,6 +11,8 @@
 
 
 from __future__ import division
+
+import numpy as np
 import matplotlib.pyplot as plt
 
 from . import wet_dry
@@ -87,6 +89,30 @@ class Comlink():
                                     + ' GHz ---------- ' 
         print '  L: ' + str(self.metadata['length_km']) + ' km'
         print '============================================================='
+    
+    def plot(self, 
+             param_list=['txrx',], 
+             resampling_time=None, 
+             add_raw_data=False):
+        """ WIP for generic plotting function """
+
+        if resampling_time is not None:
+            df_temp = self.data.resample(resampling_time)
+        else:
+            df_temp = self.data
+
+        # TODO: Add option for figsize with kwargs        
+        fig, ax = plt.subplots(len(param_list), 1, squeeze=False)
+        
+        # Quick hack to make sure that ax is a np.array
+#        if len(param_list) == 1:
+#            ax = np.array(ax)
+
+        
+        for i, param in enumerate(param_list):
+            for pair_id in self.processing_info['tx_rx_pairs']:
+                df_temp[param + '_' + pair_id].plot(ax=ax[i])
+            
     
     def plot_txrx(self, resampling_time=None, **kwargs):
         """Plot TX- minus RX-level

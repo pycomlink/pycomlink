@@ -1,6 +1,8 @@
 # Python tools for processing of commercial MW link data
 
 ## TODO
+ * ~~~Function for saving Comlink object to HDF5~~~
+     * Also write processing info to HDF5 file
  * ~~~Query metadata (location, frequency, etc.) from database and parse to Comlink object~~~
  * Define crucial metadata entries and their naming convention
  * Resolve protection links

@@ -57,9 +57,13 @@ class Comlink():
         # TODO resolve protection link data in DataFrame
 
         tx_rx_pairs = {'fn': {'name': 'far-near', 
-                              'tx': 'tx_far', 'rx': 'rx_near'},
+                              'tx': 'tx_far',
+                              'rx': 'rx_near',
+                              'color': 'r'},
                        'nf': {'name': 'near-far',
-                              'tx': 'tx_near', 'rx': 'rx_far'}}
+                              'tx': 'tx_near',
+                              'rx': 'rx_far',
+                              'color': 'b'}}
 
         # Calculate TX-RX
         for pair_id, column_names in tx_rx_pairs.iteritems():
@@ -91,27 +95,72 @@ class Comlink():
         print '============================================================='
     
     def plot(self, 
-             param_list=['txrx',], 
+             param_list=['txrx'], 
              resampling_time=None, 
-             add_raw_data=False):
-        """ WIP for generic plotting function """
+             add_raw_data=False,
+             figsize=(6,4),
+             **kwargs):
+        """ WIP for generic plotting function
+        
+        Parameters
+        ----------
+        
+        param_list : str, list of str, tuple of str, list of tuple of str
+            List of parameters to plot.....
+            ....
+            ...bla bla
+        ...
+        ..
+        .
+        
+        """
 
         if resampling_time is not None:
             df_temp = self.data.resample(resampling_time)
         else:
             df_temp = self.data
 
-        # TODO: Add option for figsize with kwargs        
-        fig, ax = plt.subplots(len(param_list), 1, squeeze=False)
-        
-        # Quick hack to make sure that ax is a np.array
-#        if len(param_list) == 1:
-#            ax = np.array(ax)
+        if type(param_list) is str:
+            param_list = [param_list,]
 
-        
+        fig, ax = plt.subplots(len(param_list), 1, 
+                               squeeze=False,
+                               figsize=figsize)
+
         for i, param in enumerate(param_list):
-            for pair_id in self.processing_info['tx_rx_pairs']:
-                df_temp[param + '_' + pair_id].plot(ax=ax[i])
+            if type(param) is str:
+                if param in self.data.columns:
+                    df_temp[param].plot(ax=ax[i][0], 
+                                        label=param,
+                                        **kwargs)
+                else:
+                    # Try parameter + tx_rx_pair_identifier
+                    for txrx_pair_id in self.processing_info['tx_rx_pairs']:
+                        if param == 'tx' or param == 'rx':
+                            param_temp = self.processing_info['tx_rx_pairs']\
+                                                        [txrx_pair_id]\
+                                                        [param]
+                        else:
+                            param_temp = param + '_' + txrx_pair_id
+                            
+                        color = self.processing_info['tx_rx_pairs']\
+                                                    [txrx_pair_id]\
+                                                    ['color']
+                        name = self.processing_info['tx_rx_pairs']\
+                                                   [txrx_pair_id]\
+                                                   ['name']
+                        df_temp[param_temp].plot(ax=ax[i][0], 
+                                                 label=name,
+                                                 color=color,
+                                                 **kwargs)
+            elif type(param) is tuple:
+                for param_item in param:
+                    df_temp[param_item].plot(ax=ax[i][0], 
+                                             label=param_item, 
+                                             **kwargs)
+            ax[i][0].legend(loc='best')
+        return ax
+                    
             
     
     def plot_txrx(self, resampling_time=None, **kwargs):

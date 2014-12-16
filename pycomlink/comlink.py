@@ -125,7 +125,8 @@ class Comlink():
 
         fig, ax = plt.subplots(len(param_list), 1, 
                                squeeze=False,
-                               figsize=figsize)
+                               figsize=figsize,
+                               sharex=True)
 
         for i, param in enumerate(param_list):
             if type(param) is str:
@@ -160,6 +161,11 @@ class Comlink():
                                              **kwargs)
             ax[i][0].legend(loc='best')
             ax[i][0].set_ylabel(param)
+            
+            # Remove xticklabels for all but the bottom most plot
+            if i < len(param_list):
+                #plt.setp(ax[i][0].get_xticklabels(), visible=False)
+                ax[i][0].xaxis.set_ticklabels([])
         return ax
                     
             

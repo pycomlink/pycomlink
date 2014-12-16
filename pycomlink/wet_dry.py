@@ -24,7 +24,11 @@ def rolling_std_dev(x, window_length):
     roll_std_dev = np.std(rolling_window(x, window_length), 1)
     pad_nan = np.zeros(window_length-1)
     pad_nan[:] = np.NaN
-    roll_std_dev = np.concatenate((pad_nan, roll_std_dev))
+    # add NaN to start and end of array
+    ix_mid = len(pad_nan)/2
+    roll_std_dev = np.concatenate((pad_nan[:ix_mid], 
+                                   roll_std_dev,
+                                   pad_nan[ix_mid:]))
     return roll_std_dev
     
 

@@ -8,7 +8,7 @@
  * Resolve protection links
  * Move over processing methods from lirage
      * ~~~wet/dry std_dev~~~
-         * Asure that std_dev method wet/dry index is centered over window
+         * ~~~Asure that std_dev method wet/dry index is centered over window~~~
      * wet/dty SFTF
      * wet antenna Schleiss et al
      * ~~~A-R transformation~~~

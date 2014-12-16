@@ -296,7 +296,9 @@ class Comlink():
             
                 # Find dry period (wit lowest fluctuation = lowest std_dev)
                 t_dry_start, \
-                t_dry_stop = wet_dry.find_lowest_std_dev_period(txrx)
+                t_dry_stop = wet_dry.find_lowest_std_dev_period(
+                                txrx,
+                                window_length=dry_window_length)
                 self.processing_info['wet_dry_t_dry_start'] = t_dry_start
                 self.processing_info['wet_dry_t_dry_stop'] = t_dry_stop
             

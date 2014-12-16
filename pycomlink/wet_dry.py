@@ -19,16 +19,21 @@ def rolling_window(a, window):
     strides = a.strides + (a.strides[-1],)
     return np.lib.stride_tricks.as_strided(a, shape=shape, strides=strides)
 
-def rolling_std_dev(x, window_length):
+def rolling_std_dev(x, window_length, pad_only_left=False):
     import numpy as np
     roll_std_dev = np.std(rolling_window(x, window_length), 1)
     pad_nan = np.zeros(window_length-1)
     pad_nan[:] = np.NaN
     # add NaN to start and end of array
     ix_mid = len(pad_nan)/2
-    roll_std_dev = np.concatenate((pad_nan[:ix_mid], 
-                                   roll_std_dev,
-                                   pad_nan[ix_mid:]))
+    if pad_only_left == False:
+        roll_std_dev = np.concatenate((pad_nan[:ix_mid], 
+                                       roll_std_dev,
+                                       pad_nan[ix_mid:]))
+    elif pad_only_left == True:
+        roll_std_dev = np.concatenate((pad_nan, roll_std_dev))
+    else:
+        ValueError('pad_only_left must be either True or False')
     return roll_std_dev
     
 
@@ -39,7 +44,11 @@ def rolling_std_dev(x, window_length):
 def find_lowest_std_dev_period(rsl, window_length=600):
     import numpy as np
     from matplotlib import mlab
-    roll_std_dev = rolling_std_dev(rsl,window_length)
+    
+    # pad_only_left was added to be backwards compatible with the
+    # old rolling_std_dev function which only padded with NaN on the
+    # left side of the time series. Now symetric padding is default!!!
+    roll_std_dev = rolling_std_dev(rsl,window_length, pad_only_left=True)
     dry_stop = mlab.find(roll_std_dev == np.nanmin(roll_std_dev))
     dry_start = dry_stop - window_length
     return dry_start, dry_stop

@@ -249,11 +249,21 @@ class Comlink():
     def do_wet_dry_classification(self, method='std_dev', 
                                         window_length=128,
                                         threshold=1,
+                                        dry_window_length=600,
                                         f_divide=1e-3,
-                                        t_dry_start=None,
-                                        t_dry_stop=None,
                                         reuse_last_Pxx=False,
                                         print_info=False):
+        """Perform wet/dry classification for CML time series
+        
+        WIP: Currently  two methods are supported:
+                -std_dev
+                -stft
+                
+        TODO: Docstring!!!
+        
+        """
+        
+        # Standard deviation method
         if method == 'std_dev':
             if print_info:
                 print 'Performing wet/dry classification'
@@ -270,6 +280,62 @@ class Comlink():
                                   = roll_std_dev
             self.processing_info['wet_dry_method'] = 'std_dev'
             self.processing_info['wet_dry_window_length'] = window_length
+            self.processing_info['wet_dry_threshold'] = threshold
+        # Shor-term Fourier transformation method
+        elif method == 'stft':
+            if print_info:
+                print 'Performing wet/dry classification'
+                print ' Method = stft'
+                print ' dry_window_length = ' + str(dry_window_length)
+                print ' window_length = ' + str(window_length)
+                print ' threshold = ' + str(threshold)
+                print ' f_divide = ' + str(f_divide)
+            
+            for pair_id in self.processing_info['tx_rx_pairs']:
+                txrx = self.data['txrx_' + pair_id].values
+            
+                # Find dry period (wit lowest fluctuation = lowest std_dev)
+                t_dry_start, \
+                t_dry_stop = wet_dry.find_lowest_std_dev_period(txrx)
+                self.processing_info['wet_dry_t_dry_start'] = t_dry_start
+                self.processing_info['wet_dry_t_dry_stop'] = t_dry_stop
+            
+                if reuse_last_Pxx is False:
+                    self.data['wet_' + pair_id], info = wet_dry.wet_dry_stft(
+                                                            txrx,
+                                                            window_length,
+                                                            threshold,
+                                                            f_divide,
+                                                            t_dry_start,
+                                                            t_dry_stop)
+                elif reuse_last_Pxx is True:
+                    Pxx=self.processing_info['wet_dry_Pxx_' + pair_id]
+                    f=self.processing_info['wet_dry_f']
+                    self.data['wet_' + pair_id], info = wet_dry.wet_dry_stft(
+                                                            txrx,
+                                                            window_length,
+                                                            threshold,
+                                                            f_divide,
+                                                            t_dry_start,
+                                                            t_dry_stop,
+                                                            Pxx=Pxx,
+                                                            f=f)
+                else:
+                    raise ValueError('reuse_last_Pxx can only by True or False')
+                self.processing_info['wet_dry_Pxx_' + pair_id] = \
+                                                        info['Pxx']
+                self.processing_info['wet_dry_P_norm_' + pair_id] = \
+                                                        info['P_norm']
+                self.processing_info['wet_dry_P_sum_diff_' + pair_id] = \
+                                                        info['P_sum_diff']
+                self.processing_info['wet_dry_P_dry_mean_' + pair_id] = \
+                                                        info['P_dry_mean']
+            
+            self.processing_info['wet_dry_f'] = info['f']                
+            self.processing_info['wet_dry_method'] = 'stft'
+            self.processing_info['wet_dry_window_length'] = window_length
+            self.processing_info['dry_window_length'] = window_length
+            self.processing_info['f_divide'] = f_divide
             self.processing_info['wet_dry_threshold'] = threshold
         else:
             ValueError('Wet/dry classification method not supported')

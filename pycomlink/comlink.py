@@ -159,6 +159,7 @@ class Comlink():
                                              label=param_item, 
                                              **kwargs)
             ax[i][0].legend(loc='best')
+            ax[i][0].set_ylabel(param)
         return ax
                     
             

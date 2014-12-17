@@ -1,6 +1,8 @@
 # Python tools for processing of commercial MW link data
 
 ## TODO
+ * Fix problem with spectrogram from matplotlib.mlab in version > 1.3.0 
+   (e.g. wet/dry stft method does not work with matplotlib version 1.4.0)
  * ~~~Function for saving Comlink object to HDF5~~~
      * Also write processing info to HDF5 file
  * ~~~Query metadata (location, frequency, etc.) from database and parse to Comlink object~~~

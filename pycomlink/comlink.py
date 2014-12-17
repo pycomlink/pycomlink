@@ -18,6 +18,7 @@ import matplotlib.pyplot as plt
 from . import wet_dry
 from . import baseline
 from . import A_R_relation
+from . import wet_antenna
 
 class Comlink():
     """
@@ -367,6 +368,29 @@ class Comlink():
                                 baseline_func(self.data['txrx_' + pair_id], 
                                               wet)
         self.processing_info['baseline_method'] = method
+        
+    def do_wet_antenna_baseline_adjust(self,
+                                       waa_max, 
+                                       delta_t, 
+                                       tau,
+                                       wet_external=None):
+                                           
+        for pair_id in self.processing_info['tx_rx_pairs']:
+            txrx = self.data['txrx_' + pair_id].values
+            baseline = self.data['baseline_' + pair_id].values
+            if wet_external is None:            
+                wet = self.data['wet_' + pair_id]
+            else:
+                wet = wet_external
+            baseline_waa, waa = wet_antenna.waa_adjust_baseline(rsl=txrx,
+                                                           baseline=baseline,
+                                                           waa_max=waa_max,
+                                                           delta_t=delta_t,
+                                                           tau=tau,
+                                                           wet=wet)
+            self.data['baseline_' + pair_id] = baseline_waa
+            self.data['waa_' + pair_id] = waa
+            #return baseline_waa
 
     def calc_A(self, remove_negative_A=True):
         for pair_id in self.processing_info['tx_rx_pairs']:

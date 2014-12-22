@@ -129,7 +129,7 @@ def get_cml_data_from_IFU_database(cml_id,
                                      password=db_password, 
                                      host=db_ip, 
                                      port=db_port)
-
+    
     # Check if table with CML ID exists
     if table_exists(db_connection, cml_id.lower(),db_schema_data):
         # Create SQL engine to be used by Pandas
@@ -139,7 +139,7 @@ def get_cml_data_from_IFU_database(cml_id,
                                               '@' + db_ip +
                                               ':' + db_port +
                                               '/' + db_name)
-                
+        
         # Query data from database using Pandas
         TXRX_df=pd.read_sql("""(SELECT * from """ + db_schema_data + 
                         """.""" + cml_id.lower() + 
@@ -150,11 +150,11 @@ def get_cml_data_from_IFU_database(cml_id,
         
         # Parse metadata
         # Get link information
-        db_cursor = db_connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+	db_cursor = db_connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         sql_query="""(SELECT * FROM """+db_schema_info+""".info_links WHERE link_id = %(id)s);"""
-        db_cursor.execute(sql_query, {"id":cml_id})
-        metadata_dict = db_cursor.fetchone()
-        
+        db_cursor.execute(sql_query, {"id":cml_id.upper()})
+	metadata_dict = db_cursor.fetchone()
+
         # Get information for both site ips
         for z in 'ab':
             sd=get_site_info(db_cursor,db_schema_info,'info_sites',metadata_dict['ip_'+z])

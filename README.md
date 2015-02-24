@@ -20,4 +20,5 @@
      * seperate near-far (_nf) and far-near (_fn) (plus other signals, protection, etc.)
        and apply processing individually. Then just define one link as the ensemble of
        its signals (_nf, _fn, _nf_protect, ...)
+ * Maybe use decorators to clean up tx_rx_pair loop stuff
  * Is 'mhz_a' in metadata the frequency from near- to far-end or far to near?

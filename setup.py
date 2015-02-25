@@ -17,7 +17,7 @@ def read(fname):
 
 setup(
     name = "pycomlink",
-    version = "0.0.1",
+    version = "0.0.2",
     author = "Christian Chwala",
     author_email = "christian.chwala@kit.edu",
     description = ("Python tools for MW link data processing"),
@@ -27,7 +27,7 @@ setup(
     packages=['pycomlink'],
     long_description=read('README.md'),
     classifiers=[
-        "Development Status :: 1 - Planing",
+        "Development Status :: 3 - Alpha",
         "Topic :: Scientific/Engineering :: Atmospheric Science",
         "License :: OSI Approved :: MIT",
     ],

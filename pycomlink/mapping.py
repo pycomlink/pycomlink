@@ -13,7 +13,7 @@
 from math import sqrt
 import numpy as np
 
-def inv_dist(lons_mp,lats_mp,values_mp,lons_grid,lats_grid,power=2):  
+def inv_dist(lons_mp,lats_mp,values_mp,lons_grid,lats_grid,power,smoothing):  
     """
     lons_mp,lats_mp coordinates of measuring points
     values_mp values at measuring points
@@ -25,12 +25,12 @@ def inv_dist(lons_mp,lats_mp,values_mp,lons_grid,lats_grid,power=2):
     
     for i in range(0,lons_grid.size):
         for j in range(0,lats_grid.size):
-            values_idw[j][i] = gridpointValue(lons_grid[i],lats_grid[j],power,
+            values_idw[j][i] = gridpointValue(lons_grid[i],lats_grid[j],power,smoothing,
                                                 lons_mp,lats_mp,values_mp) 
     return values_idw
 
 
-def gridpointValue(x,y,power,x_o,y_o,values_o):  
+def gridpointValue(x,y,power,smoothing,x_o,y_o,values_o):  
     """
     x,y coordinates lon/lat of regular grid
     x_o,y_o coordinates lon,lat of measuring point
@@ -41,7 +41,8 @@ def gridpointValue(x,y,power,x_o,y_o,values_o):
     denominator=0 
     
     for ii in range(0,len(values_o)):  
-        dist = sqrt(((x-x_o[ii])**2.)+((y-y_o[ii])**2.))  
+        #dist = sqrt(((x-x_o[ii])**2.)+((y-y_o[ii])**2.))
+        dist = sqrt((x-x_o[ii])*(x-x_o[ii])+(y-y_o[ii])*(y-y_o[ii])+smoothing*smoothing)
         #If the point is really close to one of the data points, 
         #            return the data point value to avoid singularities  
         if(dist<0.0000000001):  

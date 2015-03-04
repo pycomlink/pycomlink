@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.basemap import Basemap
 import math
 import matplotlib
-
+import matplotlib.animation as animation
 
 from . import wet_dry
 from . import baseline
@@ -247,7 +247,8 @@ class ComlinkSet():
     def plot_idw(self, area, grid_res,
                  figsize=(15,10),
                  acc_type='sum',
-                 time_resolution=15):
+                 time_resolution=15,
+                 power=2,smoothing=0):
         """
         Plotting Inverse Distance Interpolation of Rain Sums or Rain Rate 
             on regular grid
@@ -267,12 +268,23 @@ class ComlinkSet():
         time_resolution: int
                 resampling time for rain rate calculation
                 only used for type 'rr'
+                
+        power, smoothing: flt
+                 power of distance decay and smoothing factor for 
+                 IDW interpolation       
         """
         
         fig = plt.figure(figsize=figsize)
         mp = Basemap(projection='merc',llcrnrlat=area[2],urcrnrlat=area[3],\
             llcrnrlon=area[0],urcrnrlon=area[1],lat_ts=20,resolution=None)
-        mp.shadedrelief()    
+        mp.shadedrelief() 
+        # draw parallels.
+        parallels = np.arange(40.,60.,0.5)
+        mp.drawparallels(parallels,labels=[1,0,0,0],fontsize=10)
+        # draw meridians
+        meridians = np.arange(0.,20.,0.5)
+        mp.drawmeridians(meridians,labels=[0,0,0,1],fontsize=10)
+
         #mp.drawcoastlines(color='blue')
         #mp.drawcountries()
         #mp.etopo()
@@ -297,10 +309,12 @@ class ComlinkSet():
         "#fdfdfd"   # 10.00+
         ]
         precip_colormap = matplotlib.colors.ListedColormap(nws_precip_colors)        
-        levels = [0.01, 0.1, 0.25, 0.50, 0.75, 1.0, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0,
-          6.0, 8.0, 10., 20.0]  
-        norm = matplotlib.colors.BoundaryNorm(levels, 15)  
-        
+        levels_rr = [0.01, 0.1, 0.25, 0.50, 0.75, 1.0, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0,
+          6.0, 8.0, 10., 100.0]  
+        levels_sum = [1.00, 2.0, 3.0, 4.0, 5.0,6.0, 7.0,8.0,9.0, 10.0, 15.0, 20.0,
+          25.0, 50.0, 100.,500.]           
+        norm_rr = matplotlib.colors.BoundaryNorm(levels_rr, 15)  
+        norm_sum = matplotlib.colors.BoundaryNorm(levels_sum, 15)
         
         #Definition of output grid
         gridx = np.linspace(area[0],area[1],grid_res)
@@ -324,17 +338,19 @@ class ComlinkSet():
                        values_mw.append(prep_sum)
                                    
             inv_d_values=mapping.inv_dist(lons_mw,lats_mw,values_mw,
-                                          gridx,gridy,
-                                          power=2)
+                                          gridx,gridy,power,smoothing)
             
                                                                 
-            cs = mp.contourf(x,y,inv_d_values,levels=levels,norm=norm,cmap=precip_colormap)
+            cs = mp.contourf(x,y,inv_d_values,levels=levels_sum,norm=norm_sum,cmap=precip_colormap)
+            ln,lt = mp(lons_mw,lats_mw)
+
+            mp.scatter(ln,lt,c=values_mw,cmap=precip_colormap, alpha=0.6, s=60,norm=norm_sum)            
             
             #cs = mp.pcolormesh(x,y,inv_d_values, norm=norm,
             #               cmap=precip_colormap)
             cbar = mp.colorbar(cs,location='bottom',pad="5%")
             cbar.set_label('mm')
-            
+  
         elif acc_type == 'rr':
 
             def animate(i):
@@ -355,19 +371,21 @@ class ComlinkSet():
     
                 inv_d_values=mapping.inv_dist(lons_mw,lats_mw,values_mw,
                                               gridx,gridy,
-                                              power=2)                           
+                                              power,smoothing)                           
                 
                 plt.title(str(self.set[0].data.resample(str(time_resolution)+'Min').index[i]))
     
-                cs = mp.contourf(x,y,inv_d_values,levels=levels,norm=norm,cmap=precip_colormap)
+                cs = mp.contourf(x,y,inv_d_values,levels=levels_rr,norm=norm_rr,cmap=precip_colormap)
+                ln,lt = mp(lons_mw,lats_mw)
+                mp.scatter(ln,lt,c=values_mw,cmap=precip_colormap, alpha=0.6, s=60,norm=norm_rr)                
                 cbar = mp.colorbar(cs,location='bottom',pad="5%")
                 cbar.set_label('mm/h')
                             
-            anim = matplotlib.animation.FuncAnimation(fig, animate, 
+            anim = animation.FuncAnimation(fig, animate, 
                                            frames=len(self.set[0].data.resample(str(time_resolution)+'Min').index),
-                                           interval=100, blit=True)        
+                                           interval=1000, blit=True)        
                             
-            anim.save('animation.gif', writer='imagemagick', fps=4)    
+            anim.save('animation.gif', writer='imagemagick')    
                          
             
         else:

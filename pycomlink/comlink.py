@@ -48,12 +48,13 @@ class Comlink():
         CML frequency.
     
     """
-    def __init__(self, metadata, TXRX_df):
+    def __init__(self, metadata, TXRX_df, tx_rx_pair_dict=None):
         self.metadata = metadata
         self.data = TXRX_df
         self.processing_info = {}
 
-        # TODO Check column names for the available TX and RX values
+        if tx_rx_pair_dict is None:
+            tx_rx_pair_dict = derive_tx_rx_pairs(TXTX_df)
         
         # TODO resolve protection link data in DataFrame
 
@@ -65,6 +66,9 @@ class Comlink():
                               'tx': 'tx_near',
                               'rx': 'rx_far',
                               'color': 'b'}}
+                          
+        # REMOVE THIS HACK
+        tx_rx_pairs = tx_rx_pair_dict
 
         # Calculate TX-RX
         for pair_id, column_names in tx_rx_pairs.iteritems():

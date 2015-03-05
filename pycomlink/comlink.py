@@ -43,32 +43,55 @@ class Comlink():
          .
         Further columns can be present in the DataFrame, 
         e.g. RTT (the round trip time of a SNMP data acquisition request).
-    param : 
-        Metadata for the CML. Important are the site locations and the 
-        CML frequency.
+        
+    tx_rx_pairs : dict, optional
+        Dictonary that defines which TX and RX values belong together and
+        which frequency and polarization are used. Example:
+            tx_rx_pairs =  {'fn': {'name': 'far-near', 
+                                   'tx': 'tx_far',
+                                   'rx': 'rx_near',
+                                   'f': 17.8,
+                                   'pol': 'V',
+                                   'linecolor': 'r'},
+                            'nf': {'name': 'near-far',
+                                   'tx': 'tx_near',
+                                   'rx': 'rx_far',
+                                   'f': 18.8,
+                                   'pol': 'V',
+                                   'linecolor': 'b'}}
+    
+    site_info : dict, opional
+        Dictonary with two keys for the two MW link sites. Each item holds
+        another dict with at least 'lat' and 'lon' values in ???? units...
+        Further keys, like 'ID' or 'site_name' are possible but not mandatory.
+        If the 'lat' and 'lon' values are not supplied, the geolocating 
+        functions do not work of course.
+        Example site info dict:
+		site_info = {'A': {'lat': 2123,
+                              'lon': 324,
+	                        'ID': 'MY1231'},
+                        'B': {'lat': 23123,
+	                        'lon': 1231,
+	                        'ID': 'MY1231'}
     
     """
-    def __init__(self, metadata, TXRX_df, tx_rx_pair_dict=None):
-        self.metadata = metadata
+    def __init__(self, TXRX_df, tx_rx_pairs=None, site_info=None):
         self.data = TXRX_df
         self.processing_info = {}
 
         if tx_rx_pair_dict is None:
-            tx_rx_pair_dict = derive_tx_rx_pairs(TXTX_df)
+            tx_rx_pairs = derive_tx_rx_pairs(TXTX_df)
         
         # TODO resolve protection link data in DataFrame
 
         tx_rx_pairs = {'fn': {'name': 'far-near', 
                               'tx': 'tx_far',
                               'rx': 'rx_near',
-                              'color': 'r'},
+                              'linecolor': 'r'},
                        'nf': {'name': 'near-far',
                               'tx': 'tx_near',
                               'rx': 'rx_far',
-                              'color': 'b'}}
-                          
-        # REMOVE THIS HACK
-        tx_rx_pairs = tx_rx_pair_dict
+                              'linecolor': 'b'}}
 
         # Calculate TX-RX
         for pair_id, column_names in tx_rx_pairs.iteritems():

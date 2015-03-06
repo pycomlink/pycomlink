@@ -89,11 +89,11 @@ class Comlink():
     
     """
     def __init__(self, 
-                 TXRX_df, 
+                 data, 
                  tx_rx_pairs=None, 
                  metadata=None,
                  const_TX_power=False):
-        self.data = TXRX_df
+        self.data = data
         self.tx_rx_pairs = tx_rx_pairs
         self.metadata = metadata
         self.processing_info = {}
@@ -131,8 +131,10 @@ class Comlink():
         print 'ID: ' + self.metadata['link_id']
         print '-------------------------------------------------------------'
         print '     Site A                       Site B'
-        print ' IP: ' + self.metadata['site_A']['ip'] + '                 '  \
-                      + self.metadata['site_B']['ip']
+        if 'ip' in self.metadata['site_A'].keys() and \
+           'ip' in self.metadata['site_B'].keys():
+            print ' IP: ' + self.metadata['site_A']['ip'] + '                 '  \
+                          + self.metadata['site_B']['ip']
         for key, tx_rx_pair in self.tx_rx_pairs.iteritems():
             print '  f:   --------- ' + str(tx_rx_pair['f_GHz']) \
                                       + ' GHz ---------- '

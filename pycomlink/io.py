@@ -19,7 +19,7 @@ from collections import namedtuple
 
 from comlink import Comlink
 
-def to_hdf5(cml, fn, complib=None, complevel=9):
+def write_hdf5(cml, fn, complib=None, complevel=9):
     """Write Comlink object to HDF5 
 
     WIP....
@@ -47,7 +47,7 @@ def to_hdf5(cml, fn, complib=None, complevel=9):
     
     store.close()
     
-def from_hdf5(fn):
+def read_hdf5(fn):
     """Read Comlink object frmo HDF5
     
     WIP...
@@ -70,14 +70,15 @@ def from_hdf5(fn):
     
     return cml
     
-def from_PROCEMA_raw_data(fn):
+def read_PROCEMA_raw_data(fn):
     """ Read in PROCEMA data for one MW link stored as CSV or MATLAB binary
     
     Parameters
     ----------
     
     fn : str
-        Filename
+        Absolute filename. File can be a PROCEMA MATLAB file or a PROCEMA
+        CSV file as exported by the old PROCEMA database
         
     Returns
     -------
@@ -96,16 +97,14 @@ def from_PROCEMA_raw_data(fn):
         param.mV_clear_sky = dat['equivalent_voltage_at_adc'][0][0]
         param.RSL_clear_sky = dat['received_power_clear_sky'][0][0]
         param.dB_per_V = dat['attenuation_per_volt'][0][0]
-        
-        data = pd.DataFrame({'mV' : pd.Series(
-                                        dat['values'][0],
-                                        index=matlab_datenum_2_datetime(
-                                              dat['time'][0]))})
-        
-        data['rx'] = mV2RSL(data.mV,
+              
+        rx = _mV2RSL(dat['values'][0],
                              param.dB_per_V,
                              param.RSL_clear_sky,
                              param.mV_clear_sky)
+        index = _matlab_datenum_2_datetime(dat['time'][0])
+                             
+        data = pd.DataFrame({'rx' : pd.Series(rx, index=index)})
     
     # !! This is only a quick hack and works correctly only
     # !! For data exported to csv from PROCEM database for link
@@ -114,13 +113,7 @@ def from_PROCEMA_raw_data(fn):
     # !! set) 
     if fext=='.csv':
         import re
-        
-        dat = np.recfromcsv(fn, 
-                            skip_header=24, 
-                            names=('name', 'ts', 'values'))
-        data = pd.DataFrame(index=pd.to_datetime(pd.Series(dat['ts'])))
-        data['mV'] = dat['values']
-        
+               
         metadata_str = ''
         with open(fn) as f:
             line = f.readline()
@@ -138,29 +131,37 @@ def from_PROCEMA_raw_data(fn):
             param.mV_clear_sky = 1580
             param.RSL_clear_sky = -40
             param.dB_per_V = 29
+
+        dat = np.recfromcsv(fn, 
+                            skip_header=24, 
+                            names=('name', 'ts', 'values'))
+        data = pd.DataFrame(index=pd.to_datetime(pd.Series(dat['ts'])))
             
-        data['rx'] = mV2RSL(data.mV,
+        data['rx'] = _mV2RSL(dat['values'],
                              param.dB_per_V,
                              param.RSL_clear_sky,
                              param.mV_clear_sky)
+
+    cml = Comlink(TXRX_df=data, const_TX_power=('tx',20))
                              
-    return data
+    return cml
 
+#############################################
+# Helper functions for PROCEMA data parsing #
+#############################################
 
-# Helper functions for PROCEMA data parsing
-
-def mV2RSL(mV, dB_per_V, RSL_clear_sky, mV_clear_sky):
-    mV = clean_mV_RSL_record(mV)
+def _mV2RSL(mV, dB_per_V, RSL_clear_sky, mV_clear_sky):
+    mV = _clean_mV_RSL_record(mV)
     RSL = RSL_clear_sky - (mV_clear_sky - mV) * 1e-3 * dB_per_V
     return RSL
 
-def clean_mV_RSL_record(mV_raw):
+def _clean_mV_RSL_record(mV_raw):
     import numpy as np
     mV = np.array(mV_raw, dtype=float)
     mV[mV==0] = np.NaN
     return mV
     
-def matlab_datenum_2_datetime(ts_datenum, round_to='seconds'):
+def _matlab_datenum_2_datetime(ts_datenum, round_to='seconds'):
     from datetime import datetime, timedelta
     ts = []
     for t in ts_datenum:
@@ -168,14 +169,14 @@ def matlab_datenum_2_datetime(ts_datenum, round_to='seconds'):
                        + timedelta(days=t%1) \
                        - timedelta(days = 366)
         if round_to == 'seconds':
-            ts.append(round_datetime(ts_not_rounded, round_to='seconds'))
+            ts.append(_round_datetime(ts_not_rounded, round_to='seconds'))
         elif round_to == 'None':
             ts.append(ts_not_rounded)
         else:
             print 'round_to value not supported'
     return ts
     
-def round_datetime(ts_not_rounded, round_to='seconds'):
+def _round_datetime(ts_not_rounded, round_to='seconds'):
     from datetime import timedelta
     seconds_not_rounded = ts_not_rounded.second \
                         + ts_not_rounded.microsecond * 1e-6

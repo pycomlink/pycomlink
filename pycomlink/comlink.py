@@ -28,7 +28,10 @@ class Comlink():
     ----------
 
     data : pandas.DataFrame
-        DataFrame which holds at minimum the TX- and RX-levels. For each,
+        OUTDATED!!!! Will be rewritten soon...    
+    
+        DataFrame which holds at minimum one time series of  RX-levels. Then,
+        TX power is assumed to be constant at 20 dBmFor each,
         far end and near end entries can exists. Furthermore, for protection
         links additional TX- and RX-level may exists. The naming convention 
         is:
@@ -50,54 +53,62 @@ class Comlink():
             tx_rx_pairs =  {'fn': {'name': 'far-near', 
                                    'tx': 'tx_far',
                                    'rx': 'rx_near',
-                                   'f': 17.8,
+                                   'tx_site': 'site_B',
+                                   'rx_site': 'site_A',
+                                   'f_GHz': 17.8,
                                    'pol': 'V',
                                    'linecolor': 'r'},
                             'nf': {'name': 'near-far',
                                    'tx': 'tx_near',
                                    'rx': 'rx_far',
-                                   'f': 18.8,
+                                   'tx_site': 'site_A',
+                                   'rx_site': 'site_B',
+                                   'f_GHz': 18.8,
                                    'pol': 'V',
                                    'linecolor': 'b'}}
     
-    site_info : dict, opional
+   metadata : dict, opional
         Dictonary with two keys for the two MW link sites. Each item holds
         another dict with at least 'lat' and 'lon' values in ???? units...
         Further keys, like 'ID' or 'site_name' are possible but not mandatory.
         If the 'lat' and 'lon' values are not supplied, the geolocating 
         functions do not work of course.
         Example site info dict:
-            site_info = {'A': {'lat': 2123,
-                               'lon': 324,
-                               'ID': 'MY1231'},
-                         'B': {'lat': 23123,
-                               'lon': 1231,
-                               'ID': 'MY1231'}
+            metadata = {'site_A': {'lat': 2123,
+                                   'lon': 324,
+                                   'id': 'MY1231',
+                                   'ip': '127.0.0.1',
+                                   'slot': 2},
+                        'site_B': {'lat': 23123,
+                                   'lon': 1231,
+                                   'id': 'MY1231',
+                                   'ip': '127.0.0.2',
+                                   'slot': 3},
+                        'link_id': 'MY2345_3_MY2345_2',
+                        'length_km': 23.4}
     
     """
-    def __init__(self, TXRX_df, tx_rx_pairs=None, site_info=None):
+    def __init__(self, 
+                 TXRX_df, 
+                 tx_rx_pairs=None, 
+                 metadata=None,
+                 const_TX_power=False):
         self.data = TXRX_df
         self.tx_rx_pairs = tx_rx_pairs
-        self.site_info = site_info
+        self.metadata = metadata
         self.processing_info = {}
 
         # If no tx_rx_pairs are supplied, try to be smart and figure
-        # them out by analysing the columne names of the TXRX_df
+        # them out by analysing the column names of the TXRX_df
         if tx_rx_pairs is None:
-            tx_rx_pairs = derive_tx_rx_pairs(TXRX_df)
+            tx_rx_pairs = derive_tx_rx_pairs(TXRX_df.columns)
+            self.tx_rx_pairs = tx_rx_pairs
         
         # TODO resolve protection link data in DataFrame
 
-        tx_rx_pairs = {'fn': {'name': 'far-near', 
-                              'tx': 'tx_far',
-                              'rx': 'rx_near',
-                              'linecolor': 'r'},
-                       'nf': {'name': 'near-far',
-                              'tx': 'tx_near',
-                              'rx': 'rx_far',
-                              'linecolor': 'b'}}
-
         # Calculate TX-RX
+        # TODO change name of `column_names` since this does not make
+        #      sense anymore.
         for pair_id, column_names in tx_rx_pairs.iteritems():
             self.data['txrx_' + pair_id] = self.data[column_names['tx']] \
                                          - self.data[column_names['rx']]
@@ -117,12 +128,13 @@ class Comlink():
         print 'ID: ' + self.metadata['link_id']
         print '-------------------------------------------------------------'
         print '     Site A                       Site B'
-        print ' IP: ' + self.metadata['ip_a'] + '                  '  \
-                      + self.metadata['ip_b']
-        print '  f:   --------- ' + str(self.metadata['f_GHz_nf']) \
-                                    + ' GHz ----------> '
-        print '      <--------- ' + str(self.metadata['f_GHz_fn']) \
-                                    + ' GHz ---------- ' 
+        print ' IP: ' + self.metadata['site_A']['ip'] + '                 '  \
+                      + self.metadata['site_B']['ip']
+        for key, tx_rx_pair in self.tx_rx_pairs.iteritems():
+            print '  f:   --------- ' + str(tx_rx_pair['f_GHz']) \
+                                      + ' GHz ---------- '
+#        print '      <--------- ' + str(self.metadata['f_GHz_fn']) \
+#                                    + ' GHz ---------- ' 
         print '  L: ' + str(self.metadata['length_km']) + ' km'
         print '============================================================='
     
@@ -178,7 +190,7 @@ class Comlink():
                             
                         color = self.processing_info['tx_rx_pairs']\
                                                     [txrx_pair_id]\
-                                                    ['color']
+                                                    ['linecolor']
                         name = self.processing_info['tx_rx_pairs']\
                                                    [txrx_pair_id]\
                                                    ['name']
@@ -511,13 +523,13 @@ def derive_tx_rx_pairs(columns_names):
         for tx_pattern in tx_patterns:
             if tx_pattern in pattern_found_dict.keys():
                 break
-            else:
-                raise ValueError('There must be a match between the tx_patterns and the patterns already found')
+        else:
+            raise ValueError('There must be a match between the tx_patterns and the patterns already found')
         for rx_pattern in rx_patterns:
             if rx_pattern in pattern_found_dict.keys():
                 break
-            else:
-                raise ValueError('There must be a match between the rx_patterns and the patterns already found')
+        else:
+            raise ValueError('There must be a match between the rx_patterns and the patterns already found')
         tx_rx_pairs = {site_a_key + site_b_key: {'name': site_a_key + '-' + site_b_key,
                                                 'tx': tx_pattern + '_' + site_a_key,
                                                 'rx': rx_pattern + '_' + site_b_key,

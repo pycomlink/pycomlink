@@ -21,7 +21,7 @@ setup(
     author = "Christian Chwala",
     author_email = "christian.chwala@kit.edu",
     description = ("Python tools for MW link data processing"),
-    license = "MIT",
+    license = "BSD",
     keywords = "microwave links precipitation radar",
     url = "https://bitbucket.org/cchwala/pycomlink",
     packages=['pycomlink'],
@@ -29,7 +29,7 @@ setup(
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Topic :: Scientific/Engineering :: Atmospheric Science",
-        "License :: OSI Approved :: MIT",
+        "License :: OSI Approved :: BSD",
     ],
     # A list of all available classifiers can be found at 
     # https://pypi.python.org/pypi?%3Aaction=list_classifiers

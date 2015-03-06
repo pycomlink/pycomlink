@@ -28,7 +28,10 @@ class Comlink():
     ----------
 
     data : pandas.DataFrame
-        DataFrame which holds at minimum the TX- and RX-levels. For each,
+        OUTDATED!!!! Will be rewritten soon...    
+    
+        DataFrame which holds at minimum one time series of  RX-levels. Then,
+        TX power is assumed to be constant at 20 dBmFor each,
         far end and near end entries can exists. Furthermore, for protection
         links additional TX- and RX-level may exists. The naming convention 
         is:
@@ -43,30 +46,69 @@ class Comlink():
          .
         Further columns can be present in the DataFrame, 
         e.g. RTT (the round trip time of a SNMP data acquisition request).
-    param : 
-        Metadata for the CML. Important are the site locations and the 
-        CML frequency.
+        
+    tx_rx_pairs : dict, optional
+        Dictonary that defines which TX and RX values belong together and
+        which frequency and polarization are used. Example:
+            tx_rx_pairs =  {'fn': {'name': 'far-near', 
+                                   'tx': 'tx_far',
+                                   'rx': 'rx_near',
+                                   'tx_site': 'site_B',
+                                   'rx_site': 'site_A',
+                                   'f_GHz': 17.8,
+                                   'pol': 'V',
+                                   'linecolor': 'r'},
+                            'nf': {'name': 'near-far',
+                                   'tx': 'tx_near',
+                                   'rx': 'rx_far',
+                                   'tx_site': 'site_A',
+                                   'rx_site': 'site_B',
+                                   'f_GHz': 18.8,
+                                   'pol': 'V',
+                                   'linecolor': 'b'}}
+    
+   metadata : dict, opional
+        Dictonary with two keys for the two MW link sites. Each item holds
+        another dict with at least 'lat' and 'lon' values in ???? units...
+        Further keys, like 'ID' or 'site_name' are possible but not mandatory.
+        If the 'lat' and 'lon' values are not supplied, the geolocating 
+        functions do not work of course.
+        Example site info dict:
+            metadata = {'site_A': {'lat': 2123,
+                                   'lon': 324,
+                                   'id': 'MY1231',
+                                   'ip': '127.0.0.1',
+                                   'slot': 2},
+                        'site_B': {'lat': 23123,
+                                   'lon': 1231,
+                                   'id': 'MY1231',
+                                   'ip': '127.0.0.2',
+                                   'slot': 3},
+                        'link_id': 'MY2345_3_MY2345_2',
+                        'length_km': 23.4}
     
     """
-    def __init__(self, metadata, TXRX_df):
-        self.metadata = metadata
+    def __init__(self, 
+                 TXRX_df, 
+                 tx_rx_pairs=None, 
+                 metadata=None,
+                 const_TX_power=False):
         self.data = TXRX_df
+        self.tx_rx_pairs = tx_rx_pairs
+        self.metadata = metadata
         self.processing_info = {}
 
-        # TODO Check column names for the available TX and RX values
+        # If no tx_rx_pairs are supplied, try to be smart and figure
+        # them out by analysing the column names of the TXRX_df
+        if tx_rx_pairs is None:
+            tx_rx_pairs = derive_tx_rx_pairs(TXRX_df.columns)
+            self.tx_rx_pairs = tx_rx_pairs
         
         # TODO resolve protection link data in DataFrame
 
-        tx_rx_pairs = {'fn': {'name': 'far-near', 
-                              'tx': 'tx_far',
-                              'rx': 'rx_near',
-                              'color': 'r'},
-                       'nf': {'name': 'near-far',
-                              'tx': 'tx_near',
-                              'rx': 'rx_far',
-                              'color': 'b'}}
-
         # Calculate TX-RX
+        # TODO change name of `column_names` since this does not make
+        #      sense anymore.
         for pair_id, column_names in tx_rx_pairs.iteritems():
             self.data['txrx_' + pair_id] = self.data[column_names['tx']] \
                                          - self.data[column_names['rx']]
@@ -86,12 +128,13 @@ class Comlink():
         print 'ID: ' + self.metadata['link_id']
         print '-------------------------------------------------------------'
         print '     Site A                       Site B'
-        print ' IP: ' + self.metadata['ip_a'] + '                  '  \
-                      + self.metadata['ip_b']
-        print '  f:   --------- ' + str(self.metadata['f_GHz_nf']) \
-                                    + ' GHz ----------> '
-        print '      <--------- ' + str(self.metadata['f_GHz_fn']) \
-                                    + ' GHz ---------- ' 
+        print ' IP: ' + self.metadata['site_A']['ip'] + '                 '  \
+                      + self.metadata['site_B']['ip']
+        for key, tx_rx_pair in self.tx_rx_pairs.iteritems():
+            print '  f:   --------- ' + str(tx_rx_pair['f_GHz']) \
+                                      + ' GHz ---------- '
+#        print '      <--------- ' + str(self.metadata['f_GHz_fn']) \
+#                                    + ' GHz ---------- ' 
         print '  L: ' + str(self.metadata['length_km']) + ' km'
         print '============================================================='
     
@@ -147,7 +190,7 @@ class Comlink():
                             
                         color = self.processing_info['tx_rx_pairs']\
                                                     [txrx_pair_id]\
-                                                    ['color']
+                                                    ['linecolor']
                         name = self.processing_info['tx_rx_pairs']\
                                                    [txrx_pair_id]\
                                                    ['name']
@@ -418,5 +461,93 @@ class Comlink():
                 A_R_relation.calc_R_from_A(self.data['A_' + pair_id], 
                                            a, b,
                                            self.metadata['length_km'])
-                                          
-                
+                  
+####################                        
+# Helper functions #
+####################
+                  
+def derive_tx_rx_pairs(columns_names):
+    """ 
+    Derive the TX-RX pairs from the MW link data columns names
+    
+    Right now, this only works for two sites with naming conventions
+    'TX_something', or 'tx_something'. or 'RX_...', 'rx_...'
+    
+    Parameters
+    ==========
+    
+    column_names : list
+        List of columns names from the MW link DataFrame
+        
+    Returns
+    =======
+    tx_rx_pairs : dict of dicts
+        Dict of dicts of the TX-RX pairs
+    
+    
+    """
+    
+    tx_patterns = ['tx', 'TX']
+    rx_patterns = ['rx', 'RX']
+    patterns = tx_patterns + rx_patterns
+
+    # Find the columns for each of the pattern
+    pattern_found_dict = {}
+    for pattern in patterns:
+        pattern_found_dict[pattern] = []
+        for name in columns_names:
+            if pattern in name:
+                pattern_found_dict[pattern].append(name)
+        if pattern_found_dict[pattern] == []:
+            # Remove those keys where no match was found
+            pattern_found_dict.pop(pattern, None)
+    
+    # Do different things, depending on how many columns names 
+    # did fit to one of the patterns
+    if len(pattern_found_dict) == 2:
+        # Derive site name guesses from column names, i.e. the 'a' from 'tx_a'
+        site_name_guesses = []
+        for pattern, column_name_list in pattern_found_dict.iteritems():
+            for col_name in column_name_list:
+                site_name_guesses.append(col_name.split('_')[1])
+        # Check that there are two columns for each site name guess
+        unique_site_names = list(set(site_name_guesses))
+        if len(unique_site_names) != 2:
+            raise ValueError('There should be exactly two site names')
+        for site_name in unique_site_names:
+            if site_name_guesses.count(site_name) != 2:
+                raise ValueError('Site names were found but they must always be two correspoding columns for each name')
+        # Build tx_rx_dict
+        site_a_key = unique_site_names[0]
+        site_b_key = unique_site_names[1]
+        for tx_pattern in tx_patterns:
+            if tx_pattern in pattern_found_dict.keys():
+                break
+        else:
+            raise ValueError('There must be a match between the tx_patterns and the patterns already found')
+        for rx_pattern in rx_patterns:
+            if rx_pattern in pattern_found_dict.keys():
+                break
+        else:
+            raise ValueError('There must be a match between the rx_patterns and the patterns already found')
+        tx_rx_pairs = {site_a_key + site_b_key: {'name': site_a_key + '-' + site_b_key,
+                                                'tx': tx_pattern + '_' + site_a_key,
+                                                'rx': rx_pattern + '_' + site_b_key,
+                                                'linecolor': 'b'},
+                      site_b_key + site_a_key: {'name': site_b_key + '-' + site_a_key,
+                                                'tx': tx_pattern + '_' + site_b_key,
+                                                'rx': rx_pattern + '_' + site_a_key,
+                                                'linecolor': 'r'}}
+    elif len(pattern_found_dict) == 1:
+        pass
+    elif len(pattern_found_dict) == 0:
+        pass
+    else:
+        pass
+    
+    return tx_rx_pairs
+    
+    
+    
+        
+        

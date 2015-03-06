@@ -67,20 +67,24 @@ class Comlink():
         If the 'lat' and 'lon' values are not supplied, the geolocating 
         functions do not work of course.
         Example site info dict:
-		site_info = {'A': {'lat': 2123,
-                              'lon': 324,
-	                        'ID': 'MY1231'},
-                        'B': {'lat': 23123,
-	                        'lon': 1231,
-	                        'ID': 'MY1231'}
+            site_info = {'A': {'lat': 2123,
+                               'lon': 324,
+                               'ID': 'MY1231'},
+                         'B': {'lat': 23123,
+                               'lon': 1231,
+                               'ID': 'MY1231'}
     
     """
     def __init__(self, TXRX_df, tx_rx_pairs=None, site_info=None):
         self.data = TXRX_df
+        self.tx_rx_pairs = tx_rx_pairs
+        self.site_info = site_info
         self.processing_info = {}
 
-        if tx_rx_pair_dict is None:
-            tx_rx_pairs = derive_tx_rx_pairs(TXTX_df)
+        # If no tx_rx_pairs are supplied, try to be smart and figure
+        # them out by analysing the columne names of the TXRX_df
+        if tx_rx_pairs is None:
+            tx_rx_pairs = derive_tx_rx_pairs(TXRX_df)
         
         # TODO resolve protection link data in DataFrame
 
@@ -445,5 +449,93 @@ class Comlink():
                 A_R_relation.calc_R_from_A(self.data['A_' + pair_id], 
                                            a, b,
                                            self.metadata['length_km'])
-                                          
-                
+                  
+####################                        
+# Helper functions #
+####################
+                  
+def derive_tx_rx_pairs(columns_names):
+    """ 
+    Derive the TX-RX pairs from the MW link data columns names
+    
+    Right now, this only works for two sites with naming conventions
+    'TX_something', or 'tx_something'. or 'RX_...', 'rx_...'
+    
+    Parameters
+    ==========
+    
+    column_names : list
+        List of columns names from the MW link DataFrame
+        
+    Returns
+    =======
+    tx_rx_pairs : dict of dicts
+        Dict of dicts of the TX-RX pairs
+    
+    
+    """
+    
+    tx_patterns = ['tx', 'TX']
+    rx_patterns = ['rx', 'RX']
+    patterns = tx_patterns + rx_patterns
+
+    # Find the columns for each of the pattern
+    pattern_found_dict = {}
+    for pattern in patterns:
+        pattern_found_dict[pattern] = []
+        for name in columns_names:
+            if pattern in name:
+                pattern_found_dict[pattern].append(name)
+        if pattern_found_dict[pattern] == []:
+            # Remove those keys where no match was found
+            pattern_found_dict.pop(pattern, None)
+    
+    # Do different things, depending on how many columns names 
+    # did fit to one of the patterns
+    if len(pattern_found_dict) == 2:
+        # Derive site name guesses from column names, i.e. the 'a' from 'tx_a'
+        site_name_guesses = []
+        for pattern, column_name_list in pattern_found_dict.iteritems():
+            for col_name in column_name_list:
+                site_name_guesses.append(col_name.split('_')[1])
+        # Check that there are two columns for each site name guess
+        unique_site_names = list(set(site_name_guesses))
+        if len(unique_site_names) != 2:
+            raise ValueError('There should be exactly two site names')
+        for site_name in unique_site_names:
+            if site_name_guesses.count(site_name) != 2:
+                raise ValueError('Site names were found but they must always be two correspoding columns for each name')
+        # Build tx_rx_dict
+        site_a_key = unique_site_names[0]
+        site_b_key = unique_site_names[1]
+        for tx_pattern in tx_patterns:
+            if tx_pattern in pattern_found_dict.keys():
+                break
+            else:
+                raise ValueError('There must be a match between the tx_patterns and the patterns already found')
+        for rx_pattern in rx_patterns:
+            if rx_pattern in pattern_found_dict.keys():
+                break
+            else:
+                raise ValueError('There must be a match between the rx_patterns and the patterns already found')
+        tx_rx_pairs = {site_a_key + site_b_key: {'name': site_a_key + '-' + site_b_key,
+                                                'tx': tx_pattern + '_' + site_a_key,
+                                                'rx': rx_pattern + '_' + site_b_key,
+                                                'linecolor': 'b'},
+                      site_b_key + site_a_key: {'name': site_b_key + '-' + site_a_key,
+                                                'tx': tx_pattern + '_' + site_b_key,
+                                                'rx': rx_pattern + '_' + site_a_key,
+                                                'linecolor': 'r'}}
+    elif len(pattern_found_dict) == 1:
+        pass
+    elif len(pattern_found_dict) == 0:
+        pass
+    else:
+        pass
+    
+    return tx_rx_pairs
+    
+    
+    
+        
+        

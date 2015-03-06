@@ -98,10 +98,13 @@ class Comlink():
         self.metadata = metadata
         self.processing_info = {}
 
+        if const_TX_power is not False:
+            self.data[const_TX_power[0]] = const_TX_power[1]
+
         # If no tx_rx_pairs are supplied, try to be smart and figure
         # them out by analysing the column names of the TXRX_df
         if tx_rx_pairs is None:
-            tx_rx_pairs = derive_tx_rx_pairs(TXRX_df.columns)
+            tx_rx_pairs = derive_tx_rx_pairs(self.data.columns)
             self.tx_rx_pairs = tx_rx_pairs
         
         # TODO resolve protection link data in DataFrame
@@ -470,8 +473,15 @@ def derive_tx_rx_pairs(columns_names):
     """ 
     Derive the TX-RX pairs from the MW link data columns names
     
-    Right now, this only works for two sites with naming conventions
-    'TX_something', or 'tx_something'. or 'RX_...', 'rx_...'
+    Right now, this only works for the following cases:
+    1. A duplex link with TX and RX columns for each direction. The
+       Naming convention is 'TX_something', or 'tx_something',
+       or 'RX_...', 'rx_...', where `something` is most commonly `far`/`near`
+       or `A`/`B`.
+    2. A simplex link with one TX and RX columns which also carry the site
+       name after a '_' like in case 1.
+    3. A simplex link with one TX and RX columns which are named 'TX' 
+       and 'RX', or 'tx' and 'rx'.
     
     Parameters
     ==========
@@ -483,7 +493,6 @@ def derive_tx_rx_pairs(columns_names):
     =======
     tx_rx_pairs : dict of dicts
         Dict of dicts of the TX-RX pairs
-    
     
     """
     
@@ -502,20 +511,33 @@ def derive_tx_rx_pairs(columns_names):
             # Remove those keys where no match was found
             pattern_found_dict.pop(pattern, None)
     
-    # Do different things, depending on how many columns names 
+    # Do different things, depending on how many column names 
     # did fit to one of the patterns
+    #
+    # If both, TX and RX were found, the dict length should be 2
     if len(pattern_found_dict) == 2:
         # Derive site name guesses from column names, i.e. the 'a' from 'tx_a'
         site_name_guesses = []
         for pattern, column_name_list in pattern_found_dict.iteritems():
             for col_name in column_name_list:
-                site_name_guesses.append(col_name.split('_')[1])
+                if '_' in col_name:
+                    site_name_guesses.append(col_name.split('_')[1])
+                    no_site_name_in_tx_rx_column = False
+                elif col_name in tx_patterns:
+                    site_name_guesses.append('B')
+                    no_site_name_in_tx_rx_column = True
+                elif col_name in rx_patterns:
+                    site_name_guesses.append('A')
+                    no_site_name_in_tx_rx_column = True
+                else:
+                    raise ValueError('Column name can not be recognized')
         # Check that there are two columns for each site name guess
         unique_site_names = list(set(site_name_guesses))
         if len(unique_site_names) != 2:
             raise ValueError('There should be exactly two site names')
         for site_name in unique_site_names:
-            if site_name_guesses.count(site_name) != 2:
+            if site_name_guesses.count(site_name) != len(site_name_guesses)/ \
+                                                     len(unique_site_names):
                 raise ValueError('Site names were found but they must always be two correspoding columns for each name')
         # Build tx_rx_dict
         site_a_key = unique_site_names[0]
@@ -530,20 +552,31 @@ def derive_tx_rx_pairs(columns_names):
                 break
         else:
             raise ValueError('There must be a match between the rx_patterns and the patterns already found')
-        tx_rx_pairs = {site_a_key + site_b_key: {'name': site_a_key + '-' + site_b_key,
-                                                'tx': tx_pattern + '_' + site_a_key,
-                                                'rx': rx_pattern + '_' + site_b_key,
-                                                'linecolor': 'b'},
-                      site_b_key + site_a_key: {'name': site_b_key + '-' + site_a_key,
-                                                'tx': tx_pattern + '_' + site_b_key,
-                                                'rx': rx_pattern + '_' + site_a_key,
-                                                'linecolor': 'r'}}
+        # If we have two directions, each with a TX and RX signal
+        if len(site_name_guesses)/len(unique_site_names) == 2:
+            tx_rx_pairs = {site_a_key + site_b_key: {'name': site_a_key + '-' + site_b_key,
+                                                    'tx': tx_pattern + '_' + site_a_key,
+                                                    'rx': rx_pattern + '_' + site_b_key,
+                                                    'linecolor': 'b'},
+                          site_b_key + site_a_key: {'name': site_b_key + '-' + site_a_key,
+                                                    'tx': tx_pattern + '_' + site_b_key,
+                                                    'rx': rx_pattern + '_' + site_a_key,
+                                                    'linecolor': 'r'}}
+        # If we have only one direction witch a TX and RX signal
+        if len(site_name_guesses)/len(unique_site_names) == 1:
+            if no_site_name_in_tx_rx_column:
+                tx_rx_pairs = {site_b_key + site_a_key: {'name': site_b_key + '-' + site_a_key,
+                                                         'tx': tx_pattern,
+                                                         'rx': rx_pattern,
+                                                         'linecolor': 'b'}}
+                                
+    # TODO Try to deal with the case were only a RX column is present            
     elif len(pattern_found_dict) == 1:
-        pass
+        raise ValueError('Only one column was found to fit the TX- and RX-naming convetion')
     elif len(pattern_found_dict) == 0:
-        pass
+        raise ValueError('None of the columns was found to fit the TX- and RX-naming convention')
     else:
-        pass
+        raise ValueError('There seem to be too many columns that fit the TX- and RX-naming convention')
     
     return tx_rx_pairs
     

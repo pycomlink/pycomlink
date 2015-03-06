@@ -137,12 +137,32 @@ def read_PROCEMA_raw_data(fn):
                             names=('name', 'ts', 'values'))
         data = pd.DataFrame(index=pd.to_datetime(pd.Series(dat['ts'])))
             
+        # Convert RX power from mV recordings from data logger
         data['rx'] = _mV2RSL(dat['values'],
                              param.dB_per_V,
                              param.RSL_clear_sky,
                              param.mV_clear_sky)
+        # Add column with constant TX power
+        data['tx'] = 18.0
+                             
+        tx_rx_pairs =  {'fn': {'name': 'far-near', 
+                               'tx': 'tx',
+                               'rx': 'rx',
+                               'tx_site': 'site_B',
+                               'rx_site': 'site_A',
+                               'f_GHz': 23.0,
+                               'pol': 'V',
+                               'linecolor': 'b'}}
+        metadata = {'site_A': {'lat': 47.493,
+                               'lon': 11.0971},
+                    'site_B': {'lat': 47.5861,
+                               'lon': 11.1028},
+                    'link_id': linkname,
+                    'length_km': 10.4}
 
-    cml = Comlink(TXRX_df=data, const_TX_power=('tx',20))
+    cml = Comlink(data=data, 
+                  tx_rx_pairs=tx_rx_pairs,
+                  metadata=metadata)
                              
     return cml
 

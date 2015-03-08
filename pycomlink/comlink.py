@@ -151,8 +151,7 @@ class Comlink():
         ----------
         
         param_list : str, list of str, tuple of str, list of tuple of str
-            String or ensemble of sting which give the parameters that 
-            will be plotted.
+            List of parameters to plot.....
             ....
             ...bla bla
         ...
@@ -213,7 +212,84 @@ class Comlink():
                 #plt.setp(ax[i][0].get_xticklabels(), visible=False)
                 ax[i][0].xaxis.set_ticklabels([])
         return ax
+                    
+            
+    
+    def plot_txrx(self, resampling_time=None, **kwargs):
+        """Plot TX- minus RX-level
         
+        Parameters
+        ----------
+        
+        resampling_time : str
+            Resampling time according to Pandas resampling time options,
+            e.g. ('min, '5min, 'H', 'D', ...)
+        kwargs : 
+            kwargs for Pandas plotting                        
+            
+        """
+        
+        if resampling_time != None:
+            df_temp = self.data.resample(resampling_time)
+        else:
+            df_temp = self.data
+        df_temp.txrx_fn.plot(label='far-near', color='r', **kwargs)        
+        df_temp.txrx_nf.plot(label='near-far', color='b', **kwargs)        
+        plt.legend(loc='best')
+        plt.ylabel('TX-RX level in dB')
+        #plt.title(self.metadata.)
+    
+    def plot_tx_txrx_seperate(self, resampling_time=None, **kwargs):
+        """Plot two linked plots for TX- and TX- minus RX-level
+        
+        Parameters
+        ----------
+        
+        resampling_time : str
+            Resampling time according to Pandas resampling time options,
+            e.g. ('min, '5min, 'H', 'D', ...)
+        kwargs : 
+            kwargs for Pandas plotting                        
+            
+        """
+        if resampling_time != None:
+            df_temp = self.data.resample(resampling_time)
+        else:
+            df_temp = self.data
+        fig, ax = plt.subplots(2,1, sharex=True, **kwargs)
+        df_temp.tx_near.plot(label='near-far', ax=ax[0])
+        df_temp.tx_far.plot(label='far-near', ax=ax[0])
+        df_temp.txrx_nf.plot(label='near-far', ax=ax[1])
+        df_temp.txrx_fn.plot(label='far-near', ax=ax[1])
+        plt.legend(loc='best')
+        #plt.title(self.metadata.)
+        
+    def plot_tx_rx_txrx_seperate(self, resampling_time=None, **kwargs):
+        """Plot three linked plots for TX-, RX- and TX- minus RX-level
+        
+        Parameters
+        ----------
+        
+        resampling_time : str
+            Resampling time according to Pandas resampling time options,
+            e.g. ('min, '5min, 'H', 'D', ...)
+        kwargs : 
+            kwargs for Pandas plotting                        
+            
+        """
+        if resampling_time != None:
+            df_temp = self.data.resample(resampling_time)
+        else:
+            df_temp = self.data
+        fig, ax = plt.subplots(3,1, sharex=True, **kwargs)
+        df_temp.tx_near.plot(label='near-far', ax=ax[0])
+        df_temp.tx_far.plot(label='far-near', ax=ax[0])
+        df_temp.rx_far.plot(label='near-far', ax=ax[1])
+        df_temp.rx_near.plot(label='far-near', ax=ax[1])
+        df_temp.txrx_nf.plot(label='near-far', ax=ax[2])
+        df_temp.txrx_fn.plot(label='far-near', ax=ax[2])
+        plt.legend(loc='best')
+        #plt.title(self.metadata.)
         
     def do_wet_dry_classification(self, method='std_dev', 
                                         window_length=128,

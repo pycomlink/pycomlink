@@ -45,6 +45,9 @@ def write_hdf5(cml, fn, complib=None, complevel=9):
     temp_metadata_df = pd.DataFrame.from_dict(cml.metadata, orient='index')
     store['metadata'] = temp_metadata_df
     
+    temp_tx_rx_pairs_df = pd.DataFrame.from_dict(cml.tx_rx_pairs, orient='index')
+    store['tx_rx_pairs'] = temp_tx_rx_pairs_df
+    
     store.close()
     
 def read_hdf5(fn):
@@ -66,7 +69,8 @@ def read_hdf5(fn):
     data_df = store['mw_df']
     metadata_dict = pd.DataFrame.to_dict(store['metadata'])[0]
     
-    cml = Comlink(metadata=metadata_dict, TXRX_df=data_df)
+    cml = Comlink(data=data_df,
+                  metadata=metadata_dict)
     
     return cml
     

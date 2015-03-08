@@ -109,6 +109,35 @@ def read_PROCEMA_raw_data(fn):
         index = _matlab_datenum_2_datetime(dat['time'][0])
                              
         data = pd.DataFrame({'rx' : pd.Series(rx, index=index)})
+        # Add column with constant TX power
+        data['tx'] = float(dat['ouput_power'][0][0])
+        
+        if dat['polarization'][0][0] == 0:
+            pol = 'H'
+        elif dat['polarization'][0][0] == 1:
+            pol = 'V'
+        else:
+            raise ValueError('Polarization value in raw data should be 0 or 1')
+        
+        tx_rx_pairs =  {'fn': {'name': 'far-near', 
+                               'tx': 'tx',
+                               'rx': 'rx',
+                               'tx_site': 'site_B',
+                               'rx_site': 'site_A',
+                               'f_GHz': float(dat['frequency'][0][0]),
+                               'pol': pol,
+                               'linecolor': 'b'}}
+                               
+        latA = float(dat['site1'][0][0][0])
+        lonA = float(dat['site1'][0][0][1])
+        latB = float(dat['site2'][0][0][0])
+        lonB = float(dat['site2'][0][0][1])
+        metadata = {'site_A': {'lat': latA,
+                               'lon': lonA},
+                    'site_B': {'lat': latB,
+                               'lon': lonB},
+                    'link_id': dat['name'][0],
+                    'length_km': _haversine(lonA, latA, lonB, latB)}
     
     # !! This is only a quick hack and works correctly only
     # !! For data exported to csv from PROCEM database for link
@@ -208,3 +237,19 @@ def _round_datetime(ts_not_rounded, round_to='seconds'):
                + timedelta(seconds=round(seconds_not_rounded) \
                           -seconds_not_rounded)
     return ts_rounded
+    
+from math import radians, cos, sin, asin, sqrt
+def _haversine(lon1, lat1, lon2, lat2):
+    """
+    Calculate the great circle distance between two points 
+    on the earth (specified in decimal degrees)
+    """
+    # convert decimal degrees to radians 
+    lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+    # haversine formula 
+    dlon = lon2 - lon1 
+    dlat = lat2 - lat1 
+    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+    c = 2 * asin(sqrt(a)) 
+    km = 6367 * c
+    return km

@@ -118,10 +118,14 @@ class Comlink():
         self.processing_info['tx_rx_pairs'] = tx_rx_pairs
     
     def info(self):
+        """Print MW link info 
+        
+        WIP: Print rudimentary MW link information
+        
         """
-        Print basic MW link info         
-
-        """
+        
+        # TODO: Deal with protection links or links for which only
+        #       unidirectional data is available
         
         print '============================================================='
         print 'ID: ' + self.metadata['link_id']
@@ -145,7 +149,7 @@ class Comlink():
              add_raw_data=False,
              figsize=(6,4),
              **kwargs):
-        """ Generic plotting function for MW link time series
+        """ WIP for generic plotting function
         
         Parameters
         ----------
@@ -406,13 +410,13 @@ def derive_tx_rx_pairs(columns_names):
        and 'RX', or 'tx' and 'rx'.
     
     Parameters
-    ----------
+    ==========
     
     column_names : list
         List of columns names from the MW link DataFrame
         
     Returns
-    -------
+    =======
     tx_rx_pairs : dict of dicts
         Dict of dicts of the TX-RX pairs
     

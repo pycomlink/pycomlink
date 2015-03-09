@@ -19,57 +19,102 @@ from collections import namedtuple
 
 from comlink import Comlink
 
-def write_hdf5(cml, fn, complib=None, complevel=9):
-    """Write Comlink object to HDF5 
 
-    WIP....
-    
-    TODO: Also write processing info (and its timeseries to hdf5)
+def write_hdf5(fn, cml, cml_id=None):
+    """ 
+    Write Comlink or Comlink list to HDF5
     
     Parameters
     ----------
     
-    cml : Comlink
-        A Comlink object
     fn : str
-        Filename
+        Absolute filename
+    cml : Comlink or list of Comlink objects
+        Comlink object or list of these
+    cml_id : str, optional
+        Name of the CML which will be used to identify it in the HDF storer.
+        Default is to use cml.metadata.link_id
         
     """
     
-    # Open pandas HDF5 file interface object
-    store = pd.HDFStore(fn, complib=complib, complevel=complevel)
-    # Store MW link data from data DataFrame
-    store['mw_df'] = cml.data
-    
-    # Quick hack to store metadata dict: Dict to DataFrame --> HDF5
-    temp_metadata_df = pd.DataFrame.from_dict(cml.metadata, orient='index')
-    store['metadata'] = temp_metadata_df
+    store = pd.HDFStore(fn)
+
+    if isinstance(cml, Comlink):
+        cmls = [cml,]
+    elif type(cml) == list:
+        cmls = cml
+    else:
+        raise TypeError('Type of variable `cml` not understood')
+        
+    for cml in cmls:
+        if cml_id == None:
+            # Get cml_if from metadata
+            cml_id = cml.metadata['link_id']
+        elif cml_id != None and type(cml) == list:
+            # For a list of cmls no fixed cml_id should be used
+            raise TypeError('Do not supply a link_id when passing a list of cmls')
+        else:
+            # Take cml_id from function arguments
+            pass
+        
+        # Store the TX and RX data
+        store[cml_id] = cml.data
+        # Store metadata
+        store.get_storer(cml_id).attrs.metadata = cml.metadata
+        # Store tx_rx_pairs
+        store.get_storer(cml_id).attrs.tx_rx_pairs = cml.tx_rx_pairs
     
     store.close()
     
-def read_hdf5(fn):
-    """Read Comlink object frmo HDF5
+def read_hdf5(fn, force_list_return=False):
+    """
+    Read Comlink or list of Comlinks from HDF5
     
-    WIP...
-    
-    TODO: Also read processing info (when `to_hdf()` is able to store it...)
-
     Parameters
     ----------
-    
+
     fn : str
-        Filename
+        Absolute filename to a pycomlink-HDF5 file
+    force_list_return : Bool, optional
+        Set this to True if you always want a list in return even if there
+        is only one cml in the HDF5 file. Default is False
         
+    Returns
+    -------
+    
+    cml : Comlink
+        If only one data set was found, the Comlink object that was stored in
+        the HDF5 file is returned (except if forec_list_return == True).
+    cmls : List of Comlink objects
+        If several data sets were found, a list of all Comlink objects
+        is returned
     """
     
-    store = pd.HDFStore(fn, 'r')    
-    data_df = store['mw_df']
-    metadata_dict = pd.DataFrame.to_dict(store['metadata'])[0]
+    store = pd.HDFStore(fn, 'r')
     
-    cml = Comlink(metadata=metadata_dict, TXRX_df=data_df)
+    # Get all cml_id value (wich must be used as keys on pycomlink HDF5 files)
+    cml_id_list = store.keys()
+
+    cml_list = []
     
-    return cml
+    for cml_id in cml_id_list:    
+        # Get data from HDF store
+        data = store[cml_id]
+        metadata = store.get_storer(cml_id).attrs.metadata
+        tx_rx_pairs = store.get_storer(cml_id).attrs.tx_rx_pairs
+        # Generate Comlink object from it and append to cml list
+        cml_list.append(Comlink(data=data, 
+                                tx_rx_pairs=tx_rx_pairs,
+                                metadata=metadata))
     
+    store.close()
+
+    # If there is only one cml element in the list    
+    if len(cml_list) == 1 and force_list_return == False:
+        return cml_list[0]
+    else:
+        return cml_list
+
 def read_PROCEMA_raw_data(fn):
     """ Read in PROCEMA data for one MW link stored as CSV or MATLAB binary
     

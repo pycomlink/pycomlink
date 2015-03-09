@@ -458,10 +458,8 @@ class Comlink():
             calc_a_b = False
         for pair_id in self.processing_info['tx_rx_pairs']:
             if calc_a_b:
-                a, b = A_R_relation.a_b(f_GHz=self.metadata['f_GHz_' \
-                                                            + pair_id], 
-                                        pol=self.metadata['pol_' \
-                                                          + pair_id],
+                a, b = A_R_relation.a_b(f_GHz=self.tx_rx_pairs[pair_id]['f_GHz'], 
+                                        pol=self.tx_rx_pairs[pair_id]['pol'],
                                         approx_type=approx_type)
                 self.processing_info['a_' + pair_id] = a
                 self.processing_info['b_' + pair_id] = b

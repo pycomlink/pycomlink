@@ -312,11 +312,15 @@ class ComlinkSet():
                     calc_a_b = False
                 for pair_id in cml.processing_info['tx_rx_pairs']:
                     if calc_a_b:
-                        a, b = A_R_relation.a_b(f_GHz=cml.metadata['f_GHz_' \
-                                                                    + pair_id], 
-                                                pol=cml.metadata['pol_' \
-                                                                  + pair_id],
-                                                approx_type=approx_type)
+#                        a, b = A_R_relation.a_b(f_GHz=cml.metadata['f_GHz_' \
+#                                                                    + pair_id], 
+#                                                pol=cml.metadata['pol_' \
+#                                                                  + pair_id],
+#                                                approx_type=approx_type)
+                                                
+                        a, b = A_R_relation.a_b(f_GHz=cml.tx_rx_pairs[pair_id]['f_GHz'], 
+                                        pol=cml.tx_rx_pairs[pair_id]['pol'],
+                                        approx_type=approx_type)
                         cml.processing_info['a_' + pair_id] = a
                         cml.processing_info['b_' + pair_id] = b
     
@@ -414,8 +418,10 @@ class ComlinkSet():
                    prep_sum=((cml.data.R_fn.resample('H',how='mean')+
                                        cml.data.R_nf.resample('H',how='mean'))/2.).sum() 
                    if not math.isnan(prep_sum):                     
-                       lons_mw.append((cml.metadata['lon_a']+cml.metadata['lon_b'])/2.)
-                       lats_mw.append((cml.metadata['lat_a']+cml.metadata['lat_b'])/2.)
+                       lons_mw.append((cml.metadata['site_A']['lon']
+                                      +cml.metadata['site_B']['lon'])/2.)
+                       lats_mw.append((cml.metadata['site_A']['lat']
+                                      +cml.metadata['site_B']['lat'])/2.)
                        values_mw.append(prep_sum)
                                    
             inv_d_values=mapping.inv_dist(lons_mw,lats_mw,values_mw,
@@ -441,10 +447,10 @@ class ComlinkSet():
                     
                 
                         if not math.isnan(prep_rr):                     
-                            lons_mw.append((cml.metadata['lon_a']+
-                                                  cml.metadata['lon_b'])/2.)
-                            lats_mw.append((cml.metadata['lat_a']+
-                                                  cml.metadata['lat_b'])/2.)
+                            lons_mw.append((cml.metadata['site_A']['lon']
+                                           +cml.metadata['site_B']['lon'])/2.)
+                            lats_mw.append((cml.metadata['site_A']['lat']
+                                           +cml.metadata['site_B']['lat'])/2.)
                             values_mw.append(prep_rr)   
     
                 inv_d_values=mapping.inv_dist(lons_mw,lats_mw,values_mw,

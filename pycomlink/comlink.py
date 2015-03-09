@@ -157,12 +157,14 @@ class Comlink():
         param_list : str, list of str, tuple of str, list of tuple of str
             String or ensemble of sting which give the parameters that 
             will be plotted.
-            ....
-            ...bla bla
-        ...
-        ..
-        .
-        
+        resampling_time: 
+            resampling the raw data
+        add_raw_data:
+            
+        figsize:
+            size of output figure
+        kwargs:
+            matplotlib parameters
         """
 
         if resampling_time is not None:
@@ -226,14 +228,35 @@ class Comlink():
                                         f_divide=1e-3,
                                         reuse_last_Pxx=False,
                                         print_info=False):
-        """Perform wet/dry classification for CML time series
+        """
+        Perform wet/dry classification for CML time series
         
-        WIP: Currently  two methods are supported:
-                -std_dev
-                -stft
-                
-        TODO: Docstring!!!
+     
+        Attributes:
+        ---------------------------------------------
+        method: str
+            WIP: currently two methods are supported:
+                - std_dev: Rolling standard deviation method (Schleiss & Berne, 2010)
+                - stft: Rolling Fourier-transform method (Chwala et al, 2012)
+        window_length: int
+            length of the sliding window        
+        threshold: int
+            threshold which has to be surpassed to classifiy a period as 'wet'
+        .....................
+        Only for method stft:
         
+        dry_window_length: int
+            length of window for identifying dry period used for calibration purpose
+        f_divide: flt
+        
+        reuse_last_Pxx: bool
+        
+        
+        .....................
+        print_info: bool
+            print information about executed method
+        -------------------------------------------    
+            
         """
         
         # Standard deviation method
@@ -319,6 +342,22 @@ class Comlink():
                                   method='constant',
                                   wet_external=None,
                                   print_info=False):
+                                      
+        """
+        Perform baseline determination for CML time series
+        
+        Attributes:
+        ---------------------------------------------
+        method: str
+            supported methods:
+                constant
+                linear
+        wet_external:      
+        
+        print_info: bool
+            print information about executed method        
+        """   
+                                      
         if method == 'constant':
             baseline_func = baseline.baseline_constant
             if print_info:
@@ -346,6 +385,21 @@ class Comlink():
                                        delta_t, 
                                        tau,
                                        wet_external=None):
+
+        """
+        Perform baseline adjustion due to wet antenna for CML time series
+        
+        Attributes:
+        ---------------------------------------------
+        waa_max: 
+
+        delta_t:    
+        
+        tau:
+        
+        wet_external:
+               
+        """ 
                                            
         for pair_id in self.processing_info['tx_rx_pairs']:
             txrx = self.data['txrx_' + pair_id].values
@@ -365,6 +419,15 @@ class Comlink():
             #return baseline_waa
 
     def calc_A(self, remove_negative_A=True):
+        """
+        Perform calculation of attenuation for CML time series
+        
+        Attributes:
+        ---------------------------------------------
+        remove_negative_A: bool
+            assignment: negative values of Attenuation = 0
+               
+        """           
         for pair_id in self.processing_info['tx_rx_pairs']:
             self.data['A_' + pair_id] = self.data['txrx_' + pair_id] \
                                       - self.data['baseline_' + pair_id]
@@ -372,6 +435,23 @@ class Comlink():
                 self.data['A_' + pair_id][self.data['A_' + pair_id]<0] = 0
                 
     def calc_R_from_A(self, a=None, b=None, approx_type='ITU'):
+        """
+        Perform calculation of rain rate from attenuation for CML time series
+        
+        Attributes:
+        ---------------------------------------------
+        a: flt
+            Parameter of A-R relationship
+            If not given: Approximation considering polarization and frequency of link
+        b: flt
+            Parameter of A-R relationship
+            If not given: Approximation considering polarization and frequency of link        
+        approx_type: str
+            Type used for approximate a and b
+            Supported type : ITU
+            
+               
+        """         
         if a==None or b==None:
             calc_a_b = True
         else:

@@ -1,14 +1,6 @@
-# -*- coding: utf-8 -*-
-#----------------------------------------------------------------------------
-# Name:         map
-# Purpose:      spatial interpolation 
-#
-# Authors:      Felix Keis
-#
-# Created:      25.02.2015
-# Copyright:    (c) Felix Keis 2014
-# Licence:      The MIT License
-#----------------------------------------------------------------------------
+################################################
+# Functions to calculate spatial interpolation #
+################################################
 
 from math import sqrt
 import numpy as np
@@ -39,9 +31,10 @@ def gridpointValue(x,y,power,smoothing,x_o,y_o,values_o):
     """
     nominator=0  
     denominator=0 
-    
+
     for ii in range(0,len(values_o)):  
-        #dist = sqrt(((x-x_o[ii])**2.)+((y-y_o[ii])**2.))
+        # WIP to be revised        
+        #very simple distance calculation
         dist = sqrt((x-x_o[ii])*(x-x_o[ii])+(y-y_o[ii])*(y-y_o[ii])+smoothing*smoothing)
         #If the point is really close to one of the data points, 
         #            return the data point value to avoid singularities  

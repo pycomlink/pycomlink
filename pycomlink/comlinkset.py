@@ -3,10 +3,10 @@
 # Purpose:      Commercial MW link Class to handle all processing steps for 
 #                   a set of links
 #
-# Authors:      Felix Keis
+# Authors:      Christian Chwala, Felix Keis
 #
 # Created:      25.02.2015
-# Copyright:    (c) Felix Keis 2014
+# Copyright:    (c) Christian Chwala, Felix Keis 2015
 # Licence:      The MIT License
 #----------------------------------------------------------------------------
 
@@ -27,10 +27,10 @@ from . import mapping
 
 class ComlinkSet():
     """
-    Commercial microwave link (CML) class for all data processing 
-    for multiple links
-    
-    contains a list     
+    Commercial microwave link set (CMLS) class 
+        - for all data processing 
+        - for multiple links
+        - contains a list of Comlink Objects defined by Comlink()   
     
     Attributes
     ----------
@@ -43,7 +43,7 @@ class ComlinkSet():
         
     def info(self):
         """
-        Print comlinkSet info 
+        Print ComlinkSet info 
         
         """        
         
@@ -64,14 +64,35 @@ class ComlinkSet():
                                         f_divide=1e-3,
                                         reuse_last_Pxx=False,
                                         print_info=False):
-        """Perform wet/dry classification for CML time series
+        """
+        Perform wet/dry classification for all CML time series in CMLS
         
-        WIP: Currently  two methods are supported:
-                -std_dev
-                -stft
-                
-        TODO: Docstring!!!
+     
+        Attributes:
+        ---------------------------------------------
+        method: str
+            WIP: currently two methods are supported:
+                - std_dev: Rolling standard deviation method (Schleiss & Berne, 2010)
+                - stft: Rolling Fourier-transform method (Chwala et al, 2012)
+        window_length: int
+            length of the sliding window        
+        threshold: int
+            threshold which has to be surpassed to classifiy a period as 'wet'
+        .....................
+        Only for method stft:
         
+        dry_window_length: int
+            length of window for identifying dry period used for calibration purpose
+        f_divide: flt
+        
+        reuse_last_Pxx: bool
+        
+        
+        .....................
+        print_info: bool
+            print information about executed method
+        -------------------------------------------    
+            
         """
         for cml in self.set:
             if not cml.data.empty:
@@ -160,6 +181,23 @@ class ComlinkSet():
                                   method='constant',
                                   wet_external=None,
                                   print_info=False):
+                                      
+        """
+        Perform baseline determination for all CML time series in CMLS
+        
+        Attributes:
+        ---------------------------------------------
+        method: str
+            supported methods:
+                constant
+                linear
+        wet_external:      
+        
+        print_info: bool
+            print information about executed method        
+        """                              
+
+                              
         for cml in self.set:   
             if not cml.data.empty:                           
                 if method == 'constant':
@@ -190,6 +228,22 @@ class ComlinkSet():
                                        delta_t, 
                                        tau,
                                        wet_external=None):
+                                           
+        """
+        Perform baseline adjustion due to wet antenna for all CML time series in CMLS
+        
+        Attributes:
+        ---------------------------------------------
+        waa_max: 
+
+        delta_t:    
+        
+        tau:
+        
+        wet_external:
+               
+        """ 
+                                           
         for cml in self.set:    
             if not cml.data.empty:                               
                 for pair_id in cml.processing_info['tx_rx_pairs']:
@@ -210,6 +264,17 @@ class ComlinkSet():
                 
  
     def calc_A(self, remove_negative_A=True):
+        
+        """
+        Perform calculation of attenuation for all CML time series in CMLS
+        
+        Attributes:
+        ---------------------------------------------
+        remove_negative_A: bool
+            assignment: negative values of Attenuation = 0
+               
+        """         
+        
         for cml in self.set:
             if not cml.data.empty:
 
@@ -221,6 +286,24 @@ class ComlinkSet():
                     
                     
     def calc_R_from_A(self, a=None, b=None, approx_type='ITU'):
+        
+        """
+        Perform calculation of rain rate from attenuation for all CML time series in CMLS
+        
+        Attributes:
+        ---------------------------------------------
+        a: flt
+            Parameter of A-R relationship
+            If not given: Approximation considering polarization and frequency of link
+        b: flt
+            Parameter of A-R relationship
+            If not given: Approximation considering polarization and frequency of link        
+        approx_type: str
+            Type used for approximate a and b
+            Supported type : ITU
+            
+               
+        """          
         for cml in self.set:
             if not cml.data.empty:
                 if a==None or b==None:
@@ -261,6 +344,9 @@ class ComlinkSet():
         grid_res: int
             number of bins of output grid in area
             
+        figsize:
+            size of output figure    
+            
         acc_type: str
             type of accumulation
                 'sum' precipitation sum of selected period
@@ -283,12 +369,7 @@ class ComlinkSet():
         mp.drawparallels(parallels,labels=[1,0,0,0],fontsize=10)
         # draw meridians
         meridians = np.arange(0.,20.,0.5)
-        mp.drawmeridians(meridians,labels=[0,0,0,1],fontsize=10)
-
-        #mp.drawcoastlines(color='blue')
-        #mp.drawcountries()
-        #mp.etopo()
-        #mp.drawrivers(color='blue')         
+        mp.drawmeridians(meridians,labels=[0,0,0,1],fontsize=10) 
         
         
         nws_precip_colors = [
@@ -345,9 +426,6 @@ class ComlinkSet():
             ln,lt = mp(lons_mw,lats_mw)
 
             mp.scatter(ln,lt,c=values_mw,cmap=precip_colormap, alpha=0.6, s=60,norm=norm_sum)            
-            
-            #cs = mp.pcolormesh(x,y,inv_d_values, norm=norm,
-            #               cmap=precip_colormap)
             cbar = mp.colorbar(cs,location='bottom',pad="5%")
             cbar.set_label('mm')
   

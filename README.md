@@ -1,4 +1,16 @@
-# Python tools for processing of commercial MW link data
+# pycomlink
+
+A python toolbox for MW link data processing and rain rate estimation
+
+## Status
+The basic functionality is already working. However, `pycomlink` is currently in ongoing development. Hence, there may be changes to the interface in the future.
+
+## Features
+ * Easily parse your MW link data and use and object oriented approach to do all the processing
+ * Two wet/dry classification methods available
+ * Different baseline methods availabel
+ * One wet antenna estimation method available
+ * 2D plots using IDW (preliminary version) 
 
 ## TODO
  * Fix problem with spectrogram from matplotlib.mlab in version > 1.3.0 

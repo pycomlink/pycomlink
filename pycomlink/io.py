@@ -18,6 +18,7 @@ import pandas as pd
 from collections import namedtuple
 
 from comlink import Comlink
+from comlinkset import ComlinkSet
 
 
 def write_hdf5(fn, cml, cml_id=None):
@@ -113,7 +114,7 @@ def read_hdf5(fn, force_list_return=False):
     if len(cml_list) == 1 and force_list_return == False:
         return cml_list[0]
     else:
-        return cml_list
+        return ComlinkSet(cml_list)
 
 def read_PROCEMA_raw_data(fn):
     """ Read in PROCEMA data for one MW link stored as CSV or MATLAB binary

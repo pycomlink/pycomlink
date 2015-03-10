@@ -96,85 +96,15 @@ class ComlinkSet():
         """
         for cml in self.set:
             if not cml.data.empty:
+                cml.do_wet_dry_classification(method, 
+                                              window_length,
+                                              threshold,
+                                              dry_window_length,
+                                              f_divide,
+                                              reuse_last_Pxx,
+                                              print_info)
             
-                # Standard deviation method
-                if method == 'std_dev':
-                    if print_info:
-                        print 'Performing wet/dry classification'
-                        print ' Method = std_dev'
-                        print ' window_length = ' + str(window_length)
-                        print ' threshold = ' + str(threshold)
-                    for pair_id in cml.processing_info['tx_rx_pairs']:
-                        (cml.data['wet_' + pair_id], 
-                         roll_std_dev) = wet_dry.wet_dry_std_dev(
-                                            cml.data['txrx_' + pair_id].values, 
-                                            window_length, 
-                                            threshold)
-                        cml.processing_info['wet_dry_roll_std_dev_' + pair_id] \
-                                      = roll_std_dev
-                    cml.processing_info['wet_dry_method'] = 'std_dev'
-                    cml.processing_info['wet_dry_window_length'] = window_length
-                    cml.processing_info['wet_dry_threshold'] = threshold
-                # Shor-term Fourier transformation method
-                elif method == 'stft':
-                    if print_info:
-                        print 'Performing wet/dry classification'
-                        print ' Method = stft'
-                        print ' dry_window_length = ' + str(dry_window_length)
-                        print ' window_length = ' + str(window_length)
-                        print ' threshold = ' + str(threshold)
-                        print ' f_divide = ' + str(f_divide)
-                
-                    for pair_id in cml.processing_info['tx_rx_pairs']:
-                        txrx = cml.data['txrx_' + pair_id].values
-                
-                        # Find dry period (wit lowest fluctuation = lowest std_dev)
-                        t_dry_start, \
-                        t_dry_stop = wet_dry.find_lowest_std_dev_period(
-                                        txrx,
-                                        window_length=dry_window_length)
-                        cml.processing_info['wet_dry_t_dry_start'] = t_dry_start
-                        cml.processing_info['wet_dry_t_dry_stop'] = t_dry_stop
-                
-                        if reuse_last_Pxx is False:
-                            cml.data['wet_' + pair_id], info = wet_dry.wet_dry_stft(
-                                                                    txrx,
-                                                                    window_length,
-                                                                    threshold,
-                                                                    f_divide,
-                                                                    t_dry_start,
-                                                                    t_dry_stop)
-                        elif reuse_last_Pxx is True:
-                            Pxx=cml.processing_info['wet_dry_Pxx_' + pair_id]
-                            f=cml.processing_info['wet_dry_f']
-                            cml.data['wet_' + pair_id], info = wet_dry.wet_dry_stft(
-                                                                    txrx,
-                                                                    window_length,
-                                                                    threshold,
-                                                                    f_divide,
-                                                                    t_dry_start,
-                                                                    t_dry_stop,
-                                                                    Pxx=Pxx,
-                                                                    f=f)
-                        else:
-                            raise ValueError('reuse_last_Pxx can only by True or False')
-                        cml.processing_info['wet_dry_Pxx_' + pair_id] = \
-                                                        info['Pxx']
-                        cml.processing_info['wet_dry_P_norm_' + pair_id] = \
-                                                        info['P_norm']
-                        cml.processing_info['wet_dry_P_sum_diff_' + pair_id] = \
-                                                        info['P_sum_diff']
-                        cml.processing_info['wet_dry_P_dry_mean_' + pair_id] = \
-                                                        info['P_dry_mean']
-                
-                    cml.processing_info['wet_dry_f'] = info['f']                
-                    cml.processing_info['wet_dry_method'] = 'stft'
-                    cml.processing_info['wet_dry_window_length'] = window_length
-                    cml.processing_info['dry_window_length'] = window_length
-                    cml.processing_info['f_divide'] = f_divide
-                    cml.processing_info['wet_dry_threshold'] = threshold
-                else:
-                    ValueError('Wet/dry classification method not supported')     
+    
                 
 
     def do_baseline_determination(self, 
@@ -199,28 +129,11 @@ class ComlinkSet():
 
                               
         for cml in self.set:   
-            if not cml.data.empty:                           
-                if method == 'constant':
-                    baseline_func = baseline.baseline_constant
-                    if print_info:
-                        print 'Setting RSL baseline'
-                        print ' Method = constant'
-                elif method == 'linear':
-                    baseline_func = baseline.baseline_linear
-                    if print_info:
-                        print 'Setting RSL baseline'
-                        print ' Method = linear'
-                else:
-                    ValueError('Wrong baseline method')
-                for pair_id in cml.processing_info['tx_rx_pairs']:
-                    if wet_external is None:            
-                        wet = cml.data['wet_' + pair_id]
-                    else:
-                        wet = wet_external
-                    cml.data['baseline_' + pair_id] = \
-                                    baseline_func(cml.data['txrx_' + pair_id], 
-                                                  wet)
-                cml.processing_info['baseline_method'] = method    
+            if not cml.data.empty:       
+                cml.do_baseline_determination(method,
+                                              wet_external,
+                                              print_info)
+  
 
 
     def do_wet_antenna_baseline_adjust(self,
@@ -245,22 +158,11 @@ class ComlinkSet():
         """ 
                                            
         for cml in self.set:    
-            if not cml.data.empty:                               
-                for pair_id in cml.processing_info['tx_rx_pairs']:
-                    txrx = cml.data['txrx_' + pair_id].values
-                    baseline = cml.data['baseline_' + pair_id].values
-                    if wet_external is None:            
-                        wet = cml.data['wet_' + pair_id]
-                    else:
-                        wet = wet_external
-                    baseline_waa, waa = wet_antenna.waa_adjust_baseline(rsl=txrx,
-                                                               baseline=baseline,
-                                                               waa_max=waa_max,
-                                                               delta_t=delta_t,
-                                                               tau=tau,
-                                                               wet=wet)
-                    cml.data['baseline_' + pair_id] = baseline_waa
-                    cml.data['waa_' + pair_id] = waa 
+            if not cml.data.empty:        
+                cml.do_wet_antenna_baseline_adjust(waa_max,
+                                                   delta_t,
+                                                   tau,
+                                                   wet_external)
                 
  
     def calc_A(self, remove_negative_A=True):
@@ -277,12 +179,8 @@ class ComlinkSet():
         
         for cml in self.set:
             if not cml.data.empty:
-
-                for pair_id in cml.processing_info['tx_rx_pairs']:
-                    cml.data['A_' + pair_id] = cml.data['txrx_' + pair_id] \
-                                              - cml.data['baseline_' + pair_id]
-                    if remove_negative_A:
-                        cml.data['A_' + pair_id][cml.data['A_' + pair_id]<0] = 0  
+                cml.calc_A(remove_negative_A)
+ 
                     
                     
     def calc_R_from_A(self, a=None, b=None, approx_type='ITU'):
@@ -306,29 +204,9 @@ class ComlinkSet():
         """          
         for cml in self.set:
             if not cml.data.empty:
-                if a==None or b==None:
-                    calc_a_b = True
-                else:
-                    calc_a_b = False
-                for pair_id in cml.processing_info['tx_rx_pairs']:
-                    if calc_a_b:
-#                        a, b = A_R_relation.a_b(f_GHz=cml.metadata['f_GHz_' \
-#                                                                    + pair_id], 
-#                                                pol=cml.metadata['pol_' \
-#                                                                  + pair_id],
-#                                                approx_type=approx_type)
-                                                
-                        a, b = A_R_relation.a_b(f_GHz=cml.tx_rx_pairs[pair_id]['f_GHz'], 
-                                        pol=cml.tx_rx_pairs[pair_id]['pol'],
-                                        approx_type=approx_type)
-                        cml.processing_info['a_' + pair_id] = a
-                        cml.processing_info['b_' + pair_id] = b
-    
-                    cml.data['R_' + pair_id] = \
-                        A_R_relation.calc_R_from_A(cml.data['A_' + pair_id], 
-                                                   a, b,
-                                                   cml.metadata['length_km'])
-                                                              
+                cml.calc_R_from_A(a,b,approx_type)                
+                
+                                                           
         
             
     def plot_idw(self, area, grid_res,

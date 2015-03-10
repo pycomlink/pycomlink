@@ -99,7 +99,16 @@ class Comlink():
         self.processing_info = {}
 
         if const_TX_power is not False:
-            self.data[const_TX_power[0]] = const_TX_power[1]
+            # If the constant TX power is supplied as value, just add 
+            # it with a default column name
+            if type(const_TX_power) == int or type(const_TX_power) == float:
+                self.data['tx'] = const_TX_power
+            # If a tuple is supplied, the first value is the TX column name
+            # an the second value is the TX power
+            elif type(const_TX_power) == tuple:
+                self.data[const_TX_power[0]] = const_TX_power[1]
+            else:
+                raise TypeError('const_TX_power must be int, float or tuple')
 
         # If no tx_rx_pairs are supplied, try to be smart and figure
         # them out by analysing the column names of the TXRX_df

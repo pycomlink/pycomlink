@@ -13,10 +13,10 @@ The basic functionality is already working. However, `pycomlink` is currently in
  * 2D plots using IDW (preliminary version) 
 
 ## TODO
- * Fix problem with spectrogram from matplotlib.mlab in version > 1.3.0 
+ * ~~~Fix problem with spectrogram from matplotlib.mlab in version > 1.3.0 ~~~ Problem disappeard with matplotlib v1.4.3
    (e.g. wet/dry stft method does not work with matplotlib version 1.4.0)
  * ~~~Function for saving Comlink object to HDF5~~~
-     * Also write processing info to HDF5 file
+     * Also write processing info to HDF5 file <-- Do we really want this?
      * Rethink HDF5 file structure, maybe something like the idea of ODIM-H5 would make sense
  * ~~~Query metadata (location, frequency, etc.) from database and parse to Comlink object~~~
  * Define crucial metadata entries and their naming convention

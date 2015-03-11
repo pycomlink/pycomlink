@@ -366,7 +366,9 @@ class Comlink():
         print_info: bool
             print information about executed method        
         """   
-                                      
+               
+        THIS WILL CAUSE AN ERROR
+                       
         if method == 'constant':
             baseline_func = baseline.baseline_constant
             if print_info:

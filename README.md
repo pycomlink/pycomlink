@@ -13,7 +13,7 @@ Installation
 Usage
 -----
 
-Here is an IPython notebook showing the [basic workflow](http://nbviewer.ipython.org/urls/bitbucket.org/cchwala/pycomlink/raw/53cdca3ca142b91d40d2ba5686f68d7659a3c7e4/notebooks/example_workflow.ipynb)
+Here is an IPython notebook showing the [basic workflow](http://nbviewer.ipython.org/urls/bitbucket.org/cchwala/pycomlink/raw/566962d7c0a16c484d56aec7a0a34b84cc68a27d/notebooks/example_workflow.ipynb)
 
 Status
 ------

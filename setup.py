@@ -29,7 +29,7 @@ setup(
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Topic :: Scientific/Engineering :: Atmospheric Science",
-        "License :: OSI Approved :: BSD",
+        "License :: OSI Approved :: BSD License",
         'Programming Language :: Python :: 2.7',
     ],
     # A list of all available classifiers can be found at 

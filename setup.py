@@ -17,7 +17,7 @@ from setuptools import setup
 
 setup(
     name = "pycomlink",
-    version = "0.0.3",
+    version = "0.0.4",
     author = "Christian Chwala",
     author_email = "christian.chwala@kit.edu",
     description = ("Python tools for MW link data processing"),

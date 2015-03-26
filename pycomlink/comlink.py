@@ -14,6 +14,7 @@ from __future__ import division
 
 import numpy as np
 import matplotlib.pyplot as plt
+from mpl_toolkits.basemap import Basemap
 
 from . import wet_dry
 from . import baseline
@@ -125,7 +126,7 @@ class Comlink():
             self.data['txrx_' + pair_id] = self.data[column_names['tx']] \
                                          - self.data[column_names['rx']]
         self.processing_info['tx_rx_pairs'] = tx_rx_pairs
-    
+
     def info(self):
         """Print MW link info 
         
@@ -151,6 +152,90 @@ class Comlink():
 #                                    + ' GHz ---------- ' 
         print '  L: ' + str(self.metadata['length_km']) + ' km'
         print '============================================================='
+
+    
+    def info_plot(self):
+        """Print MW link info and show location on map 
+                
+        """
+        
+        # TODO: Deal with protection links or links for which only
+        #       unidirectional data is available
+        
+        print '============================================================='
+        print 'ID: ' + self.metadata['link_id']
+        print '-------------------------------------------------------------'
+        print '     Site A                       Site B'
+        if 'ip' in self.metadata['site_A'].keys() and \
+           'ip' in self.metadata['site_B'].keys():
+            print ' IP: ' + self.metadata['site_A']['ip'] + '                 '  \
+                          + self.metadata['site_B']['ip']
+        print '  L: ' + str(self.metadata['length_km']) + ' km'
+
+        
+        #Plot geographic Information
+      
+        if 'site_A' in self.metadata and 'site_B' in self.metadata:
+            if 'lat' in self.metadata['site_A'] and \
+               'lon' in self.metadata['site_A'] and \
+               'lat' in self.metadata['site_B'] and \
+               'lon' in self.metadata['site_B']:  
+                   print ' Lat: ' + str(self.metadata['site_A']['lat'])+ '                      '  \
+                          + str(self.metadata['site_B']['lat'])   
+                   print ' Lon: ' + str(self.metadata['site_A']['lon']) + '                     '  \
+                          + str(self.metadata['site_B']['lon'])                           
+                          
+                   area=[min(self.metadata['site_A']['lon'],self.metadata['site_B']['lon'])-.25,
+                         max(self.metadata['site_A']['lon'],self.metadata['site_B']['lon'])+.25,
+                         min(self.metadata['site_A']['lat'],self.metadata['site_B']['lat'])-.15,
+                         max(self.metadata['site_A']['lat'],self.metadata['site_B']['lat'])+.15]
+
+                   fig = plt.figure(figsize=(5,5))
+                   mp = Basemap(projection='merc',llcrnrlat=area[2],urcrnrlat=area[3],
+                                llcrnrlon=area[0],urcrnrlon=area[1],lat_ts=20,resolution='h')
+    
+                   mp.drawcoastlines(color='blue')
+                   mp.drawrivers(color='blue')
+                   mp.drawcountries()
+                   mp.shadedrelief() 
+                   # draw parallels.
+                   parallels = np.arange(40.,60.,0.2)
+                   mp.drawparallels(parallels,labels=[1,0,0,0],fontsize=10)
+                   # draw meridians
+                   meridians = np.arange(0.,20.,0.2)
+                   mp.drawmeridians(meridians,labels=[0,0,0,1],fontsize=10) 
+                   mp.drawgreatcircle(self.metadata['site_A']['lon'],
+                                      self.metadata['site_A']['lat'],
+                                      self.metadata['site_B']['lon'],
+                                      self.metadata['site_B']['lat'],
+                                      linewidth=3,color='k')        
+                                      
+                   if self.metadata['site_A']['lon'] < self.metadata['site_B']['lon'] and \
+                      self.metadata['site_A']['lat'] < self.metadata['site_B']['lat']:        
+                           x,y = mp(self.metadata['site_A']['lon']-0.025,self.metadata['site_A']['lat']-0.005)
+                           plt.text(x,y,'A',fontsize=15)        
+                           x,y = mp(self.metadata['site_B']['lon']+0.01,self.metadata['site_B']['lat']+0.005)
+                           plt.text(x,y,'B',fontsize=15)
+                   elif self.metadata['site_A']['lon'] < self.metadata['site_B']['lon'] and \
+                        self.metadata['site_A']['lat'] > self.metadata['site_B']['lat']:        
+                           x,y = mp(self.metadata['site_A']['lon']-0.025,self.metadata['site_A']['lat']+0.005)
+                           plt.text(x,y,'A',fontsize=15)        
+                           x,y = mp(self.metadata['site_B']['lon']+0.01,self.metadata['site_B']['lat']-0.005)
+                           plt.text(x,y,'B',fontsize=15)        
+                   elif self.metadata['site_A']['lon'] > self.metadata['site_B']['lon'] and \
+                        self.metadata['site_A']['lat'] > self.metadata['site_B']['lat']:        
+                           x,y = mp(self.metadata['site_A']['lon']+0.01,self.metadata['site_A']['lat']+0.005)
+                           plt.text(x,y,'A',fontsize=15)        
+                           x,y = mp(self.metadata['site_B']['lon']-0.025,self.metadata['site_B']['lat']-0.005)
+                           plt.text(x,y,'B',fontsize=15)
+                   elif self.metadata['site_A']['lon'] > self.metadata['site_B']['lon'] and \
+                        self.metadata['site_A']['lat'] < self.metadata['site_B']['lat']:        
+                            x,y = mp(self.metadata['site_A']['lon']+0.01,self.metadata['site_A']['lat']-0.005)
+                            plt.text(x,y,'A',fontsize=15)        
+                            x,y = mp(self.metadata['site_B']['lon']-0.025,self.metadata['site_B']['lat']+0.005)
+                            plt.text(x,y,'B',fontsize=15)          
+        print '============================================================='        
+        
     
     def plot(self, 
              param_list=['txrx'], 

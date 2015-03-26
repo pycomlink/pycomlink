@@ -55,7 +55,31 @@ class ComlinkSet():
                 print '     ' + str(cml.metadata['link_id'])
         print '============================================================='
         
-
+    def info_plot(self,area):
+        """Show ComlinkSet locations on map 
+                
+        """
+        fig = plt.figure(figsize=(10,10))
+        mp = Basemap(projection='merc',llcrnrlat=area[2],urcrnrlat=area[3],\
+            llcrnrlon=area[0],urcrnrlon=area[1],lat_ts=20,resolution='h')
+        mp.drawcoastlines(color='blue')
+        mp.drawrivers(color='blue')
+        mp.drawcountries()
+        mp.shadedrelief() 
+        # draw parallels.
+        parallels = np.arange(40.,60.,0.2)
+        mp.drawparallels(parallels,labels=[1,0,0,0],fontsize=10)
+        # draw meridians
+        meridians = np.arange(0.,20.,0.2)
+        mp.drawmeridians(meridians,labels=[0,0,0,1],fontsize=10)   
+        
+        for cml in self.set:
+            mp.drawgreatcircle(cml.metadata['site_A']['lon'],
+                               cml.metadata['site_A']['lat'],
+                               cml.metadata['site_B']['lon'],
+                               cml.metadata['site_B']['lat'],
+                               linewidth=2,color='k')
+        
         
     def do_wet_dry_classification(self, method='std_dev', 
                                         window_length=128,

@@ -6,7 +6,9 @@ A python toolbox for MW link data processing and rain rate estimation
 Installation
 ------------
 
-`pycomlink` works with Python 2.7 and depends on `numpy`, `pandas`, `matplotlib` and `matplotlib`'s `basemap`. You can install it via pip:
+`pycomlink` works with Python 2.7 and depends on `numpy`, `pandas`, `matplotlib` and `matplotlib`'s `basemap`. You can install it via `pip`, but it is recommended that you install the dependecies first. In particular `basemap` can be challenging to install. We recommend the usage of the [Anaconda Python distribution](https://store.continuum.io/cshop/anaconda/) for all scientific python packages. 
+
+The `pip` command to install `pycomlink` is the following:
 
     $ pip install pycomlink
 

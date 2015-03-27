@@ -51,17 +51,20 @@ class Comlink():
     tx_rx_pairs : dict, optional
         Dictonary that defines which TX and RX values belong together and
         which frequency and polarization are used. Example:
+            # The keys, here 'fn' and 'nf' can be named by you. Here 'fn' is
+            # short for far-near, but you could also use AB to indicate the 
+            # connection from site A to site B.
             tx_rx_pairs =  {'fn': {'name': 'far-near', 
-                                   'tx': 'tx_far',
-                                   'rx': 'rx_near',
+                                   'tx': 'tx_far'       # Column name in DataFrame
+                                   'rx': 'rx_near',     # Column name in DataFrame
                                    'tx_site': 'site_B',
                                    'rx_site': 'site_A',
                                    'f_GHz': 17.8,
                                    'pol': 'V',
                                    'linecolor': 'r'},
                             'nf': {'name': 'near-far',
-                                   'tx': 'tx_near',
-                                   'rx': 'rx_far',
+                                   'tx': 'tx_near',     # Column name in DataFrame
+                                   'rx': 'rx_far',      # Column name in DataFrame
                                    'tx_site': 'site_A',
                                    'rx_site': 'site_B',
                                    'f_GHz': 18.8,

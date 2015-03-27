@@ -55,11 +55,24 @@ class ComlinkSet():
                 print '     ' + str(cml.metadata['link_id'])
         print '============================================================='
         
-    def info_plot(self,area):
+    def info_plot(self):
         """Show ComlinkSet locations on map 
                 
         """
         fig = plt.figure(figsize=(10,10))
+        lons=[]
+        lats=[]
+        for cml in self.set:
+            lons.append(cml.metadata['site_A']['lon'])
+            lons.append(cml.metadata['site_B']['lon'])
+            lats.append(cml.metadata['site_A']['lat'])
+            lats.append(cml.metadata['site_B']['lat'])   
+            
+        area=[min(lons)-.05,
+              max(lons)+.05,
+              min(lats)-.05,
+              max(lats)+.05]           
+        
         mp = Basemap(projection='merc',llcrnrlat=area[2],urcrnrlat=area[3],\
             llcrnrlon=area[0],urcrnrlon=area[1],lat_ts=20,resolution='h')
         mp.drawcoastlines(color='blue')

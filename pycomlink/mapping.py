@@ -49,4 +49,23 @@ def gridpointValue(x,y,power,smoothing,x_o,y_o,values_o):
         value = -9999  
     return value
                            
+
+def label_loc(lon_a,lat_a,lon_b,lat_b):
+    """
+    
+    """
+    if lon_a < lon_b and lat_a < lat_b:        
+        x_a,y_a = lon_a-0.025,lat_a-0.005       
+        x_b,y_b = lon_b+0.01,lat_b+0.005
+    elif lon_a < lon_b and lat_a > lat_b:        
+        x_a,y_a = lon_a-0.025,lat_a+0.005    
+        x_b,y_b = lon_b+0.01,lat_b-0.005       
+    elif lon_a > lon_b and lat_a > lat_b:        
+        x_a,y_a = lon_a+0.01,lat_a+0.005       
+        x_b,y_b = lon_b-0.025,lat_b-0.005
+    elif lon_a > lon_b and lat_a < lat_b:        
+        x_a,y_a = lon_a+0.01,lat_a-0.005     
+        x_b,y_b = lon_b-0.025,lat_b+0.005
+    xy = [x_a,y_a,x_b,y_b]
+    return xy
                              

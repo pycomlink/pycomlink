@@ -20,6 +20,7 @@ from . import wet_dry
 from . import baseline
 from . import A_R_relation
 from . import wet_antenna
+from . import mapping
 
 class Comlink():
     """
@@ -212,31 +213,16 @@ class Comlink():
                                       self.metadata['site_B']['lon'],
                                       self.metadata['site_B']['lat'],
                                       linewidth=3,color='k')        
-                                      
-                   if self.metadata['site_A']['lon'] < self.metadata['site_B']['lon'] and \
-                      self.metadata['site_A']['lat'] < self.metadata['site_B']['lat']:        
-                           x,y = mp(self.metadata['site_A']['lon']-0.025,self.metadata['site_A']['lat']-0.005)
-                           plt.text(x,y,'A',fontsize=15)        
-                           x,y = mp(self.metadata['site_B']['lon']+0.01,self.metadata['site_B']['lat']+0.005)
-                           plt.text(x,y,'B',fontsize=15)
-                   elif self.metadata['site_A']['lon'] < self.metadata['site_B']['lon'] and \
-                        self.metadata['site_A']['lat'] > self.metadata['site_B']['lat']:        
-                           x,y = mp(self.metadata['site_A']['lon']-0.025,self.metadata['site_A']['lat']+0.005)
-                           plt.text(x,y,'A',fontsize=15)        
-                           x,y = mp(self.metadata['site_B']['lon']+0.01,self.metadata['site_B']['lat']-0.005)
-                           plt.text(x,y,'B',fontsize=15)        
-                   elif self.metadata['site_A']['lon'] > self.metadata['site_B']['lon'] and \
-                        self.metadata['site_A']['lat'] > self.metadata['site_B']['lat']:        
-                           x,y = mp(self.metadata['site_A']['lon']+0.01,self.metadata['site_A']['lat']+0.005)
-                           plt.text(x,y,'A',fontsize=15)        
-                           x,y = mp(self.metadata['site_B']['lon']-0.025,self.metadata['site_B']['lat']-0.005)
-                           plt.text(x,y,'B',fontsize=15)
-                   elif self.metadata['site_A']['lon'] > self.metadata['site_B']['lon'] and \
-                        self.metadata['site_A']['lat'] < self.metadata['site_B']['lat']:        
-                            x,y = mp(self.metadata['site_A']['lon']+0.01,self.metadata['site_A']['lat']-0.005)
-                            plt.text(x,y,'A',fontsize=15)        
-                            x,y = mp(self.metadata['site_B']['lon']-0.025,self.metadata['site_B']['lat']+0.005)
-                            plt.text(x,y,'B',fontsize=15)          
+ 
+                   xy=mapping.label_loc(self.metadata['site_A']['lon'],
+                                        self.metadata['site_A']['lat'],
+                                        self.metadata['site_B']['lon'],
+                                        self.metadata['site_B']['lat'])
+                   x,y = mp(xy[0],xy[1])
+                   plt.text(x,y,'A',fontsize=15) 
+                   x,y = mp(xy[2],xy[3])
+                   plt.text(x,y,'B',fontsize=15) 
+                                             
         print '============================================================='        
         
     

@@ -13,7 +13,9 @@
 from __future__ import division
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.basemap import Basemap
+import cartopy.crs as ccrs    
+from cartopy.io.img_tiles import GoogleTiles
+
 import math
 import matplotlib
 import matplotlib.animation as animation
@@ -55,11 +57,14 @@ class ComlinkSet():
                 print '     ' + str(cml.metadata['link_id'])
         print '============================================================='
         
+
     def info_plot(self):
         """Show ComlinkSet locations on map 
                 
         """
-        fig = plt.figure(figsize=(10,10))
+        plt.figure(figsize=(10,10))
+        ax = plt.axes(projection=ccrs.PlateCarree())
+
         lons=[]
         lats=[]
         for cml in self.set:
@@ -73,25 +78,15 @@ class ComlinkSet():
               min(lats)-.05,
               max(lats)+.05]           
         
-        mp = Basemap(projection='merc',llcrnrlat=area[2],urcrnrlat=area[3],\
-            llcrnrlon=area[0],urcrnrlon=area[1],lat_ts=20,resolution='h')
-        mp.drawcoastlines(color='blue')
-        mp.drawrivers(color='blue')
-        mp.drawcountries()
-        mp.shadedrelief() 
-        # draw parallels.
-        parallels = np.arange(40.,60.,0.2)
-        mp.drawparallels(parallels,labels=[1,0,0,0],fontsize=10)
-        # draw meridians
-        meridians = np.arange(0.,20.,0.2)
-        mp.drawmeridians(meridians,labels=[0,0,0,1],fontsize=10)   
+        ax.set_extent((area[0], area[1], area[2], area[3]), crs=ccrs.PlateCarree())
+        gg_tiles = GoogleTiles()
+        ax.add_image(gg_tiles, 11)        
         
         for cml in self.set:
-            mp.drawgreatcircle(cml.metadata['site_A']['lon'],
-                               cml.metadata['site_A']['lat'],
-                               cml.metadata['site_B']['lon'],
-                               cml.metadata['site_B']['lat'],
-                               linewidth=2,color='k')
+                   plt.plot([cml.metadata['site_A']['lon'],cml.metadata['site_B']['lon']],
+                            [cml.metadata['site_A']['lat'],cml.metadata['site_B']['lat']],
+                            linewidth=2,color='k',
+                            transform=ccrs.Geodetic())        
         
         
     def do_wet_dry_classification(self, method='std_dev', 
@@ -244,8 +239,7 @@ class ComlinkSet():
                 cml.calc_R_from_A(a,b,approx_type)                
                 
                                                            
-        
-            
+               
     def plot_idw(self, area, grid_res,
                  figsize=(15,10),
                  acc_type='sum',
@@ -280,16 +274,16 @@ class ComlinkSet():
         """
         
         fig = plt.figure(figsize=figsize)
-        mp = Basemap(projection='merc',llcrnrlat=area[2],urcrnrlat=area[3],\
-            llcrnrlon=area[0],urcrnrlon=area[1],lat_ts=20,resolution=None)
-        mp.shadedrelief() 
-        # draw parallels.
-        parallels = np.arange(40.,60.,0.5)
-        mp.drawparallels(parallels,labels=[1,0,0,0],fontsize=10)
-        # draw meridians
-        meridians = np.arange(0.,20.,0.5)
-        mp.drawmeridians(meridians,labels=[0,0,0,1],fontsize=10) 
-        
+        ax = plt.axes(projection=ccrs.PlateCarree())
+        gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True,
+                  linewidth=2, color='gray', alpha=0.5, linestyle='--')        
+        gl.xlabels_top = False
+        ax.set_extent((area[0]-.05, area[1]+.05, area[2]-.05, area[3]+.05), crs=ccrs.PlateCarree())
+        for cml in self.set:
+            plt.plot([cml.metadata['site_A']['lon'],cml.metadata['site_B']['lon']],
+                     [cml.metadata['site_A']['lat'],cml.metadata['site_B']['lat']],
+                     linewidth=1,color='k',
+                     transform=ccrs.Geodetic()) 
         
         nws_precip_colors = [
         "#d6e2ff",  # 0.01 - 0.10 mm
@@ -319,10 +313,8 @@ class ComlinkSet():
         
         #Definition of output grid
         gridx = np.linspace(area[0],area[1],grid_res)
-        gridy = np.linspace(area[2],area[3],grid_res)
-        grid = np.meshgrid(gridx,gridy)    
-        x,y = mp(grid[0],grid[1])
-
+        gridy = np.linspace(area[2],area[3],grid_res)   
+        zv = np.zeros((grid_res,grid_res))
        
         # MW data and metadata
         lons_mw=[]
@@ -344,11 +336,9 @@ class ComlinkSet():
                                           gridx,gridy,power,smoothing)
             
                                                                 
-            cs = mp.contourf(x,y,inv_d_values,levels=levels_sum,norm=norm_sum,cmap=precip_colormap)
-            ln,lt = mp(lons_mw,lats_mw)
-
-            mp.scatter(ln,lt,c=values_mw,cmap=precip_colormap, alpha=0.6, s=60,norm=norm_sum)            
-            cbar = mp.colorbar(cs,location='bottom',pad="5%")
+            cs = plt.contourf(gridx,gridy,inv_d_values,levels=levels_sum,norm=norm_sum,cmap=precip_colormap,transform=ccrs.PlateCarree())
+           
+            cbar = plt.colorbar(cs,orientation='horizontal')
             cbar.set_label('mm')
   
         elif acc_type == 'rr':
@@ -375,15 +365,18 @@ class ComlinkSet():
                 
                 plt.title(str(self.set[0].data.resample(str(time_resolution)+'Min').index[i]))
     
-                cs = mp.contourf(x,y,inv_d_values,levels=levels_rr,norm=norm_rr,cmap=precip_colormap)
-                ln,lt = mp(lons_mw,lats_mw)
-                mp.scatter(ln,lt,c=values_mw,cmap=precip_colormap, alpha=0.6, s=60,norm=norm_rr)                
-                cbar = mp.colorbar(cs,location='bottom',pad="5%")
-                cbar.set_label('mm/h')
+                plt.contourf(gridx,gridy,inv_d_values,levels=levels_rr,norm=norm_rr,cmap=precip_colormap,transform=ccrs.PlateCarree())
+            
+            cs = plt.contourf(gridx,gridy,zv,levels=levels_rr,norm=norm_rr,cmap=precip_colormap,transform=ccrs.PlateCarree())
+            cbar = plt.colorbar(cs,orientation='horizontal')
+            cbar.set_label('mm/h')   
+
                             
             anim = animation.FuncAnimation(fig, animate, 
                                            frames=len(self.set[0].data.resample(str(time_resolution)+'Min').index),
-                                           interval=1000, blit=True)        
+                                           interval=1000, blit=True)   
+                                           
+                                        
                             
             anim.save('animation.gif', writer='imagemagick')    
                          

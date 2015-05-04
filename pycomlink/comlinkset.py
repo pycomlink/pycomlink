@@ -40,8 +40,9 @@ class ComlinkSet():
 
     
     """    
-    def __init__(self, cml_list):
+    def __init__(self, cml_list,area):
         self.set = cml_list
+        self.set_info = {'area':area}
         
     def info(self):
         """
@@ -51,10 +52,16 @@ class ComlinkSet():
         
         print '============================================================='
         print 'Number of Comlink Objects in ComlinkSet: ' + str(len(self.set))
+        print '  ----- '+"{:.2f}".format(self.set_info['area'][3])+' -----'
+        print '  |               |'
+        print "{:.2f}".format(self.set_info['area'][0])+'   area    ' \
+                +"{:.2f}".format(self.set_info['area'][1])
+        print '  |               |'        
+        print '  ----- '+"{:.2f}".format(self.set_info['area'][2])+' -----'        
+
         print 'IDs: ' 
         for cml in self.set:
-            if not cml.data.empty:
-                print '     ' + str(cml.metadata['link_id'])
+            print '     ' + str(cml.metadata['link_id'])
         print '============================================================='
         
 
@@ -108,7 +115,7 @@ class ComlinkSet():
                 - stft: Rolling Fourier-transform method (Chwala et al, 2012)
         window_length: int
             length of the sliding window        
-        threshold: int
+        threshold: 
             threshold which has to be surpassed to classifiy a period as 'wet'
         .....................
         Only for method stft:
@@ -127,8 +134,7 @@ class ComlinkSet():
             
         """
         for cml in self.set:
-            if not cml.data.empty:
-                cml.do_wet_dry_classification(method, 
+            cml.do_wet_dry_classification(method, 
                                               window_length,
                                               threshold,
                                               dry_window_length,
@@ -161,8 +167,7 @@ class ComlinkSet():
 
                               
         for cml in self.set:   
-            if not cml.data.empty:       
-                cml.do_baseline_determination(method,
+            cml.do_baseline_determination(method,
                                               wet_external,
                                               print_info)
   
@@ -190,8 +195,7 @@ class ComlinkSet():
         """ 
                                            
         for cml in self.set:    
-            if not cml.data.empty:        
-                cml.do_wet_antenna_baseline_adjust(waa_max,
+            cml.do_wet_antenna_baseline_adjust(waa_max,
                                                    delta_t,
                                                    tau,
                                                    wet_external)
@@ -210,8 +214,7 @@ class ComlinkSet():
         """         
         
         for cml in self.set:
-            if not cml.data.empty:
-                cml.calc_A(remove_negative_A)
+            cml.calc_A(remove_negative_A)
  
                     
                     
@@ -235,12 +238,13 @@ class ComlinkSet():
                
         """          
         for cml in self.set:
-            if not cml.data.empty:
-                cml.calc_R_from_A(a,b,approx_type)                
+            if (cml.processing_info['tx_rx_pairs']['fn']['f_GHz'] is not None 
+               and cml.processing_info['tx_rx_pairs']['nf']['f_GHz'] is not None):
+                   cml.calc_R_from_A(a,b,approx_type)                
                 
                                                            
                
-    def plot_idw(self, area, grid_res,
+    def plot_idw(self, grid_res,
                  figsize=(15,10),
                  acc_type='sum',
                  time_resolution=15,
@@ -278,12 +282,15 @@ class ComlinkSet():
         gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True,
                   linewidth=2, color='gray', alpha=0.5, linestyle='--')        
         gl.xlabels_top = False
-        ax.set_extent((area[0]-.05, area[1]+.05, area[2]-.05, area[3]+.05), crs=ccrs.PlateCarree())
+        ax.set_extent((self.set_info['area'][0]-.05, self.set_info['area'][1]+.05,
+                       self.set_info['area'][2]-.05, self.set_info['area'][3]+.05),
+                         crs=ccrs.PlateCarree())
         for cml in self.set:
-            plt.plot([cml.metadata['site_A']['lon'],cml.metadata['site_B']['lon']],
-                     [cml.metadata['site_A']['lat'],cml.metadata['site_B']['lat']],
-                     linewidth=1,color='k',
-                     transform=ccrs.Geodetic()) 
+            if 'R_nf' in cml.data.columns and 'R_fn' in cml.data.columns:
+                plt.plot([cml.metadata['site_A']['lon'],cml.metadata['site_B']['lon']],
+                         [cml.metadata['site_A']['lat'],cml.metadata['site_B']['lat']],
+                         linewidth=1,color='k',
+                         transform=ccrs.Geodetic()) 
         
         nws_precip_colors = [
         "#d6e2ff",  # 0.01 - 0.10 mm
@@ -312,8 +319,8 @@ class ComlinkSet():
         norm_sum = matplotlib.colors.BoundaryNorm(levels_sum, 15)
         
         #Definition of output grid
-        gridx = np.linspace(area[0],area[1],grid_res)
-        gridy = np.linspace(area[2],area[3],grid_res)   
+        gridx = np.linspace(self.set_info['area'][0],self.set_info['area'][1],grid_res)
+        gridy = np.linspace(self.set_info['area'][2],self.set_info['area'][3],grid_res)   
         zv = np.zeros((grid_res,grid_res))
        
         # MW data and metadata
@@ -322,15 +329,15 @@ class ComlinkSet():
         values_mw=[]
         if acc_type == 'sum':
             for cml in self.set: 
-                if not cml.data.empty:
-                   prep_sum=((cml.data.R_fn.resample('H',how='mean')+
-                                       cml.data.R_nf.resample('H',how='mean'))/2.).sum() 
-                   if not math.isnan(prep_sum):                     
-                       lons_mw.append((cml.metadata['site_A']['lon']
+                if 'R_nf' in cml.data.columns and 'R_fn' in cml.data.columns:
+                    prep_sum=((cml.data.R_fn.resample('H',how='mean')+
+                               cml.data.R_nf.resample('H',how='mean'))/2.).sum() 
+                    if not math.isnan(prep_sum):  
+                        lons_mw.append((cml.metadata['site_A']['lon']
                                       +cml.metadata['site_B']['lon'])/2.)
-                       lats_mw.append((cml.metadata['site_A']['lat']
+                        lats_mw.append((cml.metadata['site_A']['lat']
                                       +cml.metadata['site_B']['lat'])/2.)
-                       values_mw.append(prep_sum)
+                        values_mw.append(prep_sum)
                                    
             inv_d_values=mapping.inv_dist(lons_mw,lats_mw,values_mw,
                                           gridx,gridy,power,smoothing)
@@ -346,13 +353,12 @@ class ComlinkSet():
             def animate(i):
 
                 for cml in self.set:
-                    if not cml.data.empty:
-
+                    if 'R_nf' in cml.data.columns and 'R_fn' in cml.data.columns:
                         prep_rr = (cml.data.R_fn.resample(str(time_resolution)+'Min',how='mean')[i]+
                                    cml.data.R_nf.resample(str(time_resolution)+'Min',how='mean')[i])/2.                
                     
                 
-                        if not math.isnan(prep_rr):                     
+                        if not math.isnan(prep_rr):  
                             lons_mw.append((cml.metadata['site_A']['lon']
                                            +cml.metadata['site_B']['lon'])/2.)
                             lats_mw.append((cml.metadata['site_A']['lat']

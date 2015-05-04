@@ -334,7 +334,7 @@ class Comlink():
         # Standard deviation method
         if method == 'std_dev':
             if print_info:
-                print 'Performing wet/dry classification'
+                print 'Performing wet/dry classification for link '+ self.metadata['link_id']
                 print ' Method = std_dev'
                 print ' window_length = ' + str(window_length)
                 print ' threshold = ' + str(threshold)
@@ -352,7 +352,7 @@ class Comlink():
         # Shor-term Fourier transformation method
         elif method == 'stft':
             if print_info:
-                print 'Performing wet/dry classification'
+                print 'Performing wet/dry classification for link '+ self.metadata['link_id']
                 print ' Method = stft'
                 print ' dry_window_length = ' + str(dry_window_length)
                 print ' window_length = ' + str(window_length)

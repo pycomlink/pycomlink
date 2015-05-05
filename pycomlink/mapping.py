@@ -69,3 +69,36 @@ def label_loc(lon_a,lat_a,lon_b,lat_b):
     xy = [x_a,y_a,x_b,y_b]
     return xy
                              
+                             
+def kriging(lons_mp,lats_mp,values_mp,lons_grid,lats_grid,
+            krig_type,variogram_model,drift_terms):
+    """
+    lons_mp,lats_mp coordinates of measuring points
+    values_mp values at measuring points
+    
+    lons_grid,lats_grid coordinates of regular grid  
+    
+    krig_type, variogram_model, drift_terms:     
+                Parameters for Kriging interpolation
+                (see pykrige documentation for information)    
+    """     
+    from pykrige.ok import OrdinaryKriging
+    from pykrige.uk import UniversalKriging
+    
+    if krig_type == 'ordinary':
+       OK = OrdinaryKriging(lons_mp, lats_mp, values_mp,
+                            variogram_model=variogram_model,
+                            verbose=False, enable_plotting=False) 
+       z, s_kr = OK.execute('grid', lons_grid, lats_grid)   
+    elif krig_type == 'universal':
+       UK = UniversalKriging(lons_mp, lats_mp, values_mp,
+                            variogram_model=variogram_model,
+                            drift_terms=drift_terms,
+                            verbose=False, enable_plotting=False) 
+       z, s_kr = UK.execute('grid', lons_grid, lats_grid) 
+    else:
+       ValueError('Kriging type not supported')   
+    return z       
+                          
+    
+                             

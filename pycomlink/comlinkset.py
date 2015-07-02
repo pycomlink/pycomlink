@@ -50,8 +50,11 @@ class ComlinkSet():
                 List that holds the geographic coordinates of the area borders in
                 decimal format. 
                 The order has to be:
-                area = [lower_longitude,upper_longitude,
-                        lower_latitude, upper_latitude]
+                
+                Example
+                -------
+                >>> area = [lower_longitude,upper_longitude,lower_latitude, upper_latitude]
+                
         """
         
         
@@ -217,7 +220,7 @@ class ComlinkSet():
                  for each classified index of times series (Default is None)
         
         Note
-        ------        
+        ----        
         The wet antenna adjusting is based on a peer-reviewed publication [3]_
         
   

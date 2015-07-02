@@ -150,7 +150,7 @@
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">mapping</span>
 
 
-<div class="viewcode-block" id="ComlinkSet"><a class="viewcode-back" href="../../pycomlink.Comlink.html#pycomlink.comlinkset.ComlinkSet">[docs]</a><span class="k">class</span> <span class="nc">ComlinkSet</span><span class="p">():</span>
+<div class="viewcode-block" id="ComlinkSet"><a class="viewcode-back" href="../../pycomlink.ComlinkSet.html#pycomlink.comlinkset.ComlinkSet">[docs]</a><span class="k">class</span> <span class="nc">ComlinkSet</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;Commercial microwave link set (CMLS) class for data processing of multiple links</span>
 <span class="sd">    </span>
 <span class="sd">    Attributes</span>
@@ -173,15 +173,18 @@
 <span class="sd">                List that holds the geographic coordinates of the area borders in</span>
 <span class="sd">                decimal format. </span>
 <span class="sd">                The order has to be:</span>
-<span class="sd">                area = [lower_longitude,upper_longitude,</span>
-<span class="sd">                        lower_latitude, upper_latitude]</span>
+<span class="sd">                </span>
+<span class="sd">                Example</span>
+<span class="sd">                -------</span>
+<span class="sd">                &gt;&gt;&gt; area = [lower_longitude,upper_longitude,lower_latitude, upper_latitude]</span>
+<span class="sd">                </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         
         
         <span class="bp">self</span><span class="o">.</span><span class="n">set</span> <span class="o">=</span> <span class="n">cml_list</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_info</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;area&#39;</span><span class="p">:</span><span class="n">area</span><span class="p">}</span>
         
-<div class="viewcode-block" id="ComlinkSet.info"><a class="viewcode-back" href="../../pycomlink.Comlink.html#pycomlink.comlinkset.ComlinkSet.info">[docs]</a>    <span class="k">def</span> <span class="nf">info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="ComlinkSet.info"><a class="viewcode-back" href="../../pycomlink.ComlinkSet.html#pycomlink.comlinkset.ComlinkSet.info">[docs]</a>    <span class="k">def</span> <span class="nf">info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Print information about associated microwave links </span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>        
@@ -201,7 +204,7 @@
         <span class="k">print</span> <span class="s">&#39;=============================================================&#39;</span>
         
 </div>
-<div class="viewcode-block" id="ComlinkSet.info_plot"><a class="viewcode-back" href="../../pycomlink.Comlink.html#pycomlink.comlinkset.ComlinkSet.info_plot">[docs]</a>    <span class="k">def</span> <span class="nf">info_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="ComlinkSet.info_plot"><a class="viewcode-back" href="../../pycomlink.ComlinkSet.html#pycomlink.comlinkset.ComlinkSet.info_plot">[docs]</a>    <span class="k">def</span> <span class="nf">info_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Plot associated links a map </span>
 <span class="sd">                </span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -232,7 +235,7 @@
                             <span class="n">transform</span><span class="o">=</span><span class="n">ccrs</span><span class="o">.</span><span class="n">Geodetic</span><span class="p">())</span>        
         
         </div>
-<div class="viewcode-block" id="ComlinkSet.do_wet_dry_classification"><a class="viewcode-back" href="../../pycomlink.Comlink.html#pycomlink.comlinkset.ComlinkSet.do_wet_dry_classification">[docs]</a>    <span class="k">def</span> <span class="nf">do_wet_dry_classification</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s">&#39;std_dev&#39;</span><span class="p">,</span> 
+<div class="viewcode-block" id="ComlinkSet.do_wet_dry_classification"><a class="viewcode-back" href="../../pycomlink.ComlinkSet.html#pycomlink.comlinkset.ComlinkSet.do_wet_dry_classification">[docs]</a>    <span class="k">def</span> <span class="nf">do_wet_dry_classification</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s">&#39;std_dev&#39;</span><span class="p">,</span> 
                                         <span class="n">window_length</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span>
                                         <span class="n">threshold</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
                                         <span class="n">dry_window_length</span><span class="o">=</span><span class="mi">600</span><span class="p">,</span>
@@ -284,7 +287,7 @@
     
                 
 </div>
-<div class="viewcode-block" id="ComlinkSet.do_baseline_determination"><a class="viewcode-back" href="../../pycomlink.Comlink.html#pycomlink.comlinkset.ComlinkSet.do_baseline_determination">[docs]</a>    <span class="k">def</span> <span class="nf">do_baseline_determination</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+<div class="viewcode-block" id="ComlinkSet.do_baseline_determination"><a class="viewcode-back" href="../../pycomlink.ComlinkSet.html#pycomlink.comlinkset.ComlinkSet.do_baseline_determination">[docs]</a>    <span class="k">def</span> <span class="nf">do_baseline_determination</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
                                   <span class="n">method</span><span class="o">=</span><span class="s">&#39;constant&#39;</span><span class="p">,</span>
                                   <span class="n">wet_external</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                                   <span class="n">print_info</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
@@ -318,7 +321,7 @@
   
 
 </div>
-<div class="viewcode-block" id="ComlinkSet.do_wet_antenna_baseline_adjust"><a class="viewcode-back" href="../../pycomlink.Comlink.html#pycomlink.comlinkset.ComlinkSet.do_wet_antenna_baseline_adjust">[docs]</a>    <span class="k">def</span> <span class="nf">do_wet_antenna_baseline_adjust</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+<div class="viewcode-block" id="ComlinkSet.do_wet_antenna_baseline_adjust"><a class="viewcode-back" href="../../pycomlink.ComlinkSet.html#pycomlink.comlinkset.ComlinkSet.do_wet_antenna_baseline_adjust">[docs]</a>    <span class="k">def</span> <span class="nf">do_wet_antenna_baseline_adjust</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                                        <span class="n">waa_max</span><span class="p">,</span> 
                                        <span class="n">delta_t</span><span class="p">,</span> 
                                        <span class="n">tau</span><span class="p">,</span>
@@ -340,7 +343,7 @@
 <span class="sd">                 for each classified index of times series (Default is None)</span>
 <span class="sd">        </span>
 <span class="sd">        Note</span>
-<span class="sd">        ------        </span>
+<span class="sd">        ----        </span>
 <span class="sd">        The wet antenna adjusting is based on a peer-reviewed publication [3]_</span>
 <span class="sd">        </span>
 <span class="sd">  </span>
@@ -353,7 +356,7 @@
                                                    <span class="n">wet_external</span><span class="p">)</span>
                 
  </div>
-<div class="viewcode-block" id="ComlinkSet.calc_A"><a class="viewcode-back" href="../../pycomlink.Comlink.html#pycomlink.comlinkset.ComlinkSet.calc_A">[docs]</a>    <span class="k">def</span> <span class="nf">calc_A</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">remove_negative_A</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+<div class="viewcode-block" id="ComlinkSet.calc_A"><a class="viewcode-back" href="../../pycomlink.ComlinkSet.html#pycomlink.comlinkset.ComlinkSet.calc_A">[docs]</a>    <span class="k">def</span> <span class="nf">calc_A</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">remove_negative_A</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
         
         <span class="sd">&quot;&quot;&quot;Perform calculation of attenuation for all CML time series in CMLS</span>
 <span class="sd">        </span>
@@ -369,7 +372,7 @@
  
                     
                     </div>
-<div class="viewcode-block" id="ComlinkSet.calc_R_from_A"><a class="viewcode-back" href="../../pycomlink.Comlink.html#pycomlink.comlinkset.ComlinkSet.calc_R_from_A">[docs]</a>    <span class="k">def</span> <span class="nf">calc_R_from_A</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">approx_type</span><span class="o">=</span><span class="s">&#39;ITU&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="ComlinkSet.calc_R_from_A"><a class="viewcode-back" href="../../pycomlink.ComlinkSet.html#pycomlink.comlinkset.ComlinkSet.calc_R_from_A">[docs]</a>    <span class="k">def</span> <span class="nf">calc_R_from_A</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">approx_type</span><span class="o">=</span><span class="s">&#39;ITU&#39;</span><span class="p">):</span>
         
         <span class="sd">&quot;&quot;&quot;Perform calculation of rain rate from attenuation for all CML time series in CMLS</span>
 <span class="sd">        </span>
@@ -394,7 +397,7 @@
                 
                                                            
                </div>
-<div class="viewcode-block" id="ComlinkSet.spat_interpol"><a class="viewcode-back" href="../../pycomlink.Comlink.html#pycomlink.comlinkset.ComlinkSet.spat_interpol">[docs]</a>    <span class="k">def</span> <span class="nf">spat_interpol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">grid_res</span><span class="p">,</span>
+<div class="viewcode-block" id="ComlinkSet.spat_interpol"><a class="viewcode-back" href="../../pycomlink.ComlinkSet.html#pycomlink.comlinkset.ComlinkSet.spat_interpol">[docs]</a>    <span class="k">def</span> <span class="nf">spat_interpol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">grid_res</span><span class="p">,</span>
                  <span class="n">int_type</span><span class="p">,</span>
                  <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span><span class="mi">10</span><span class="p">),</span>
                  <span class="n">time</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>

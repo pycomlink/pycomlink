@@ -493,10 +493,11 @@ Dict of dicts of the TX-RX pairs</td>
 has to be a Comlink object.</li>
 <li><strong>area</strong> (<em>list of floats</em>) &#8211; <p>List that holds the geographic coordinates of the area borders in
 decimal format.
-The order has to be:
-area = [lower_longitude,upper_longitude,</p>
-<blockquote>
-<div>lower_latitude, upper_latitude]</div></blockquote>
+The order has to be:</p>
+<p class="rubric">Example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">area</span> <span class="o">=</span> <span class="p">[</span><span class="n">lower_longitude</span><span class="p">,</span><span class="n">upper_longitude</span><span class="p">,</span><span class="n">lower_latitude</span><span class="p">,</span> <span class="n">upper_latitude</span><span class="p">]</span>
+</pre></div>
+</div>
 </li>
 </ul>
 </td>
@@ -585,14 +586,15 @@ for each classified index of times series (Default is None)</li>
 <li><strong>tau</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; Parameter for wet antnenna attenation model</li>
 <li><strong>wet_external</strong> (<em>iterable of int or iterable of float, optional</em>) &#8211; External wet/dry classification information. Has to be specified
 for each classified index of times series (Default is None)</li>
-<li><strong>Note</strong> &#8211; </li>
-<li><strong>------</strong> &#8211; </li>
-<li><strong>wet antenna adjusting is based on a peer-reviewed publication 3</strong> (<em>The</em>) &#8211; </li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The wet antenna adjusting is based on a peer-reviewed publication <a class="footnote-reference" href="#id2" id="id7">[3]</a></p>
+</div>
 </dd></dl>
 
 <dl class="method">

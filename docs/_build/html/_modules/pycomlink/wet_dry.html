@@ -1,0 +1,443 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pycomlink.wet_dry &mdash; pycomlink 0.0.5 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="pycomlink 0.0.5 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="../../index.html" class="icon icon-home"> pycomlink
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul class="simple">
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../pycomlink.Comlink.html"><code class="docutils literal"><span class="pre">pycomlink.Comlink</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pycomlink.Comlink.html#module-pycomlink.comlinkset"><code class="docutils literal"><span class="pre">pycomlink.ComlinkSet</span></code></a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../pycomlink.html"><code class="docutils literal"><span class="pre">pycomlink.A_R_relation</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pycomlink.html#module-pycomlink.baseline"><code class="docutils literal"><span class="pre">pycomlink.baseline</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pycomlink.html#module-pycomlink.io"><code class="docutils literal"><span class="pre">pycomlink.io</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pycomlink.html#module-pycomlink.mapping"><code class="docutils literal"><span class="pre">pycomlink.mapping</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pycomlink.html#module-pycomlink.wet_antenna"><code class="docutils literal"><span class="pre">pycomlink.wet_antenna</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pycomlink.html#module-pycomlink.wet_dry"><code class="docutils literal"><span class="pre">pycomlink.wet_dry</span></code></a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">pycomlink</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+    <li>pycomlink.wet_dry</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document">
+            
+  <h1>Source code for pycomlink.wet_dry</h1><div class="highlight"><pre>
+        
+<span class="c">###############################################################            </span>
+<span class="c"># Functions for the wet/dry classification of RSL time series #          </span>
+<span class="c">###############################################################</span>
+        
+<span class="c">#-------------------------------------#        </span>
+<span class="c"># Rolling std deviation window method #</span>
+<span class="c">#-------------------------------------#</span>
+                                                                                                    
+<span class="k">def</span> <span class="nf">wet_dry_std_dev</span><span class="p">(</span><span class="n">rsl</span><span class="p">,</span> <span class="n">window_length</span><span class="p">,</span> <span class="n">threshold</span><span class="p">):</span>
+<div class="viewcode-block" id="wet_dry_std_dev"><a class="viewcode-back" href="../../pycomlink.html#pycomlink.wet_dry.wet_dry_std_dev">[docs]</a>    
+    <span class="sd">&quot;&quot;&quot;Perform wet/dry classification with Rolling standard deviation method</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    rsl : iterable of float</span>
+<span class="sd">         Time series of received signal level          </span>
+<span class="sd">    window_length : int</span>
+<span class="sd">         Length of the sliding window     </span>
+<span class="sd">    threshold : int</span>
+<span class="sd">         Threshold which has to be surpassed to classifiy a period as &#39;wet&#39;</span>
+<span class="sd">         </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    iterable of int</span>
+<span class="sd">        Time series of wet/dry classification  </span>
+
+<span class="sd">    Note</span>
+<span class="sd">    ----</span>
+<span class="sd">    Implementation of Rolling standard deviation method [1]_</span>
+<span class="sd">    </span>
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] Schleiss, M. and Berne, A.: &quot;Identification of dry and rainy periods </span>
+<span class="sd">           using telecommunication microwave links&quot;, IEEE Geoscience and </span>
+<span class="sd">           Remote Sensing, 7, 611-615, 2010  </span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">roll_std_dev</span> <span class="o">=</span> <span class="n">rolling_std_dev</span><span class="p">(</span><span class="n">rsl</span><span class="p">,</span> <span class="n">window_length</span><span class="p">)</span>
+    <span class="n">wet</span> <span class="o">=</span> <span class="n">roll_std_dev</span> <span class="o">&gt;</span> <span class="n">threshold</span>
+    <span class="k">return</span> <span class="n">wet</span><span class="p">,</span> <span class="n">roll_std_dev</span>
+
+<span class="k">def</span> <span class="nf">rolling_window</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">window</span><span class="p">):</span></div>
+<div class="viewcode-block" id="rolling_window"><a class="viewcode-back" href="../../pycomlink.html#pycomlink.wet_dry.rolling_window">[docs]</a>    
+    <span class="sd">&quot;&quot;&quot;Define sliding window</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    a : iterable of float</span>
+<span class="sd">         Time series of values          </span>
+<span class="sd">    window : int</span>
+<span class="sd">         Length of the sliding window     </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+    <span class="n">shape</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">window</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">window</span><span class="p">)</span>
+    <span class="n">strides</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">strides</span> <span class="o">+</span> <span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">strides</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">lib</span><span class="o">.</span><span class="n">stride_tricks</span><span class="o">.</span><span class="n">as_strided</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">shape</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="n">strides</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">rolling_std_dev</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">window_length</span><span class="p">,</span> <span class="n">pad_only_left</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span></div>
+<div class="viewcode-block" id="rolling_std_dev"><a class="viewcode-back" href="../../pycomlink.html#pycomlink.wet_dry.rolling_std_dev">[docs]</a>    
+    <span class="sd">&quot;&quot;&quot;Calculate standard deviation in sliding window</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : iterable of float</span>
+<span class="sd">         Time series of values          </span>
+<span class="sd">    window_length : int</span>
+<span class="sd">         Length of the sliding window   </span>
+<span class="sd">    pad_only_left : bool</span>
+<span class="sd">        Default is False</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    array of float</span>
+<span class="sd">        standard deviation in sliding window</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>        
+    
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+    <span class="n">roll_std_dev</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">rolling_window</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">window_length</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">pad_nan</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">window_length</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">pad_nan</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">NaN</span>
+    <span class="c"># add NaN to start and end of array</span>
+    <span class="n">ix_mid</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pad_nan</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
+    <span class="k">if</span> <span class="n">pad_only_left</span> <span class="o">==</span> <span class="bp">False</span><span class="p">:</span>
+        <span class="n">roll_std_dev</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">pad_nan</span><span class="p">[:</span><span class="n">ix_mid</span><span class="p">],</span> 
+                                       <span class="n">roll_std_dev</span><span class="p">,</span>
+                                       <span class="n">pad_nan</span><span class="p">[</span><span class="n">ix_mid</span><span class="p">:]))</span>
+    <span class="k">elif</span> <span class="n">pad_only_left</span> <span class="o">==</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="n">roll_std_dev</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">pad_nan</span><span class="p">,</span> <span class="n">roll_std_dev</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;pad_only_left must be either True or False&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">roll_std_dev</span>
+    
+
+<span class="c">#-----------------------------------------------#</span>
+<span class="c"># Rolling Fourie Transform window method (STFT) #</span>
+<span class="c">#-----------------------------------------------#</span>
+
+<span class="k">def</span> <span class="nf">find_lowest_std_dev_period</span><span class="p">(</span><span class="n">rsl</span><span class="p">,</span> <span class="n">window_length</span><span class="o">=</span><span class="mi">600</span><span class="p">):</span></div>
+<div class="viewcode-block" id="find_lowest_std_dev_period"><a class="viewcode-back" href="../../pycomlink.html#pycomlink.wet_dry.find_lowest_std_dev_period">[docs]</a>    
+    <span class="sd">&quot;&quot;&quot;Find beginning and end of dry period</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    rsl : iterable of float</span>
+<span class="sd">         Time series of received signal level   </span>
+<span class="sd">    window_length : int, optional</span>
+<span class="sd">         Length of window for identifying dry period (Default is 600)    </span>
+<span class="sd">         </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    int</span>
+<span class="sd">        Index of beginning of dry period</span>
+<span class="sd">    int</span>
+<span class="sd">        Index of end of dry period    </span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+    <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">mlab</span>
+    
+    <span class="c"># pad_only_left was added to be backwards compatible with the</span>
+    <span class="c"># old rolling_std_dev function which only padded with NaN on the</span>
+    <span class="c"># left side of the time series. Now symetric padding is default!!!</span>
+    <span class="n">roll_std_dev</span> <span class="o">=</span> <span class="n">rolling_std_dev</span><span class="p">(</span><span class="n">rsl</span><span class="p">,</span><span class="n">window_length</span><span class="p">,</span> <span class="n">pad_only_left</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">dry_stop</span> <span class="o">=</span> <span class="n">mlab</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">roll_std_dev</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">roll_std_dev</span><span class="p">))</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dry_stop</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">dry_stop</span> <span class="o">=</span> <span class="n">dry_stop</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">dry_start</span> <span class="o">=</span> <span class="n">dry_stop</span> <span class="o">-</span> <span class="n">window_length</span>
+    <span class="k">return</span> <span class="n">dry_start</span><span class="p">,</span> <span class="n">dry_stop</span>
+ 
+<span class="k">def</span> <span class="nf">wet_dry_stft</span><span class="p">(</span><span class="n">rsl</span><span class="p">,</span> <span class="n">window_length</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">f_divide</span><span class="p">,</span> </div>
+<div class="viewcode-block" id="wet_dry_stft"><a class="viewcode-back" href="../../pycomlink.html#pycomlink.wet_dry.wet_dry_stft">[docs]</a>                 <span class="n">t_dry_start</span><span class="p">,</span> <span class="n">t_dry_stop</span><span class="p">,</span> 
+                 <span class="n">window</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">Pxx</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">f</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">f_sampling</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mf">60.0</span><span class="p">):</span>
+                     
+    <span class="sd">&quot;&quot;&quot;Perform wet/dry classification with Rolling Fourier-transform method</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    rsl : iterable of float</span>
+<span class="sd">         Time series of received signal level          </span>
+<span class="sd">    window_length : int</span>
+<span class="sd">         Length of the sliding window </span>
+<span class="sd">    threshold : int</span>
+<span class="sd">         Threshold which has to be surpassed to classifiy a period as &#39;wet&#39;</span>
+<span class="sd">    f_divide : float</span>
+<span class="sd">          Parameter for classification with method Fourier transformation</span>
+<span class="sd">    t_dry_start : int</span>
+<span class="sd">        Index of starting point dry period</span>
+<span class="sd">    t_dry_stop : int</span>
+<span class="sd">        Index of end of dry period</span>
+<span class="sd">    window : array of float, optional</span>
+<span class="sd">        Values of window function. If not given a Hamming window function is</span>
+<span class="sd">        applied (Default is None)</span>
+<span class="sd">    Pxx : 2-D array of float, optional</span>
+<span class="sd">        Spectogram used for the wet/dry classification. Gets computed if not given</span>
+<span class="sd">        (Default is None)</span>
+<span class="sd">    f : arra of float, optional</span>
+<span class="sd">        Frequencies corresponding to the rows in Pxx. Gets computed if not given.</span>
+<span class="sd">        (Default is None)</span>
+<span class="sd">    f_sampling : float, optional    </span>
+<span class="sd">        Sampling frequency (samples per time unit). It is used to calculate </span>
+<span class="sd">        the Fourier frequencies, freqs, in cycles per time unit.</span>
+<span class="sd">        (Default is 1/60.0)</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    iterable of int</span>
+<span class="sd">        Time series of wet/dry classification  </span>
+<span class="sd">    dict</span>
+<span class="sd">        Dictionary holding information about the classification    </span>
+<span class="sd">    </span>
+<span class="sd">    Note</span>
+<span class="sd">    ----</span>
+<span class="sd">    Implementation of Rolling Fourier-transform method [2]_ </span>
+<span class="sd">    </span>
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [2] Chwala, C., Gmeiner, A., Qiu, W., Hipp, S., Nienaber, D., Siart, U.,</span>
+<span class="sd">           Eibert, T., Pohl, M., Seltmann, J., Fritz, J. and Kunstmann, H.:</span>
+<span class="sd">           &quot;Precipitation observation using microwave backhaul links in the </span>
+<span class="sd">           alpine and pre-alpine region of Southern Germany&quot;, Hydrology</span>
+<span class="sd">           and Earth System Sciences, 16, 2647-2661, 2012   </span>
+<span class="sd">           </span>
+<span class="sd">    &quot;&quot;&quot;</span>                 
+                     
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+    <span class="c">#from pylab import specgram</span>
+    <span class="kn">from</span> <span class="nn">matplotlib.mlab</span> <span class="kn">import</span> <span class="n">specgram</span> <span class="k">as</span> <span class="n">specg</span>
+    
+    <span class="c"># Calculate spectrogram Pxx if it is not supplied as function argument </span>
+    <span class="k">if</span> <span class="n">Pxx</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="c"># Set up sliding window for STFT</span>
+        <span class="n">NFFT</span> <span class="o">=</span> <span class="n">window_length</span>
+        <span class="k">if</span> <span class="n">window</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">window</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hamming</span><span class="p">(</span><span class="n">window_length</span><span class="p">)</span>        
+        <span class="c"># Calculate spectrogram using STFT    </span>
+        <span class="n">Pxx</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">t</span> <span class="o">=</span> <span class="n">specg</span><span class="p">(</span><span class="n">rsl</span><span class="p">,</span> 
+                          <span class="n">NFFT</span><span class="o">=</span><span class="n">NFFT</span><span class="p">,</span> 
+                          <span class="n">Fs</span><span class="o">=</span><span class="n">f_sampling</span><span class="p">,</span> 
+                          <span class="n">noverlap</span><span class="o">=</span><span class="n">NFFT</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> 
+                          <span class="n">window</span><span class="o">=</span><span class="n">window</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">Pxx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">f</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&#39;Skipping spectrogram calculation and using supplied Pxx&#39;</span>
+        <span class="c">#</span>
+        <span class="c"># TODO: check that Pxx has the correct size</span>
+        <span class="c">#</span>
+        <span class="c">#..... assert len(Pxx[0]) == len(rsl) - window_length</span>
+    <span class="k">elif</span> <span class="n">Pxx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">f</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;You have to supply f if you supply Pxx&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;This should be imposible&#39;</span><span class="p">)</span>
+    
+    <span class="c"># Add NaNs as the missing spectral data at the begining and end of </span>
+    <span class="c"># the time series (stemming from the window length) </span>
+    <span class="n">N_diff</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">rsl</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">Pxx</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">N_missing_start</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">N_diff</span><span class="o">/</span><span class="mf">2.0</span><span class="p">)</span>
+    <span class="n">N_missing_end</span> <span class="o">=</span> <span class="n">N_diff</span> <span class="o">-</span> <span class="n">N_missing_start</span>
+    <span class="n">Pxx_extended</span> <span class="o">=</span>  <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">nans</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">Pxx</span><span class="p">),</span><span class="n">N_missing_start</span><span class="p">]),</span>
+                           <span class="n">Pxx</span><span class="p">,</span>
+                           <span class="n">nans</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">Pxx</span><span class="p">),</span><span class="n">N_missing_end</span><span class="p">])),</span><span class="mi">1</span><span class="p">)</span>
+    
+    <span class="c"># Calculate mean dry spectrum</span>
+    <span class="n">P_dry_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">Pxx_extended</span><span class="p">[:,</span> <span class="n">t_dry_start</span><span class="p">:</span><span class="n">t_dry_stop</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="c"># Normalize the power spectrogram with the mean dry spectrum.</span>
+    <span class="c"># The arrary([...]) syntax is needed to transpose P_dry_mean to</span>
+    <span class="c"># a column vector (1D arrays cannot be transposed in Numpy)</span>
+    <span class="n">P_norm</span> <span class="o">=</span> <span class="n">Pxx_extended</span><span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">P_dry_mean</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
+    
+    <span class="n">i_f_divide_low</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">f</span><span class="o">&lt;=</span><span class="n">f_divide</span><span class="p">)</span>
+    <span class="n">i_f_divide_high</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">f</span><span class="o">&gt;</span><span class="n">f_divide</span><span class="p">)</span>
+    <span class="n">N_f_divide_low</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">i_f_divide_low</span><span class="p">)</span>
+    <span class="n">N_f_divide_high</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">i_f_divide_high</span><span class="p">)</span>
+    
+    <span class="n">P_norm_low</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">P_norm</span><span class="p">[</span><span class="n">i_f_divide_low</span><span class="p">],</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">P_norm_high</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">P_norm</span><span class="p">[</span><span class="n">i_f_divide_high</span><span class="p">],</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">P_sum_diff</span> <span class="o">=</span> <span class="n">P_norm_low</span><span class="o">/</span><span class="n">N_f_divide_low</span> <span class="o">-</span> <span class="n">P_norm_high</span><span class="o">/</span><span class="n">N_f_divide_high</span>
+    
+    <span class="n">wet</span> <span class="o">=</span> <span class="n">P_sum_diff</span> <span class="o">&gt;</span> <span class="n">threshold</span>
+    <span class="n">info</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;P_norm&#39;</span><span class="p">:</span> <span class="n">P_norm</span><span class="p">,</span> <span class="s">&#39;P_sum_diff&#39;</span><span class="p">:</span> <span class="n">P_sum_diff</span><span class="p">,</span> 
+            <span class="s">&#39;Pxx&#39;</span><span class="p">:</span> <span class="n">Pxx_extended</span><span class="p">,</span> <span class="s">&#39;P_dry_mean&#39;</span><span class="p">:</span> <span class="n">P_dry_mean</span><span class="p">,</span> <span class="s">&#39;f&#39;</span><span class="p">:</span> <span class="n">f</span><span class="p">}</span>
+    
+    <span class="k">return</span> <span class="n">wet</span><span class="p">,</span> <span class="n">info</span>   
+
+
+<span class="c">####################</span>
+<span class="c"># Helper functions #</span>
+<span class="c">####################</span>
+
+<span class="k">def</span> <span class="nf">nans</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">):</span></div>
+<div class="viewcode-block" id="nans"><a class="viewcode-back" href="../../pycomlink.html#pycomlink.wet_dry.nans">[docs]</a>    <span class="sd">&quot;&quot;&quot;Helper function for wet/dry classification</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="p">)</span>
+    <span class="n">a</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">a</span>
+</pre></div></div>
+
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Karlsruhe Institute of Technology (KIT) - Campus Alpin.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'0.0.5',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

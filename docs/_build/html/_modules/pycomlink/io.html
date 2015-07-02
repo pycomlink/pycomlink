@@ -1,0 +1,481 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pycomlink.io &mdash; pycomlink 0.0.5 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="pycomlink 0.0.5 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="../../index.html" class="icon icon-home"> pycomlink
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul class="simple">
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../pycomlink.Comlink.html"><code class="docutils literal"><span class="pre">pycomlink.Comlink</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pycomlink.Comlink.html#module-pycomlink.comlinkset"><code class="docutils literal"><span class="pre">pycomlink.ComlinkSet</span></code></a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../pycomlink.html"><code class="docutils literal"><span class="pre">pycomlink.A_R_relation</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pycomlink.html#module-pycomlink.baseline"><code class="docutils literal"><span class="pre">pycomlink.baseline</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pycomlink.html#module-pycomlink.io"><code class="docutils literal"><span class="pre">pycomlink.io</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pycomlink.html#module-pycomlink.mapping"><code class="docutils literal"><span class="pre">pycomlink.mapping</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pycomlink.html#module-pycomlink.wet_antenna"><code class="docutils literal"><span class="pre">pycomlink.wet_antenna</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pycomlink.html#module-pycomlink.wet_dry"><code class="docutils literal"><span class="pre">pycomlink.wet_dry</span></code></a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">pycomlink</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+    <li>pycomlink.io</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document">
+            
+  <h1>Source code for pycomlink.io</h1><div class="highlight"><pre>
+<span class="c">#----------------------------------------------------------------------------</span>
+<span class="c"># Name:         io</span>
+<span class="c"># Purpose:      Initialization of comlink object</span>
+<span class="c">#               Input and output functions for commercial MW link (CML) data</span>
+<span class="c">#</span>
+<span class="c"># Authors:      Christian Chwala, Felix Keis</span>
+<span class="c">#</span>
+<span class="c"># Created:      01.12.2014</span>
+<span class="c"># Copyright:    (c) Christian Chwala 2014</span>
+<span class="c"># Licence:      The MIT License</span>
+<span class="c">#----------------------------------------------------------------------------</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">scipy.io</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+
+<span class="kn">from</span> <span class="nn">comlink</span> <span class="kn">import</span> <span class="n">Comlink</span>
+<span class="kn">from</span> <span class="nn">comlinkset</span> <span class="kn">import</span> <span class="n">ComlinkSet</span>
+
+
+<div class="viewcode-block" id="write_hdf5"><a class="viewcode-back" href="../../pycomlink.html#pycomlink.io.write_hdf5">[docs]</a><span class="k">def</span> <span class="nf">write_hdf5</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">cml</span><span class="p">,</span> <span class="n">cml_id</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Write Comlink or Comlink list to HDF5</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------    </span>
+<span class="sd">    fn : str</span>
+<span class="sd">        Absolute filename</span>
+<span class="sd">    cml : Comlink or list of Comlink objects</span>
+<span class="sd">        Comlink object or list of these</span>
+<span class="sd">    cml_id : str, optional</span>
+<span class="sd">        Name of the CML which will be used to identify it in the HDF storer.</span>
+<span class="sd">        Default is to use cml.metadata.link_id</span>
+<span class="sd">        </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">store</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">HDFStore</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cml</span><span class="p">,</span> <span class="n">Comlink</span><span class="p">):</span>
+        <span class="n">cmls</span> <span class="o">=</span> <span class="p">[</span><span class="n">cml</span><span class="p">,]</span>
+    <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">cml</span><span class="p">)</span> <span class="o">==</span> <span class="nb">list</span><span class="p">:</span>
+        <span class="n">cmls</span> <span class="o">=</span> <span class="n">cml</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&#39;Type of variable `cml` not understood&#39;</span><span class="p">)</span>
+        
+    <span class="k">for</span> <span class="n">cml</span> <span class="ow">in</span> <span class="n">cmls</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">cml_id</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="c"># Get cml_if from metadata</span>
+            <span class="n">cml_id</span> <span class="o">=</span> <span class="n">cml</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;link_id&#39;</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">cml_id</span> <span class="o">!=</span> <span class="bp">None</span> <span class="ow">and</span> <span class="nb">type</span><span class="p">(</span><span class="n">cml</span><span class="p">)</span> <span class="o">==</span> <span class="nb">list</span><span class="p">:</span>
+            <span class="c"># For a list of cmls no fixed cml_id should be used</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&#39;Do not supply a link_id when passing a list of cmls&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># Take cml_id from function arguments</span>
+            <span class="k">pass</span>
+        
+        <span class="c"># Store the TX and RX data</span>
+        <span class="n">store</span><span class="p">[</span><span class="n">cml_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">cml</span><span class="o">.</span><span class="n">data</span>
+        <span class="c"># Store metadata</span>
+        <span class="n">store</span><span class="o">.</span><span class="n">get_storer</span><span class="p">(</span><span class="n">cml_id</span><span class="p">)</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="n">cml</span><span class="o">.</span><span class="n">metadata</span>
+        <span class="c"># Store tx_rx_pairs</span>
+        <span class="n">store</span><span class="o">.</span><span class="n">get_storer</span><span class="p">(</span><span class="n">cml_id</span><span class="p">)</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">tx_rx_pairs</span> <span class="o">=</span> <span class="n">cml</span><span class="o">.</span><span class="n">tx_rx_pairs</span>
+    
+    <span class="n">store</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    </div>
+<div class="viewcode-block" id="read_hdf5"><a class="viewcode-back" href="../../pycomlink.html#pycomlink.io.read_hdf5">[docs]</a><span class="k">def</span> <span class="nf">read_hdf5</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">force_list_return</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Read Comlink or list of Comlinks from HDF5</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fn : str</span>
+<span class="sd">        Absolute filename to a pycomlink-HDF5 file</span>
+<span class="sd">    force_list_return : bool, optional</span>
+<span class="sd">        Set this to True if you always want a list in return even if there</span>
+<span class="sd">        is only one cml in the HDF5 file. Default is False</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------    </span>
+<span class="sd">    cml : Comlink</span>
+<span class="sd">        If only one data set was found, the Comlink object that was stored in</span>
+<span class="sd">        the HDF5 file is returned (except if forec_list_return == True).</span>
+<span class="sd">    cmls : List of Comlink objects</span>
+<span class="sd">        If several data sets were found, a list of all Comlink objects</span>
+<span class="sd">        is returned</span>
+<span class="sd">        </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">store</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">HDFStore</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span>
+    
+    <span class="c"># Get all cml_id value (wich must be used as keys on pycomlink HDF5 files)</span>
+    <span class="n">cml_id_list</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+
+    <span class="n">cml_list</span> <span class="o">=</span> <span class="p">[]</span>
+    
+    <span class="k">for</span> <span class="n">cml_id</span> <span class="ow">in</span> <span class="n">cml_id_list</span><span class="p">:</span>    
+        <span class="c"># Get data from HDF store</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">store</span><span class="p">[</span><span class="n">cml_id</span><span class="p">]</span>
+        <span class="n">metadata</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">get_storer</span><span class="p">(</span><span class="n">cml_id</span><span class="p">)</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">metadata</span>
+        <span class="n">tx_rx_pairs</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">get_storer</span><span class="p">(</span><span class="n">cml_id</span><span class="p">)</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">tx_rx_pairs</span>
+        <span class="c"># Generate Comlink object from it and append to cml list</span>
+        <span class="n">cml_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Comlink</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> 
+                                <span class="n">tx_rx_pairs</span><span class="o">=</span><span class="n">tx_rx_pairs</span><span class="p">,</span>
+                                <span class="n">metadata</span><span class="o">=</span><span class="n">metadata</span><span class="p">))</span>
+    
+    <span class="n">store</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="c"># If there is only one cml element in the list    </span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cml_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">force_list_return</span> <span class="o">==</span> <span class="bp">False</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">cml_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ComlinkSet</span><span class="p">(</span><span class="n">cml_list</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="read_PROCEMA_raw_data"><a class="viewcode-back" href="../../pycomlink.html#pycomlink.io.read_PROCEMA_raw_data">[docs]</a><span class="k">def</span> <span class="nf">read_PROCEMA_raw_data</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Read in PROCEMA data for one MW link stored as CSV or MATLAB binary</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------   </span>
+<span class="sd">    fn : str</span>
+<span class="sd">        Absolute filename. File can be a PROCEMA MATLAB file or a PROCEMA</span>
+<span class="sd">        CSV file as exported by the old PROCEMA database</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------  </span>
+<span class="sd">    cml : Comlink Object</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+ 
+    <span class="n">fname</span><span class="p">,</span> <span class="n">fext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">fext</span><span class="o">==</span><span class="s">&#39;.mat&#39;</span><span class="p">:</span>
+        <span class="n">dat</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">loadmat</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+        <span class="n">param</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s">&#39;param&#39;</span><span class="p">,</span> <span class="s">&#39;name mV_clear_sky RSL_clear_sky dB_per_V&#39;</span><span class="p">)</span>
+        
+        <span class="n">param</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">dat</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">param</span><span class="o">.</span><span class="n">mV_clear_sky</span> <span class="o">=</span> <span class="n">dat</span><span class="p">[</span><span class="s">&#39;equivalent_voltage_at_adc&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">param</span><span class="o">.</span><span class="n">RSL_clear_sky</span> <span class="o">=</span> <span class="n">dat</span><span class="p">[</span><span class="s">&#39;received_power_clear_sky&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">param</span><span class="o">.</span><span class="n">dB_per_V</span> <span class="o">=</span> <span class="n">dat</span><span class="p">[</span><span class="s">&#39;attenuation_per_volt&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+              
+        <span class="n">rx</span> <span class="o">=</span> <span class="n">_mV2RSL</span><span class="p">(</span><span class="n">dat</span><span class="p">[</span><span class="s">&#39;values&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+                             <span class="n">param</span><span class="o">.</span><span class="n">dB_per_V</span><span class="p">,</span>
+                             <span class="n">param</span><span class="o">.</span><span class="n">RSL_clear_sky</span><span class="p">,</span>
+                             <span class="n">param</span><span class="o">.</span><span class="n">mV_clear_sky</span><span class="p">)</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">_matlab_datenum_2_datetime</span><span class="p">(</span><span class="n">dat</span><span class="p">[</span><span class="s">&#39;time&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+                             
+        <span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s">&#39;rx&#39;</span> <span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">rx</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">)})</span>
+        <span class="c"># Add column with constant TX power</span>
+        <span class="n">data</span><span class="p">[</span><span class="s">&#39;tx&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">dat</span><span class="p">[</span><span class="s">&#39;ouput_power&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+        
+        <span class="k">if</span> <span class="n">dat</span><span class="p">[</span><span class="s">&#39;polarization&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">pol</span> <span class="o">=</span> <span class="s">&#39;H&#39;</span>
+        <span class="k">elif</span> <span class="n">dat</span><span class="p">[</span><span class="s">&#39;polarization&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">pol</span> <span class="o">=</span> <span class="s">&#39;V&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;Polarization value in raw data should be 0 or 1&#39;</span><span class="p">)</span>
+        
+        <span class="n">tx_rx_pairs</span> <span class="o">=</span>  <span class="p">{</span><span class="s">&#39;fn&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;far-near&#39;</span><span class="p">,</span> 
+                               <span class="s">&#39;tx&#39;</span><span class="p">:</span> <span class="s">&#39;tx&#39;</span><span class="p">,</span>
+                               <span class="s">&#39;rx&#39;</span><span class="p">:</span> <span class="s">&#39;rx&#39;</span><span class="p">,</span>
+                               <span class="s">&#39;tx_site&#39;</span><span class="p">:</span> <span class="s">&#39;site_B&#39;</span><span class="p">,</span>
+                               <span class="s">&#39;rx_site&#39;</span><span class="p">:</span> <span class="s">&#39;site_A&#39;</span><span class="p">,</span>
+                               <span class="s">&#39;f_GHz&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">dat</span><span class="p">[</span><span class="s">&#39;frequency&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]),</span>
+                               <span class="s">&#39;pol&#39;</span><span class="p">:</span> <span class="n">pol</span><span class="p">,</span>
+                               <span class="s">&#39;linecolor&#39;</span><span class="p">:</span> <span class="s">&#39;b&#39;</span><span class="p">}}</span>
+                               
+        <span class="n">latA</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">dat</span><span class="p">[</span><span class="s">&#39;site1&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">lonA</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">dat</span><span class="p">[</span><span class="s">&#39;site1&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">latB</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">dat</span><span class="p">[</span><span class="s">&#39;site2&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">lonB</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">dat</span><span class="p">[</span><span class="s">&#39;site2&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">metadata</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;site_A&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;lat&#39;</span><span class="p">:</span> <span class="n">latA</span><span class="p">,</span>
+                               <span class="s">&#39;lon&#39;</span><span class="p">:</span> <span class="n">lonA</span><span class="p">},</span>
+                    <span class="s">&#39;site_B&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;lat&#39;</span><span class="p">:</span> <span class="n">latB</span><span class="p">,</span>
+                               <span class="s">&#39;lon&#39;</span><span class="p">:</span> <span class="n">lonB</span><span class="p">},</span>
+                    <span class="s">&#39;link_id&#39;</span><span class="p">:</span> <span class="n">dat</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+                    <span class="s">&#39;length_km&#39;</span><span class="p">:</span> <span class="n">_haversine</span><span class="p">(</span><span class="n">lonA</span><span class="p">,</span> <span class="n">latA</span><span class="p">,</span> <span class="n">lonB</span><span class="p">,</span> <span class="n">latB</span><span class="p">)}</span>
+    
+    <span class="c"># !! This is only a quick hack and works correctly only</span>
+    <span class="c"># !! For data exported to csv from PROCEM database for link</span>
+    <span class="c"># !! gap0-oagau1 (which unfortunately does not export to .mat, </span>
+    <span class="c"># !! probably because values like received_power_clear_sky are not</span>
+    <span class="c"># !! set) </span>
+    <span class="k">if</span> <span class="n">fext</span><span class="o">==</span><span class="s">&#39;.csv&#39;</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">re</span>
+               
+        <span class="n">metadata_str</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">line</span><span class="o">==</span><span class="s">&#39;******************************METADATA******************************</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">22</span><span class="p">):</span>
+                    <span class="n">metadata_str</span> <span class="o">+=</span> <span class="n">f</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">f</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">==</span><span class="s">&#39;********************************************************************</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;Metadata format seems to be wrong&#39;</span><span class="p">)</span>
+        
+        <span class="n">regex</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&#39;name: ([a-z0-9\-]*)&#39;</span><span class="p">)</span>
+        <span class="n">linkname</span> <span class="o">=</span> <span class="n">regex</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">metadata_str</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>  
+        <span class="k">if</span> <span class="n">linkname</span><span class="o">==</span><span class="s">&#39;gap0-oagau1&#39;</span><span class="p">:</span>
+            <span class="n">param</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s">&#39;param&#39;</span><span class="p">,</span> <span class="s">&#39;name mV_clear_sky RSL_clear_sky dB_per_V&#39;</span><span class="p">)</span>
+            <span class="n">param</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">linkname</span>
+            <span class="n">param</span><span class="o">.</span><span class="n">mV_clear_sky</span> <span class="o">=</span> <span class="mi">1580</span>
+            <span class="n">param</span><span class="o">.</span><span class="n">RSL_clear_sky</span> <span class="o">=</span> <span class="o">-</span><span class="mi">40</span>
+            <span class="n">param</span><span class="o">.</span><span class="n">dB_per_V</span> <span class="o">=</span> <span class="mi">29</span>
+
+        <span class="n">dat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">recfromcsv</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> 
+                            <span class="n">skip_header</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> 
+                            <span class="n">names</span><span class="o">=</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="s">&#39;ts&#39;</span><span class="p">,</span> <span class="s">&#39;values&#39;</span><span class="p">))</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">dat</span><span class="p">[</span><span class="s">&#39;ts&#39;</span><span class="p">])))</span>
+            
+        <span class="c"># Convert RX power from mV recordings from data logger</span>
+        <span class="n">data</span><span class="p">[</span><span class="s">&#39;rx&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_mV2RSL</span><span class="p">(</span><span class="n">dat</span><span class="p">[</span><span class="s">&#39;values&#39;</span><span class="p">],</span>
+                             <span class="n">param</span><span class="o">.</span><span class="n">dB_per_V</span><span class="p">,</span>
+                             <span class="n">param</span><span class="o">.</span><span class="n">RSL_clear_sky</span><span class="p">,</span>
+                             <span class="n">param</span><span class="o">.</span><span class="n">mV_clear_sky</span><span class="p">)</span>
+        <span class="c"># Add column with constant TX power</span>
+        <span class="n">data</span><span class="p">[</span><span class="s">&#39;tx&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">18.0</span>
+                             
+        <span class="n">tx_rx_pairs</span> <span class="o">=</span>  <span class="p">{</span><span class="s">&#39;fn&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;far-near&#39;</span><span class="p">,</span> 
+                               <span class="s">&#39;tx&#39;</span><span class="p">:</span> <span class="s">&#39;tx&#39;</span><span class="p">,</span>
+                               <span class="s">&#39;rx&#39;</span><span class="p">:</span> <span class="s">&#39;rx&#39;</span><span class="p">,</span>
+                               <span class="s">&#39;tx_site&#39;</span><span class="p">:</span> <span class="s">&#39;site_B&#39;</span><span class="p">,</span>
+                               <span class="s">&#39;rx_site&#39;</span><span class="p">:</span> <span class="s">&#39;site_A&#39;</span><span class="p">,</span>
+                               <span class="s">&#39;f_GHz&#39;</span><span class="p">:</span> <span class="mf">23.0</span><span class="p">,</span>
+                               <span class="s">&#39;pol&#39;</span><span class="p">:</span> <span class="s">&#39;V&#39;</span><span class="p">,</span>
+                               <span class="s">&#39;linecolor&#39;</span><span class="p">:</span> <span class="s">&#39;b&#39;</span><span class="p">}}</span>
+        <span class="n">metadata</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;site_A&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;lat&#39;</span><span class="p">:</span> <span class="mf">47.493</span><span class="p">,</span>
+                               <span class="s">&#39;lon&#39;</span><span class="p">:</span> <span class="mf">11.0971</span><span class="p">},</span>
+                    <span class="s">&#39;site_B&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;lat&#39;</span><span class="p">:</span> <span class="mf">47.5861</span><span class="p">,</span>
+                               <span class="s">&#39;lon&#39;</span><span class="p">:</span> <span class="mf">11.1028</span><span class="p">},</span>
+                    <span class="s">&#39;link_id&#39;</span><span class="p">:</span> <span class="n">linkname</span><span class="p">,</span>
+                    <span class="s">&#39;length_km&#39;</span><span class="p">:</span> <span class="mf">10.4</span><span class="p">}</span>
+
+    <span class="n">cml</span> <span class="o">=</span> <span class="n">Comlink</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> 
+                  <span class="n">tx_rx_pairs</span><span class="o">=</span><span class="n">tx_rx_pairs</span><span class="p">,</span>
+                  <span class="n">metadata</span><span class="o">=</span><span class="n">metadata</span><span class="p">)</span>
+                             
+    <span class="k">return</span> <span class="n">cml</span>
+
+<span class="c">#############################################</span>
+<span class="c"># Helper functions for PROCEMA data parsing #</span>
+<span class="c">#############################################</span>
+</div>
+<span class="k">def</span> <span class="nf">_mV2RSL</span><span class="p">(</span><span class="n">mV</span><span class="p">,</span> <span class="n">dB_per_V</span><span class="p">,</span> <span class="n">RSL_clear_sky</span><span class="p">,</span> <span class="n">mV_clear_sky</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Helper function for PROCEMA data parsing</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">mV</span> <span class="o">=</span> <span class="n">_clean_mV_RSL_record</span><span class="p">(</span><span class="n">mV</span><span class="p">)</span>
+    <span class="n">RSL</span> <span class="o">=</span> <span class="n">RSL_clear_sky</span> <span class="o">-</span> <span class="p">(</span><span class="n">mV_clear_sky</span> <span class="o">-</span> <span class="n">mV</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1e-3</span> <span class="o">*</span> <span class="n">dB_per_V</span>
+    <span class="k">return</span> <span class="n">RSL</span>
+
+<span class="k">def</span> <span class="nf">_clean_mV_RSL_record</span><span class="p">(</span><span class="n">mV_raw</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Helper function for PROCEMA data parsing</span>
+<span class="sd">    &quot;&quot;&quot;</span>    
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+    <span class="n">mV</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">mV_raw</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">mV</span><span class="p">[</span><span class="n">mV</span><span class="o">==</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">NaN</span>
+    <span class="k">return</span> <span class="n">mV</span>
+    
+<span class="k">def</span> <span class="nf">_matlab_datenum_2_datetime</span><span class="p">(</span><span class="n">ts_datenum</span><span class="p">,</span> <span class="n">round_to</span><span class="o">=</span><span class="s">&#39;seconds&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Helper function for PROCEMA data parsing</span>
+<span class="sd">    &quot;&quot;&quot;</span>    
+    <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span>
+    <span class="n">ts</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">ts_datenum</span><span class="p">:</span>
+        <span class="n">ts_not_rounded</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromordinal</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">t</span><span class="p">))</span> \
+                       <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="n">t</span><span class="o">%</span><span class="mi">1</span><span class="p">)</span> \
+                       <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span> <span class="o">=</span> <span class="mi">366</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">round_to</span> <span class="o">==</span> <span class="s">&#39;seconds&#39;</span><span class="p">:</span>
+            <span class="n">ts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_round_datetime</span><span class="p">(</span><span class="n">ts_not_rounded</span><span class="p">,</span> <span class="n">round_to</span><span class="o">=</span><span class="s">&#39;seconds&#39;</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">round_to</span> <span class="o">==</span> <span class="s">&#39;None&#39;</span><span class="p">:</span>
+            <span class="n">ts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ts_not_rounded</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&#39;round_to value not supported&#39;</span>
+    <span class="k">return</span> <span class="n">ts</span>
+    
+<span class="k">def</span> <span class="nf">_round_datetime</span><span class="p">(</span><span class="n">ts_not_rounded</span><span class="p">,</span> <span class="n">round_to</span><span class="o">=</span><span class="s">&#39;seconds&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Helper function for PROCEMA data parsing</span>
+<span class="sd">    &quot;&quot;&quot;</span>    
+    <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">timedelta</span>
+    <span class="n">seconds_not_rounded</span> <span class="o">=</span> <span class="n">ts_not_rounded</span><span class="o">.</span><span class="n">second</span> \
+                        <span class="o">+</span> <span class="n">ts_not_rounded</span><span class="o">.</span><span class="n">microsecond</span> <span class="o">*</span> <span class="mf">1e-6</span>
+    <span class="n">ts_rounded</span> <span class="o">=</span> <span class="n">ts_not_rounded</span> \
+               <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="nb">round</span><span class="p">(</span><span class="n">seconds_not_rounded</span><span class="p">)</span> \
+                          <span class="o">-</span><span class="n">seconds_not_rounded</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ts_rounded</span>
+    
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">radians</span><span class="p">,</span> <span class="n">cos</span><span class="p">,</span> <span class="n">sin</span><span class="p">,</span> <span class="n">asin</span><span class="p">,</span> <span class="n">sqrt</span>
+<span class="k">def</span> <span class="nf">_haversine</span><span class="p">(</span><span class="n">lon1</span><span class="p">,</span> <span class="n">lat1</span><span class="p">,</span> <span class="n">lon2</span><span class="p">,</span> <span class="n">lat2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate the great circle distance between two points </span>
+<span class="sd">    on the earth (specified in decimal degrees)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># convert decimal degrees to radians </span>
+    <span class="n">lon1</span><span class="p">,</span> <span class="n">lat1</span><span class="p">,</span> <span class="n">lon2</span><span class="p">,</span> <span class="n">lat2</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="n">radians</span><span class="p">,</span> <span class="p">[</span><span class="n">lon1</span><span class="p">,</span> <span class="n">lat1</span><span class="p">,</span> <span class="n">lon2</span><span class="p">,</span> <span class="n">lat2</span><span class="p">])</span>
+    <span class="c"># haversine formula </span>
+    <span class="n">dlon</span> <span class="o">=</span> <span class="n">lon2</span> <span class="o">-</span> <span class="n">lon1</span> 
+    <span class="n">dlat</span> <span class="o">=</span> <span class="n">lat2</span> <span class="o">-</span> <span class="n">lat1</span> 
+    <span class="n">a</span> <span class="o">=</span> <span class="n">sin</span><span class="p">(</span><span class="n">dlat</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">cos</span><span class="p">(</span><span class="n">lat1</span><span class="p">)</span> <span class="o">*</span> <span class="n">cos</span><span class="p">(</span><span class="n">lat2</span><span class="p">)</span> <span class="o">*</span> <span class="n">sin</span><span class="p">(</span><span class="n">dlon</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">asin</span><span class="p">(</span><span class="n">sqrt</span><span class="p">(</span><span class="n">a</span><span class="p">))</span> 
+    <span class="n">km</span> <span class="o">=</span> <span class="mi">6367</span> <span class="o">*</span> <span class="n">c</span>
+    <span class="k">return</span> <span class="n">km</span>
+</pre></div>
+
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Karlsruhe Institute of Technology (KIT) - Campus Alpin.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'0.0.5',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

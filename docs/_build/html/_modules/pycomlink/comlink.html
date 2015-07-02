@@ -1,0 +1,913 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pycomlink.comlink &mdash; pycomlink 0.0.5 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="pycomlink 0.0.5 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="../../index.html" class="icon icon-home"> pycomlink
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul class="simple">
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../pycomlink.Comlink.html"><code class="docutils literal"><span class="pre">pycomlink.Comlink</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pycomlink.Comlink.html#module-pycomlink.comlinkset"><code class="docutils literal"><span class="pre">pycomlink.ComlinkSet</span></code></a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../pycomlink.html"><code class="docutils literal"><span class="pre">pycomlink.A_R_relation</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pycomlink.html#module-pycomlink.baseline"><code class="docutils literal"><span class="pre">pycomlink.baseline</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pycomlink.html#module-pycomlink.io"><code class="docutils literal"><span class="pre">pycomlink.io</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pycomlink.html#module-pycomlink.mapping"><code class="docutils literal"><span class="pre">pycomlink.mapping</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pycomlink.html#module-pycomlink.wet_antenna"><code class="docutils literal"><span class="pre">pycomlink.wet_antenna</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pycomlink.html#module-pycomlink.wet_dry"><code class="docutils literal"><span class="pre">pycomlink.wet_dry</span></code></a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">pycomlink</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+    <li>pycomlink.comlink</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document">
+            
+  <h1>Source code for pycomlink.comlink</h1><div class="highlight"><pre>
+<span class="c">#----------------------------------------------------------------------------</span>
+<span class="c"># Name:         comlink</span>
+<span class="c"># Purpose:      Commercial MW link Class to handle all processing steps</span>
+<span class="c">#</span>
+<span class="c"># Authors:      Christian Chwala</span>
+<span class="c">#</span>
+<span class="c"># Created:      01.12.2014</span>
+<span class="c"># Copyright:    (c) Christian Chwala 2014</span>
+<span class="c"># Licence:      The MIT License</span>
+<span class="c">#----------------------------------------------------------------------------</span>
+
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">cartopy.crs</span> <span class="kn">as</span> <span class="nn">ccrs</span>    
+<span class="kn">from</span> <span class="nn">cartopy.io.img_tiles</span> <span class="kn">import</span> <span class="n">GoogleTiles</span>
+
+
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">wet_dry</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">baseline</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">A_R_relation</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">wet_antenna</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">mapping</span>
+
+<div class="viewcode-block" id="Comlink"><a class="viewcode-back" href="../../pycomlink.Comlink.html#pycomlink.comlink.Comlink">[docs]</a><span class="k">class</span> <span class="nc">Comlink</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Commercial microwave link (CML) class for all data processing </span>
+<span class="sd">    </span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : pandas.DataFrame</span>
+<span class="sd">           Dataframe that holds the data of one link </span>
+<span class="sd">        </span>
+<span class="sd">    tx_rx_pairs : dict, optional</span>
+<span class="sd">           Dictonary that holds the configuration of the link including the</span>
+<span class="sd">           transmission direction, the frequencies and the polarizations </span>
+<span class="sd">        </span>
+<span class="sd">    metadata : dict, optional</span>
+<span class="sd">        Dictonary that holds metadata about the link and the two associated sites</span>
+<span class="sd">        </span>
+<span class="sd">        </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                 <span class="n">data</span><span class="p">,</span> 
+                 <span class="n">tx_rx_pairs</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> 
+                 <span class="n">metadata</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">const_TX_power</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+                     
+        <span class="sd">&quot;&quot;&quot;Initialisation of commercial microwave link (CML) class</span>
+<span class="sd">    </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------            </span>
+<span class="sd">        data : pandas.DataFrame</span>
+<span class="sd">               Dataframe that holds the data of the link. </span>
+<span class="sd">               The type of the link (Simplex/Duplex) and the associated transmission</span>
+<span class="sd">               directions are automatically extracted from the dataframe&#39;s column names.</span>
+<span class="sd">               The name should contain &#39;RX&#39; or &#39;rx&#39; for the received signal level</span>
+<span class="sd">               and &#39;TX&#39; or &#39;tx&#39; for tranmitted signal level. For each site (far end,</span>
+<span class="sd">               near end) entries can exists. The naming should be clear without</span>
+<span class="sd">               ambiguity and conform to one of the conventions </span>
+<span class="sd">               </span>
+<span class="sd">               - &#39;tx_far&#39;          = TX level far end </span>
+<span class="sd">               - &#39;TX_near&#39;         = TX level near end</span>
+<span class="sd">               - &#39;rx_A&#39;            = RX level far end</span>
+<span class="sd">               - &#39;RX_B&#39;            = RX level near end</span>
+<span class="sd">               -  ...</span>
+<span class="sd">               -  ...                  </span>
+<span class="sd">               </span>
+<span class="sd">               If the automatic extraction fails because the collerations can not </span>
+<span class="sd">               be recognized from the column names, the configuration can be specified </span>
+<span class="sd">               with the tx_rx_pairs dictionary.</span>
+<span class="sd">               Further columns can be present in the DataFrame, </span>
+<span class="sd">               e.g. RTT (the round trip time of a SNMP data acquisition request).</span>
+<span class="sd">            </span>
+<span class="sd">        tx_rx_pairs : dict, optional</span>
+<span class="sd">               Dictonary that holds the configuration of the link including the</span>
+<span class="sd">               transmission direction, the frequencies and the polarizations.</span>
+<span class="sd">               The Dictonary defines which TX and RX values belong together, if the</span>
+<span class="sd">               automatic recognition fails, and which frequency and polarization are used.</span>
+<span class="sd">                             </span>
+<span class="sd">               Example</span>
+<span class="sd">               -------</span>
+<span class="sd">               &gt;&gt;&gt; tx_rx_pairs =  {&#39;fn&#39;: {&#39;name&#39;: &#39;far-near&#39;, </span>
+<span class="sd">                                          &#39;tx&#39;: &#39;tx_far&#39;       # Column name in DataFrame</span>
+<span class="sd">                                          &#39;rx&#39;: &#39;rx_near&#39;,     # Column name in DataFrame</span>
+<span class="sd">                                          &#39;tx_site&#39;: &#39;site_B&#39;,</span>
+<span class="sd">                                          &#39;rx_site&#39;: &#39;site_A&#39;,</span>
+<span class="sd">                                          &#39;f_GHz&#39;: 17.8,</span>
+<span class="sd">                                          &#39;pol&#39;: &#39;V&#39;,</span>
+<span class="sd">                                          &#39;linecolor&#39;: &#39;r&#39;},</span>
+<span class="sd">                                    &#39;nf&#39;: {&#39;name&#39;: &#39;near-far&#39;,</span>
+<span class="sd">                                          &#39;tx&#39;: &#39;tx_near&#39;,     # Column name in DataFrame</span>
+<span class="sd">                                          &#39;rx&#39;: &#39;rx_far&#39;,      # Column name in DataFrame</span>
+<span class="sd">                                          &#39;tx_site&#39;: &#39;site_A&#39;,</span>
+<span class="sd">                                          &#39;rx_site&#39;: &#39;site_B&#39;,</span>
+<span class="sd">                                          &#39;f_GHz&#39;: 18.8,</span>
+<span class="sd">                                          &#39;pol&#39;: &#39;V&#39;,</span>
+<span class="sd">                                          &#39;linecolor&#39;: &#39;b&#39;}}</span>
+<span class="sd">                                     </span>
+<span class="sd">               The keys, here &#39;fn&#39; and &#39;nf&#39; can be named arbitrarily but should be </span>
+<span class="sd">               clear without ambiguity. </span>
+<span class="sd">               </span>
+<span class="sd">               Here &#39;fn&#39; is short for far-near, but the use of AB to indicate the </span>
+<span class="sd">               connection from site A to site B would be appropriate, too.                                     </span>
+<span class="sd">        </span>
+<span class="sd">        metadata : dict, optional</span>
+<span class="sd">            Dictonary that holds metadata about the link and the two associated sites.</span>
+<span class="sd">            The dictonary must have two keys for the two MW link sites. Each item holds</span>
+<span class="sd">            another dict with at least &#39;lat&#39; and &#39;lon&#39; values in decimal format.</span>
+<span class="sd">            Further keys, like &#39;ID&#39; or &#39;site_name&#39; are possible but not mandatory.</span>
+<span class="sd">            If the &#39;lat&#39; and &#39;lon&#39; values are not supplied, the geolocating </span>
+<span class="sd">            functions do not work of course.</span>
+<span class="sd">            Additionally the key &#39;length_km&#39;, that holds the link&#39;s length in kilometer,</span>
+<span class="sd">            should be appended.</span>
+<span class="sd">            </span>
+<span class="sd">            Example</span>
+<span class="sd">            -------            </span>
+<span class="sd">            &gt;&gt;&gt; metadata = {&#39;site_A&#39;: {&#39;lat&#39;: 21.23,</span>
+<span class="sd">                                       &#39;lon&#39;: 3.24,</span>
+<span class="sd">                                       &#39;id&#39;: &#39;MY1231&#39;,</span>
+<span class="sd">                                       &#39;ip&#39;: &#39;127.0.0.1&#39;,</span>
+<span class="sd">                                       &#39;slot&#39;: 2},</span>
+<span class="sd">                            &#39;site_B&#39;: {&#39;lat&#39;: -2.123,</span>
+<span class="sd">                                       &#39;lon&#39;: -12.31,</span>
+<span class="sd">                                       &#39;id&#39;: &#39;MY1232&#39;,</span>
+<span class="sd">                                       &#39;ip&#39;: &#39;127.0.0.2&#39;,</span>
+<span class="sd">                                       &#39;slot&#39;: 3},</span>
+<span class="sd">                            &#39;link_id&#39;: &#39;MY1231_2_MY1232_3&#39;,</span>
+<span class="sd">                            &#39;length_km&#39;: 23.4}</span>
+<span class="sd">                         </span>
+<span class="sd">        const_TX_power : int or float</span>
+<span class="sd">            Constant transmittion power level. Should be provided if the link is</span>
+<span class="sd">            operated this way and the dataframe only holds one column with </span>
+<span class="sd">            received power level.                  </span>
+<span class="sd">                         </span>
+<span class="sd">        &quot;&quot;&quot;</span>             
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tx_rx_pairs</span> <span class="o">=</span> <span class="n">tx_rx_pairs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="n">metadata</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">processing_info</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">if</span> <span class="n">const_TX_power</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">False</span><span class="p">:</span>
+            <span class="c"># If the constant TX power is supplied as value, just add </span>
+            <span class="c"># it with a default column name</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">const_TX_power</span><span class="p">)</span> <span class="o">==</span> <span class="nb">int</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="n">const_TX_power</span><span class="p">)</span> <span class="o">==</span> <span class="nb">float</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;tx&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">const_TX_power</span>
+            <span class="c"># If a tuple is supplied, the first value is the TX column name</span>
+            <span class="c"># an the second value is the TX power</span>
+            <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">const_TX_power</span><span class="p">)</span> <span class="o">==</span> <span class="nb">tuple</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">const_TX_power</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">const_TX_power</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&#39;const_TX_power must be int, float or tuple&#39;</span><span class="p">)</span>
+
+        <span class="c"># If no tx_rx_pairs are supplied, try to be smart and figure</span>
+        <span class="c"># them out by analysing the column names of the TXRX_df</span>
+        <span class="k">if</span> <span class="n">tx_rx_pairs</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">tx_rx_pairs</span> <span class="o">=</span> <span class="n">derive_tx_rx_pairs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tx_rx_pairs</span> <span class="o">=</span> <span class="n">tx_rx_pairs</span>
+        
+        <span class="c"># TODO resolve protection link data in DataFrame</span>
+
+        <span class="c"># Calculate TX-RX</span>
+        <span class="c"># TODO change name of `column_names` since this does not make</span>
+        <span class="c">#      sense anymore.</span>
+        <span class="k">for</span> <span class="n">pair_id</span><span class="p">,</span> <span class="n">column_names</span> <span class="ow">in</span> <span class="n">tx_rx_pairs</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;txrx_&#39;</span> <span class="o">+</span> <span class="n">pair_id</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">column_names</span><span class="p">[</span><span class="s">&#39;tx&#39;</span><span class="p">]]</span> \
+                                         <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">column_names</span><span class="p">[</span><span class="s">&#39;rx&#39;</span><span class="p">]]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">processing_info</span><span class="p">[</span><span class="s">&#39;tx_rx_pairs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tx_rx_pairs</span>
+
+<div class="viewcode-block" id="Comlink.info"><a class="viewcode-back" href="../../pycomlink.Comlink.html#pycomlink.comlink.Comlink.info">[docs]</a>    <span class="k">def</span> <span class="nf">info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Print information about the microwave link</span>
+<span class="sd">       </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="c"># TODO: Deal with protection links or links for which only</span>
+        <span class="c">#       unidirectional data is available</span>
+        
+        <span class="k">print</span> <span class="s">&#39;=============================================================&#39;</span>
+        <span class="k">print</span> <span class="s">&#39;ID: &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;link_id&#39;</span><span class="p">]</span>
+        <span class="k">print</span> <span class="s">&#39;-------------------------------------------------------------&#39;</span>
+        <span class="k">print</span> <span class="s">&#39;     Site A                       Site B&#39;</span>
+        <span class="k">if</span> <span class="s">&#39;ip&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;site_A&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="ow">and</span> \
+           <span class="s">&#39;ip&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;site_B&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">print</span> <span class="s">&#39; IP: &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;site_A&#39;</span><span class="p">][</span><span class="s">&#39;ip&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39;                 &#39;</span>  \
+                          <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;site_B&#39;</span><span class="p">][</span><span class="s">&#39;ip&#39;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">tx_rx_pair</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tx_rx_pairs</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="k">print</span> <span class="s">&#39;  f:   --------- &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">tx_rx_pair</span><span class="p">[</span><span class="s">&#39;f_GHz&#39;</span><span class="p">])</span> \
+                                      <span class="o">+</span> <span class="s">&#39; GHz ---------- &#39;</span>
+<span class="c">#        print &#39;      &lt;--------- &#39; + str(self.metadata[&#39;f_GHz_fn&#39;]) \</span>
+<span class="c">#                                    + &#39; GHz ---------- &#39; </span>
+        <span class="k">print</span> <span class="s">&#39;  L: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;length_km&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="s">&#39; km&#39;</span>
+        <span class="k">print</span> <span class="s">&#39;=============================================================&#39;</span>
+
+</div>
+<div class="viewcode-block" id="Comlink.info_plot"><a class="viewcode-back" href="../../pycomlink.Comlink.html#pycomlink.comlink.Comlink.info_plot">[docs]</a>    <span class="k">def</span> <span class="nf">info_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Print information about the link and plot it on a low resolution map </span>
+<span class="sd">                </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="c"># TODO: Deal with protection links or links for which only</span>
+        <span class="c">#       unidirectional data is available</span>
+        
+        <span class="k">print</span> <span class="s">&#39;=============================================================&#39;</span>
+        <span class="k">print</span> <span class="s">&#39;ID: &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;link_id&#39;</span><span class="p">]</span>
+        <span class="k">print</span> <span class="s">&#39;-------------------------------------------------------------&#39;</span>
+        <span class="k">print</span> <span class="s">&#39;     Site A                       Site B&#39;</span>
+        <span class="k">if</span> <span class="s">&#39;ip&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;site_A&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="ow">and</span> \
+           <span class="s">&#39;ip&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;site_B&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">print</span> <span class="s">&#39; IP: &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;site_A&#39;</span><span class="p">][</span><span class="s">&#39;ip&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39;                 &#39;</span>  \
+                          <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;site_B&#39;</span><span class="p">][</span><span class="s">&#39;ip&#39;</span><span class="p">]</span>
+        <span class="k">print</span> <span class="s">&#39;  L: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;length_km&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="s">&#39; km&#39;</span>
+
+        <span class="k">if</span> <span class="s">&#39;site_A&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span> <span class="ow">and</span> <span class="s">&#39;site_B&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s">&#39;lat&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;site_A&#39;</span><span class="p">]</span> <span class="ow">and</span> \
+               <span class="s">&#39;lon&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;site_A&#39;</span><span class="p">]</span> <span class="ow">and</span> \
+               <span class="s">&#39;lat&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;site_B&#39;</span><span class="p">]</span> <span class="ow">and</span> \
+               <span class="s">&#39;lon&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;site_B&#39;</span><span class="p">]:</span>                
+                   <span class="k">print</span> <span class="s">&#39; Lat: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;site_A&#39;</span><span class="p">][</span><span class="s">&#39;lat&#39;</span><span class="p">])</span><span class="o">+</span> <span class="s">&#39;                      &#39;</span>  \
+                          <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;site_B&#39;</span><span class="p">][</span><span class="s">&#39;lat&#39;</span><span class="p">])</span>   
+                   <span class="k">print</span> <span class="s">&#39; Lon: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;site_A&#39;</span><span class="p">][</span><span class="s">&#39;lon&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="s">&#39;                     &#39;</span>  \
+                          <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;site_B&#39;</span><span class="p">][</span><span class="s">&#39;lon&#39;</span><span class="p">])</span> 
+                          
+                   <span class="n">area</span><span class="o">=</span><span class="p">[</span><span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;site_A&#39;</span><span class="p">][</span><span class="s">&#39;lon&#39;</span><span class="p">],</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;site_B&#39;</span><span class="p">][</span><span class="s">&#39;lon&#39;</span><span class="p">])</span><span class="o">-.</span><span class="mi">15</span><span class="p">,</span>
+                         <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;site_A&#39;</span><span class="p">][</span><span class="s">&#39;lon&#39;</span><span class="p">],</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;site_B&#39;</span><span class="p">][</span><span class="s">&#39;lon&#39;</span><span class="p">])</span><span class="o">+.</span><span class="mi">15</span><span class="p">,</span>
+                         <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;site_A&#39;</span><span class="p">][</span><span class="s">&#39;lat&#39;</span><span class="p">],</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;site_B&#39;</span><span class="p">][</span><span class="s">&#39;lat&#39;</span><span class="p">])</span><span class="o">-.</span><span class="mi">1</span><span class="p">,</span>
+                         <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;site_A&#39;</span><span class="p">][</span><span class="s">&#39;lat&#39;</span><span class="p">],</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;site_B&#39;</span><span class="p">][</span><span class="s">&#39;lat&#39;</span><span class="p">])</span><span class="o">+.</span><span class="mi">1</span><span class="p">]</span>
+                         
+                   <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">9</span><span class="p">))</span>
+                   <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">axes</span><span class="p">(</span><span class="n">projection</span><span class="o">=</span><span class="n">ccrs</span><span class="o">.</span><span class="n">PlateCarree</span><span class="p">())</span>
+                   <span class="n">ax</span><span class="o">.</span><span class="n">set_extent</span><span class="p">((</span><span class="n">area</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">area</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">area</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">area</span><span class="p">[</span><span class="mi">3</span><span class="p">]),</span> <span class="n">crs</span><span class="o">=</span><span class="n">ccrs</span><span class="o">.</span><span class="n">PlateCarree</span><span class="p">())</span>
+                   <span class="n">gg_tiles</span> <span class="o">=</span> <span class="n">GoogleTiles</span><span class="p">()</span>
+                   <span class="n">ax</span><span class="o">.</span><span class="n">add_image</span><span class="p">(</span><span class="n">gg_tiles</span><span class="p">,</span> <span class="mi">11</span><span class="p">)</span>
+
+                   <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;site_A&#39;</span><span class="p">][</span><span class="s">&#39;lon&#39;</span><span class="p">],</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;site_B&#39;</span><span class="p">][</span><span class="s">&#39;lon&#39;</span><span class="p">]],</span>
+                            <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;site_A&#39;</span><span class="p">][</span><span class="s">&#39;lat&#39;</span><span class="p">],</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;site_B&#39;</span><span class="p">][</span><span class="s">&#39;lat&#39;</span><span class="p">]],</span>
+                            <span class="n">linewidth</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="s">&#39;k&#39;</span><span class="p">,</span>
+                            <span class="n">transform</span><span class="o">=</span><span class="n">ccrs</span><span class="o">.</span><span class="n">Geodetic</span><span class="p">())</span>
+                   <span class="n">xy</span><span class="o">=</span><span class="n">mapping</span><span class="o">.</span><span class="n">label_loc</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;site_A&#39;</span><span class="p">][</span><span class="s">&#39;lon&#39;</span><span class="p">],</span>
+                                        <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;site_A&#39;</span><span class="p">][</span><span class="s">&#39;lat&#39;</span><span class="p">],</span>
+                                        <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;site_B&#39;</span><span class="p">][</span><span class="s">&#39;lon&#39;</span><span class="p">],</span>
+                                        <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;site_B&#39;</span><span class="p">][</span><span class="s">&#39;lat&#39;</span><span class="p">])</span>
+
+                   <span class="n">plt</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">xy</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">xy</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="s">&#39;A&#39;</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span><span class="n">transform</span><span class="o">=</span><span class="n">ccrs</span><span class="o">.</span><span class="n">Geodetic</span><span class="p">())</span> 
+                   <span class="n">plt</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">xy</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span><span class="n">xy</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span><span class="s">&#39;B&#39;</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span><span class="n">transform</span><span class="o">=</span><span class="n">ccrs</span><span class="o">.</span><span class="n">Geodetic</span><span class="p">())</span>        
+                   <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span> 
+                   
+        <span class="k">print</span> <span class="s">&#39;=============================================================&#39;</span>                   
+ 
+   </div>
+<div class="viewcode-block" id="Comlink.plot"><a class="viewcode-back" href="../../pycomlink.Comlink.html#pycomlink.comlink.Comlink.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+             <span class="n">param_list</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;txrx&#39;</span><span class="p">],</span> 
+             <span class="n">resampling_time</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> 
+             <span class="n">add_raw_data</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+             <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span><span class="mi">4</span><span class="p">),</span>
+             <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+                 
+        <span class="sd">&quot;&quot;&quot;Generic function to plot times series of data</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------        </span>
+<span class="sd">        param_list : str, list of str, tuple of str, list of tuple of str, optional</span>
+<span class="sd">            String or ensemble of string which give the parameters that </span>
+<span class="sd">            will be plotted (Default is &#39;txrx&#39;, which will plot transmitted power </span>
+<span class="sd">            minus received power).</span>
+<span class="sd">        resampling_time : pandas parameter, optional</span>
+<span class="sd">            resampling the raw data</span>
+<span class="sd">        add_raw_data : bool, optional</span>
+<span class="sd">            Not used at the moment (Default False)</span>
+<span class="sd">        figsize : matplotlib parameter, optional </span>
+<span class="sd">            Size of output figure in inches (default is (6,4))</span>
+<span class="sd">        kwargs :  matplotlib parameters, optional</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">resampling_time</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">df_temp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="n">resampling_time</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">df_temp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span>
+
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">param_list</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
+            <span class="n">param_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">param_list</span><span class="p">,]</span>
+
+        <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">param_list</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> 
+                               <span class="n">squeeze</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                               <span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">,</span>
+                               <span class="n">sharex</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">param_list</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">param</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                    <span class="n">df_temp</span><span class="p">[</span><span class="n">param</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> 
+                                        <span class="n">label</span><span class="o">=</span><span class="n">param</span><span class="p">,</span>
+                                        <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c"># Try parameter + tx_rx_pair_identifier</span>
+                    <span class="k">for</span> <span class="n">txrx_pair_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">processing_info</span><span class="p">[</span><span class="s">&#39;tx_rx_pairs&#39;</span><span class="p">]:</span>
+                        <span class="k">if</span> <span class="n">param</span> <span class="o">==</span> <span class="s">&#39;tx&#39;</span> <span class="ow">or</span> <span class="n">param</span> <span class="o">==</span> <span class="s">&#39;rx&#39;</span><span class="p">:</span>
+                            <span class="n">param_temp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">processing_info</span><span class="p">[</span><span class="s">&#39;tx_rx_pairs&#39;</span><span class="p">]</span>\
+                                                        <span class="p">[</span><span class="n">txrx_pair_id</span><span class="p">]</span>\
+                                                        <span class="p">[</span><span class="n">param</span><span class="p">]</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">param_temp</span> <span class="o">=</span> <span class="n">param</span> <span class="o">+</span> <span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="n">txrx_pair_id</span>
+                            
+                        <span class="n">color</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">processing_info</span><span class="p">[</span><span class="s">&#39;tx_rx_pairs&#39;</span><span class="p">]</span>\
+                                                    <span class="p">[</span><span class="n">txrx_pair_id</span><span class="p">]</span>\
+                                                    <span class="p">[</span><span class="s">&#39;linecolor&#39;</span><span class="p">]</span>
+                        <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">processing_info</span><span class="p">[</span><span class="s">&#39;tx_rx_pairs&#39;</span><span class="p">]</span>\
+                                                   <span class="p">[</span><span class="n">txrx_pair_id</span><span class="p">]</span>\
+                                                   <span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">]</span>
+                        <span class="n">df_temp</span><span class="p">[</span><span class="n">param_temp</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> 
+                                                 <span class="n">label</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+                                                 <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
+                                                 <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">param</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">tuple</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">param_item</span> <span class="ow">in</span> <span class="n">param</span><span class="p">:</span>
+                    <span class="n">df_temp</span><span class="p">[</span><span class="n">param_item</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> 
+                                             <span class="n">label</span><span class="o">=</span><span class="n">param_item</span><span class="p">,</span> 
+                                             <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s">&#39;best&#39;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
+            
+            <span class="c"># Remove xticklabels for all but the bottom most plot</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">param_list</span><span class="p">):</span>
+                <span class="c">#plt.setp(ax[i][0].get_xticklabels(), visible=False)</span>
+                <span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_ticklabels</span><span class="p">([])</span>
+        <span class="k">return</span> <span class="n">ax</span>
+        
+        </div>
+<div class="viewcode-block" id="Comlink.do_wet_dry_classification"><a class="viewcode-back" href="../../pycomlink.Comlink.html#pycomlink.comlink.Comlink.do_wet_dry_classification">[docs]</a>    <span class="k">def</span> <span class="nf">do_wet_dry_classification</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s">&#39;std_dev&#39;</span><span class="p">,</span> 
+                                        <span class="n">window_length</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span>
+                                        <span class="n">threshold</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                                        <span class="n">dry_window_length</span><span class="o">=</span><span class="mi">600</span><span class="p">,</span>
+                                        <span class="n">f_divide</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span>
+                                        <span class="n">reuse_last_Pxx</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                        <span class="n">print_info</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+                                            
+        <span class="sd">&quot;&quot;&quot;Perform wet/dry classification for CML time series</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        method : str, optional</span>
+<span class="sd">                 String which indicates the classification method (see Notes)</span>
+<span class="sd">                 Default is &#39;std_dev&#39;</span>
+<span class="sd">        window_length : int, optional</span>
+<span class="sd">                 Length of the sliding window (Default is 128)        </span>
+<span class="sd">        threshold : int, optional</span>
+<span class="sd">                 Threshold which has to be surpassed to classifiy a period as &#39;wet&#39;</span>
+<span class="sd">                 (Default is 1)        </span>
+<span class="sd">        dry_window_length : int, optional</span>
+<span class="sd">                 Length of window for identifying dry period used for calibration</span>
+<span class="sd">                 purpose. Only for method stft. (Default is 600)</span>
+<span class="sd">        f_divide : float</span>
+<span class="sd">                 Parameter for classification with method Fourier transformation</span>
+<span class="sd">                 (Default is 1e-3)          </span>
+<span class="sd">        reuse_last_Pxx : bool</span>
+<span class="sd">                 Parameter for classification with method Fourier transformation</span>
+<span class="sd">                 (Default is false)  </span>
+<span class="sd">        print_info : bool</span>
+<span class="sd">                  Print information about executed method (Default is False)</span>
+<span class="sd">        </span>
+<span class="sd">        Note</span>
+<span class="sd">        ----        </span>
+<span class="sd">        WIP: Currently two classification methods are supported:</span>
+<span class="sd">                - std_dev: Rolling standard deviation method [1]_</span>
+<span class="sd">                - stft: Rolling Fourier-transform method [2]_      </span>
+<span class="sd">                </span>
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+<span class="sd">        .. [1] Schleiss, M. and Berne, A.: &quot;Identification of dry and rainy periods </span>
+<span class="sd">                using telecommunication microwave links&quot;, IEEE Geoscience and </span>
+<span class="sd">                Remote Sensing, 7, 611-615, 2010</span>
+<span class="sd">        .. [2] Chwala, C., Gmeiner, A., Qiu, W., Hipp, S., Nienaber, D., Siart, U.,</span>
+<span class="sd">              Eibert, T., Pohl, M., Seltmann, J., Fritz, J. and Kunstmann, H.:</span>
+<span class="sd">              &quot;Precipitation observation using microwave backhaul links in the </span>
+<span class="sd">              alpine and pre-alpine region of Southern Germany&quot;, Hydrology</span>
+<span class="sd">              and Earth System Sciences, 16, 2647-2661, 2012        </span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="c"># Standard deviation method</span>
+        <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s">&#39;std_dev&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">print_info</span><span class="p">:</span>
+                <span class="k">print</span> <span class="s">&#39;Performing wet/dry classification for link &#39;</span><span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;link_id&#39;</span><span class="p">]</span>
+                <span class="k">print</span> <span class="s">&#39; Method = std_dev&#39;</span>
+                <span class="k">print</span> <span class="s">&#39; window_length = &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">window_length</span><span class="p">)</span>
+                <span class="k">print</span> <span class="s">&#39; threshold = &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">threshold</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">pair_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">processing_info</span><span class="p">[</span><span class="s">&#39;tx_rx_pairs&#39;</span><span class="p">]:</span>
+                <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;wet_&#39;</span> <span class="o">+</span> <span class="n">pair_id</span><span class="p">],</span> 
+                 <span class="n">roll_std_dev</span><span class="p">)</span> <span class="o">=</span> <span class="n">wet_dry</span><span class="o">.</span><span class="n">wet_dry_std_dev</span><span class="p">(</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;txrx_&#39;</span> <span class="o">+</span> <span class="n">pair_id</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> 
+                                    <span class="n">window_length</span><span class="p">,</span> 
+                                    <span class="n">threshold</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">processing_info</span><span class="p">[</span><span class="s">&#39;wet_dry_roll_std_dev_&#39;</span> <span class="o">+</span> <span class="n">pair_id</span><span class="p">]</span> \
+                                  <span class="o">=</span> <span class="n">roll_std_dev</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">processing_info</span><span class="p">[</span><span class="s">&#39;wet_dry_method&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;std_dev&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">processing_info</span><span class="p">[</span><span class="s">&#39;wet_dry_window_length&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">window_length</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">processing_info</span><span class="p">[</span><span class="s">&#39;wet_dry_threshold&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">threshold</span>
+        <span class="c"># Shor-term Fourier transformation method</span>
+        <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s">&#39;stft&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">print_info</span><span class="p">:</span>
+                <span class="k">print</span> <span class="s">&#39;Performing wet/dry classification for link &#39;</span><span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;link_id&#39;</span><span class="p">]</span>
+                <span class="k">print</span> <span class="s">&#39; Method = stft&#39;</span>
+                <span class="k">print</span> <span class="s">&#39; dry_window_length = &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">dry_window_length</span><span class="p">)</span>
+                <span class="k">print</span> <span class="s">&#39; window_length = &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">window_length</span><span class="p">)</span>
+                <span class="k">print</span> <span class="s">&#39; threshold = &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">threshold</span><span class="p">)</span>
+                <span class="k">print</span> <span class="s">&#39; f_divide = &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">f_divide</span><span class="p">)</span>
+            
+            <span class="k">for</span> <span class="n">pair_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">processing_info</span><span class="p">[</span><span class="s">&#39;tx_rx_pairs&#39;</span><span class="p">]:</span>
+                <span class="n">txrx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;txrx_&#39;</span> <span class="o">+</span> <span class="n">pair_id</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+            
+                <span class="c"># Find dry period (wit lowest fluctuation = lowest std_dev)</span>
+                <span class="n">t_dry_start</span><span class="p">,</span> \
+                <span class="n">t_dry_stop</span> <span class="o">=</span> <span class="n">wet_dry</span><span class="o">.</span><span class="n">find_lowest_std_dev_period</span><span class="p">(</span>
+                                <span class="n">txrx</span><span class="p">,</span>
+                                <span class="n">window_length</span><span class="o">=</span><span class="n">dry_window_length</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">processing_info</span><span class="p">[</span><span class="s">&#39;wet_dry_t_dry_start&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">t_dry_start</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">processing_info</span><span class="p">[</span><span class="s">&#39;wet_dry_t_dry_stop&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">t_dry_stop</span>
+            
+                <span class="k">if</span> <span class="n">reuse_last_Pxx</span> <span class="ow">is</span> <span class="bp">False</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;wet_&#39;</span> <span class="o">+</span> <span class="n">pair_id</span><span class="p">],</span> <span class="n">info</span> <span class="o">=</span> <span class="n">wet_dry</span><span class="o">.</span><span class="n">wet_dry_stft</span><span class="p">(</span>
+                                                            <span class="n">txrx</span><span class="p">,</span>
+                                                            <span class="n">window_length</span><span class="p">,</span>
+                                                            <span class="n">threshold</span><span class="p">,</span>
+                                                            <span class="n">f_divide</span><span class="p">,</span>
+                                                            <span class="n">t_dry_start</span><span class="p">,</span>
+                                                            <span class="n">t_dry_stop</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">reuse_last_Pxx</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
+                    <span class="n">Pxx</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">processing_info</span><span class="p">[</span><span class="s">&#39;wet_dry_Pxx_&#39;</span> <span class="o">+</span> <span class="n">pair_id</span><span class="p">]</span>
+                    <span class="n">f</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">processing_info</span><span class="p">[</span><span class="s">&#39;wet_dry_f&#39;</span><span class="p">]</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;wet_&#39;</span> <span class="o">+</span> <span class="n">pair_id</span><span class="p">],</span> <span class="n">info</span> <span class="o">=</span> <span class="n">wet_dry</span><span class="o">.</span><span class="n">wet_dry_stft</span><span class="p">(</span>
+                                                            <span class="n">txrx</span><span class="p">,</span>
+                                                            <span class="n">window_length</span><span class="p">,</span>
+                                                            <span class="n">threshold</span><span class="p">,</span>
+                                                            <span class="n">f_divide</span><span class="p">,</span>
+                                                            <span class="n">t_dry_start</span><span class="p">,</span>
+                                                            <span class="n">t_dry_stop</span><span class="p">,</span>
+                                                            <span class="n">Pxx</span><span class="o">=</span><span class="n">Pxx</span><span class="p">,</span>
+                                                            <span class="n">f</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;reuse_last_Pxx can only by True or False&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">processing_info</span><span class="p">[</span><span class="s">&#39;wet_dry_Pxx_&#39;</span> <span class="o">+</span> <span class="n">pair_id</span><span class="p">]</span> <span class="o">=</span> \
+                                                        <span class="n">info</span><span class="p">[</span><span class="s">&#39;Pxx&#39;</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">processing_info</span><span class="p">[</span><span class="s">&#39;wet_dry_P_norm_&#39;</span> <span class="o">+</span> <span class="n">pair_id</span><span class="p">]</span> <span class="o">=</span> \
+                                                        <span class="n">info</span><span class="p">[</span><span class="s">&#39;P_norm&#39;</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">processing_info</span><span class="p">[</span><span class="s">&#39;wet_dry_P_sum_diff_&#39;</span> <span class="o">+</span> <span class="n">pair_id</span><span class="p">]</span> <span class="o">=</span> \
+                                                        <span class="n">info</span><span class="p">[</span><span class="s">&#39;P_sum_diff&#39;</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">processing_info</span><span class="p">[</span><span class="s">&#39;wet_dry_P_dry_mean_&#39;</span> <span class="o">+</span> <span class="n">pair_id</span><span class="p">]</span> <span class="o">=</span> \
+                                                        <span class="n">info</span><span class="p">[</span><span class="s">&#39;P_dry_mean&#39;</span><span class="p">]</span>
+            
+            <span class="bp">self</span><span class="o">.</span><span class="n">processing_info</span><span class="p">[</span><span class="s">&#39;wet_dry_f&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">info</span><span class="p">[</span><span class="s">&#39;f&#39;</span><span class="p">]</span>                
+            <span class="bp">self</span><span class="o">.</span><span class="n">processing_info</span><span class="p">[</span><span class="s">&#39;wet_dry_method&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;stft&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">processing_info</span><span class="p">[</span><span class="s">&#39;wet_dry_window_length&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">window_length</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">processing_info</span><span class="p">[</span><span class="s">&#39;dry_window_length&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">window_length</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">processing_info</span><span class="p">[</span><span class="s">&#39;f_divide&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">f_divide</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">processing_info</span><span class="p">[</span><span class="s">&#39;wet_dry_threshold&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">threshold</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;Wet/dry classification method not supported&#39;</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="Comlink.do_baseline_determination"><a class="viewcode-back" href="../../pycomlink.Comlink.html#pycomlink.comlink.Comlink.do_baseline_determination">[docs]</a>    <span class="k">def</span> <span class="nf">do_baseline_determination</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                                  <span class="n">method</span><span class="o">=</span><span class="s">&#39;constant&#39;</span><span class="p">,</span>
+                                  <span class="n">wet_external</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                                  <span class="n">print_info</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+                                      
+        <span class="sd">&quot;&quot;&quot;Perform baseline determination for CML time series</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        method : str, optional</span>
+<span class="sd">                 String which indicates the baseline determination method (see Notes)</span>
+<span class="sd">                 Default is &#39;constant&#39;</span>
+<span class="sd">        wet_external : iterable of int or iterable of float, optional</span>
+<span class="sd">                 External wet/dry classification information. Has to be specified</span>
+<span class="sd">                 for each classified index of times series (Default is None)        </span>
+<span class="sd">        print_info : bool</span>
+<span class="sd">                 Print information about executed method (Default is False)</span>
+<span class="sd">                 </span>
+<span class="sd">        Note</span>
+<span class="sd">        ----</span>
+<span class="sd">        WIP: Currently two methods are supported:</span>
+<span class="sd">             - constant: Keeping the RSL level constant at the level of the preceding dry period</span>
+<span class="sd">             - linear: interpolating the RSL level linearly between two enframing dry periods</span>
+<span class="sd">             </span>
+<span class="sd">        &quot;&quot;&quot;</span>   
+                                      
+        <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s">&#39;constant&#39;</span><span class="p">:</span>
+            <span class="n">baseline_func</span> <span class="o">=</span> <span class="n">baseline</span><span class="o">.</span><span class="n">baseline_constant</span>
+            <span class="k">if</span> <span class="n">print_info</span><span class="p">:</span>
+                <span class="k">print</span> <span class="s">&#39;Setting RSL baseline&#39;</span>
+                <span class="k">print</span> <span class="s">&#39; Method = constant&#39;</span>
+        <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s">&#39;linear&#39;</span><span class="p">:</span>
+            <span class="n">baseline_func</span> <span class="o">=</span> <span class="n">baseline</span><span class="o">.</span><span class="n">baseline_linear</span>
+            <span class="k">if</span> <span class="n">print_info</span><span class="p">:</span>
+                <span class="k">print</span> <span class="s">&#39;Setting RSL baseline&#39;</span>
+                <span class="k">print</span> <span class="s">&#39; Method = linear&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;Wrong baseline method&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">pair_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">processing_info</span><span class="p">[</span><span class="s">&#39;tx_rx_pairs&#39;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">wet_external</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>            
+                <span class="n">wet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;wet_&#39;</span> <span class="o">+</span> <span class="n">pair_id</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">wet</span> <span class="o">=</span> <span class="n">wet_external</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;baseline_&#39;</span> <span class="o">+</span> <span class="n">pair_id</span><span class="p">]</span> <span class="o">=</span> \
+                                <span class="n">baseline_func</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;txrx_&#39;</span> <span class="o">+</span> <span class="n">pair_id</span><span class="p">],</span> 
+                                              <span class="n">wet</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">processing_info</span><span class="p">[</span><span class="s">&#39;baseline_method&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">method</span>
+        </div>
+<div class="viewcode-block" id="Comlink.do_wet_antenna_baseline_adjust"><a class="viewcode-back" href="../../pycomlink.Comlink.html#pycomlink.comlink.Comlink.do_wet_antenna_baseline_adjust">[docs]</a>    <span class="k">def</span> <span class="nf">do_wet_antenna_baseline_adjust</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                       <span class="n">waa_max</span><span class="p">,</span> 
+                                       <span class="n">delta_t</span><span class="p">,</span> 
+                                       <span class="n">tau</span><span class="p">,</span>
+                                       <span class="n">wet_external</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;Perform baseline adjustion due to wet antenna for CML time series</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        waa_max : float</span>
+<span class="sd">                  Maximum value of wet antenna attenuation   </span>
+<span class="sd">        delta_t : float</span>
+<span class="sd">                  Parameter for wet antnenna attenation model    </span>
+<span class="sd">        tau : float</span>
+<span class="sd">              Parameter for wet antnenna attenation model </span>
+<span class="sd">        </span>
+<span class="sd">        wet_external : iterable of int or iterable of float, optional</span>
+<span class="sd">                 External wet/dry classification information. Has to be specified</span>
+<span class="sd">                 for each classified index of times series (Default is None)</span>
+<span class="sd">        </span>
+<span class="sd">        Note</span>
+<span class="sd">        ----        </span>
+<span class="sd">        The wet antenna adjusting is based on a peer-reviewed publication [3]_</span>
+<span class="sd">                </span>
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+<span class="sd">        .. [3] Schleiss, M., Rieckermann, J. and Berne, A.: &quot;Quantification and</span>
+<span class="sd">                modeling of wet-antenna attenuation for commercial microwave</span>
+<span class="sd">                links&quot;, IEEE Geoscience and Remote Sensing Letters, 10, 2013        </span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span> 
+                                           
+        <span class="k">for</span> <span class="n">pair_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">processing_info</span><span class="p">[</span><span class="s">&#39;tx_rx_pairs&#39;</span><span class="p">]:</span>
+            <span class="n">txrx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;txrx_&#39;</span> <span class="o">+</span> <span class="n">pair_id</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+            <span class="n">baseline</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;baseline_&#39;</span> <span class="o">+</span> <span class="n">pair_id</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+            <span class="k">if</span> <span class="n">wet_external</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>            
+                <span class="n">wet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;wet_&#39;</span> <span class="o">+</span> <span class="n">pair_id</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">wet</span> <span class="o">=</span> <span class="n">wet_external</span>
+            <span class="n">baseline_waa</span><span class="p">,</span> <span class="n">waa</span> <span class="o">=</span> <span class="n">wet_antenna</span><span class="o">.</span><span class="n">waa_adjust_baseline</span><span class="p">(</span><span class="n">rsl</span><span class="o">=</span><span class="n">txrx</span><span class="p">,</span>
+                                                           <span class="n">baseline</span><span class="o">=</span><span class="n">baseline</span><span class="p">,</span>
+                                                           <span class="n">waa_max</span><span class="o">=</span><span class="n">waa_max</span><span class="p">,</span>
+                                                           <span class="n">delta_t</span><span class="o">=</span><span class="n">delta_t</span><span class="p">,</span>
+                                                           <span class="n">tau</span><span class="o">=</span><span class="n">tau</span><span class="p">,</span>
+                                                           <span class="n">wet</span><span class="o">=</span><span class="n">wet</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;baseline_&#39;</span> <span class="o">+</span> <span class="n">pair_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">baseline_waa</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;waa_&#39;</span> <span class="o">+</span> <span class="n">pair_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">waa</span>
+            <span class="c">#return baseline_waa</span>
+</div>
+<div class="viewcode-block" id="Comlink.calc_A"><a class="viewcode-back" href="../../pycomlink.Comlink.html#pycomlink.comlink.Comlink.calc_A">[docs]</a>    <span class="k">def</span> <span class="nf">calc_A</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">remove_negative_A</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        
+        <span class="sd">&quot;&quot;&quot;Perform calculation of attenuation for CML time series</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        remove_negative_A : bool</span>
+<span class="sd">                Negative attenuation values are assigned as zero (Default is True)</span>
+<span class="sd">               </span>
+<span class="sd">        &quot;&quot;&quot;</span>           
+        
+        <span class="k">for</span> <span class="n">pair_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">processing_info</span><span class="p">[</span><span class="s">&#39;tx_rx_pairs&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;A_&#39;</span> <span class="o">+</span> <span class="n">pair_id</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;txrx_&#39;</span> <span class="o">+</span> <span class="n">pair_id</span><span class="p">]</span> \
+                                      <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;baseline_&#39;</span> <span class="o">+</span> <span class="n">pair_id</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">remove_negative_A</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;A_&#39;</span> <span class="o">+</span> <span class="n">pair_id</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;A_&#39;</span> <span class="o">+</span> <span class="n">pair_id</span><span class="p">]</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+                </div>
+<div class="viewcode-block" id="Comlink.calc_R_from_A"><a class="viewcode-back" href="../../pycomlink.Comlink.html#pycomlink.comlink.Comlink.calc_R_from_A">[docs]</a>    <span class="k">def</span> <span class="nf">calc_R_from_A</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">approx_type</span><span class="o">=</span><span class="s">&#39;ITU&#39;</span><span class="p">):</span>
+        
+        <span class="sd">&quot;&quot;&quot;Perform calculation of rain rate from attenuation for CML time series</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        a : float, optional</span>
+<span class="sd">            Parameter of A-R relationship (Default is None)</span>
+<span class="sd">            If not given: Approximation considering polarization and frequency of link</span>
+<span class="sd">        b : float, optional</span>
+<span class="sd">            Parameter of A-R relationship  (Default is None)</span>
+<span class="sd">            If not given: Approximation considering polarization and frequency of link    </span>
+<span class="sd">        approx_type : str, optional</span>
+<span class="sd">            Approximation type (the default is &#39;ITU&#39;, which implies parameter</span>
+<span class="sd">            approximation using a table recommanded by ITU)     </span>
+<span class="sd">               </span>
+<span class="sd">        &quot;&quot;&quot;</span>   
+        
+        <span class="k">if</span> <span class="n">a</span><span class="o">==</span><span class="bp">None</span> <span class="ow">or</span> <span class="n">b</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+            <span class="n">calc_a_b</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">calc_a_b</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">for</span> <span class="n">pair_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">processing_info</span><span class="p">[</span><span class="s">&#39;tx_rx_pairs&#39;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">calc_a_b</span><span class="p">:</span>
+                <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">A_R_relation</span><span class="o">.</span><span class="n">a_b</span><span class="p">(</span><span class="n">f_GHz</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tx_rx_pairs</span><span class="p">[</span><span class="n">pair_id</span><span class="p">][</span><span class="s">&#39;f_GHz&#39;</span><span class="p">],</span> 
+                                        <span class="n">pol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tx_rx_pairs</span><span class="p">[</span><span class="n">pair_id</span><span class="p">][</span><span class="s">&#39;pol&#39;</span><span class="p">],</span>
+                                        <span class="n">approx_type</span><span class="o">=</span><span class="n">approx_type</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">processing_info</span><span class="p">[</span><span class="s">&#39;a_&#39;</span> <span class="o">+</span> <span class="n">pair_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">processing_info</span><span class="p">[</span><span class="s">&#39;b_&#39;</span> <span class="o">+</span> <span class="n">pair_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">b</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;R_&#39;</span> <span class="o">+</span> <span class="n">pair_id</span><span class="p">]</span> <span class="o">=</span> \
+                <span class="n">A_R_relation</span><span class="o">.</span><span class="n">calc_R_from_A</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;A_&#39;</span> <span class="o">+</span> <span class="n">pair_id</span><span class="p">],</span> 
+                                           <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span>
+                                           <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s">&#39;length_km&#39;</span><span class="p">])</span>
+                  
+<span class="c">####################                        </span>
+<span class="c"># Helper functions #</span>
+<span class="c">####################</span>
+                  </div></div>
+<div class="viewcode-block" id="derive_tx_rx_pairs"><a class="viewcode-back" href="../../pycomlink.Comlink.html#pycomlink.comlink.derive_tx_rx_pairs">[docs]</a><span class="k">def</span> <span class="nf">derive_tx_rx_pairs</span><span class="p">(</span><span class="n">columns_names</span><span class="p">):</span>
+    
+    <span class="sd">&quot;&quot;&quot;Derive the TX-RX pairs from the MW link data columns names</span>
+<span class="sd">    </span>
+<span class="sd">    Right now, this only works for the following cases:</span>
+<span class="sd">    </span>
+<span class="sd">    1. A duplex link with TX and RX columns for each direction. The</span>
+<span class="sd">       naming convention is &#39;TX_something&#39;, or &#39;tx_something&#39;,</span>
+<span class="sd">       or &#39;RX_something&#39;, &#39;rx_something&#39;, where `something` is most commonly `far`/`near`</span>
+<span class="sd">       or `A`/`B`.</span>
+<span class="sd">    2. A simplex link with one TX and RX columns which also carry the site</span>
+<span class="sd">       name after a &#39;_&#39; like in case 1.</span>
+<span class="sd">    3. A simplex link with one TX and RX columns which are named &#39;TX&#39; </span>
+<span class="sd">       and &#39;RX&#39;, or &#39;tx&#39; and &#39;rx&#39;.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------    </span>
+<span class="sd">    column_names : list</span>
+<span class="sd">        List of columns names from the MW link DataFrame</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tx_rx_pairs : dict of dicts</span>
+<span class="sd">        Dict of dicts of the TX-RX pairs</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">tx_patterns</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;tx&#39;</span><span class="p">,</span> <span class="s">&#39;TX&#39;</span><span class="p">]</span>
+    <span class="n">rx_patterns</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;rx&#39;</span><span class="p">,</span> <span class="s">&#39;RX&#39;</span><span class="p">]</span>
+    <span class="n">patterns</span> <span class="o">=</span> <span class="n">tx_patterns</span> <span class="o">+</span> <span class="n">rx_patterns</span>
+
+    <span class="c"># Find the columns for each of the pattern</span>
+    <span class="n">pattern_found_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">pattern</span> <span class="ow">in</span> <span class="n">patterns</span><span class="p">:</span>
+        <span class="n">pattern_found_dict</span><span class="p">[</span><span class="n">pattern</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">columns_names</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">pattern</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
+                <span class="n">pattern_found_dict</span><span class="p">[</span><span class="n">pattern</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">pattern_found_dict</span><span class="p">[</span><span class="n">pattern</span><span class="p">]</span> <span class="o">==</span> <span class="p">[]:</span>
+            <span class="c"># Remove those keys where no match was found</span>
+            <span class="n">pattern_found_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    
+    <span class="c"># Do different things, depending on how many column names </span>
+    <span class="c"># did fit to one of the patterns</span>
+    <span class="c">#</span>
+    <span class="c"># If both, TX and RX were found, the dict length should be 2</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pattern_found_dict</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="c"># Derive site name guesses from column names, i.e. the &#39;a&#39; from &#39;tx_a&#39;</span>
+        <span class="n">site_name_guesses</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">column_name_list</span> <span class="ow">in</span> <span class="n">pattern_found_dict</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">col_name</span> <span class="ow">in</span> <span class="n">column_name_list</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s">&#39;_&#39;</span> <span class="ow">in</span> <span class="n">col_name</span><span class="p">:</span>
+                    <span class="n">site_name_guesses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">col_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;_&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+                    <span class="n">no_site_name_in_tx_rx_column</span> <span class="o">=</span> <span class="bp">False</span>
+                <span class="k">elif</span> <span class="n">col_name</span> <span class="ow">in</span> <span class="n">tx_patterns</span><span class="p">:</span>
+                    <span class="n">site_name_guesses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;B&#39;</span><span class="p">)</span>
+                    <span class="n">no_site_name_in_tx_rx_column</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="k">elif</span> <span class="n">col_name</span> <span class="ow">in</span> <span class="n">rx_patterns</span><span class="p">:</span>
+                    <span class="n">site_name_guesses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;A&#39;</span><span class="p">)</span>
+                    <span class="n">no_site_name_in_tx_rx_column</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;Column name can not be recognized&#39;</span><span class="p">)</span>
+        <span class="c"># Check that there are two columns for each site name guess</span>
+        <span class="n">unique_site_names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">site_name_guesses</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_site_names</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;There should be exactly two site names&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">site_name</span> <span class="ow">in</span> <span class="n">unique_site_names</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">site_name_guesses</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">site_name</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">site_name_guesses</span><span class="p">)</span><span class="o">/</span> \
+                                                     <span class="nb">len</span><span class="p">(</span><span class="n">unique_site_names</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;Site names were found but they must always be two correspoding columns for each name&#39;</span><span class="p">)</span>
+        <span class="c"># Build tx_rx_dict</span>
+        <span class="n">site_a_key</span> <span class="o">=</span> <span class="n">unique_site_names</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">site_b_key</span> <span class="o">=</span> <span class="n">unique_site_names</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">tx_pattern</span> <span class="ow">in</span> <span class="n">tx_patterns</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">tx_pattern</span> <span class="ow">in</span> <span class="n">pattern_found_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="k">break</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;There must be a match between the tx_patterns and the patterns already found&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">rx_pattern</span> <span class="ow">in</span> <span class="n">rx_patterns</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">rx_pattern</span> <span class="ow">in</span> <span class="n">pattern_found_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="k">break</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;There must be a match between the rx_patterns and the patterns already found&#39;</span><span class="p">)</span>
+        <span class="c"># If we have two directions, each with a TX and RX signal</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">site_name_guesses</span><span class="p">)</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">unique_site_names</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">tx_rx_pairs</span> <span class="o">=</span> <span class="p">{</span><span class="n">site_a_key</span> <span class="o">+</span> <span class="n">site_b_key</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">site_a_key</span> <span class="o">+</span> <span class="s">&#39;-&#39;</span> <span class="o">+</span> <span class="n">site_b_key</span><span class="p">,</span>
+                                                    <span class="s">&#39;tx&#39;</span><span class="p">:</span> <span class="n">tx_pattern</span> <span class="o">+</span> <span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="n">site_a_key</span><span class="p">,</span>
+                                                    <span class="s">&#39;rx&#39;</span><span class="p">:</span> <span class="n">rx_pattern</span> <span class="o">+</span> <span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="n">site_b_key</span><span class="p">,</span>
+                                                    <span class="s">&#39;linecolor&#39;</span><span class="p">:</span> <span class="s">&#39;b&#39;</span><span class="p">},</span>
+                          <span class="n">site_b_key</span> <span class="o">+</span> <span class="n">site_a_key</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">site_b_key</span> <span class="o">+</span> <span class="s">&#39;-&#39;</span> <span class="o">+</span> <span class="n">site_a_key</span><span class="p">,</span>
+                                                    <span class="s">&#39;tx&#39;</span><span class="p">:</span> <span class="n">tx_pattern</span> <span class="o">+</span> <span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="n">site_b_key</span><span class="p">,</span>
+                                                    <span class="s">&#39;rx&#39;</span><span class="p">:</span> <span class="n">rx_pattern</span> <span class="o">+</span> <span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="n">site_a_key</span><span class="p">,</span>
+                                                    <span class="s">&#39;linecolor&#39;</span><span class="p">:</span> <span class="s">&#39;r&#39;</span><span class="p">}}</span>
+        <span class="c"># If we have only one direction witch a TX and RX signal</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">site_name_guesses</span><span class="p">)</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">unique_site_names</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">no_site_name_in_tx_rx_column</span><span class="p">:</span>
+                <span class="n">tx_rx_pairs</span> <span class="o">=</span> <span class="p">{</span><span class="n">site_b_key</span> <span class="o">+</span> <span class="n">site_a_key</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">site_b_key</span> <span class="o">+</span> <span class="s">&#39;-&#39;</span> <span class="o">+</span> <span class="n">site_a_key</span><span class="p">,</span>
+                                                         <span class="s">&#39;tx&#39;</span><span class="p">:</span> <span class="n">tx_pattern</span><span class="p">,</span>
+                                                         <span class="s">&#39;rx&#39;</span><span class="p">:</span> <span class="n">rx_pattern</span><span class="p">,</span>
+                                                         <span class="s">&#39;linecolor&#39;</span><span class="p">:</span> <span class="s">&#39;b&#39;</span><span class="p">}}</span>
+                                
+    <span class="c"># TODO Try to deal with the case were only a RX column is present            </span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">pattern_found_dict</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;Only one column was found to fit the TX- and RX-naming convetion&#39;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">pattern_found_dict</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;None of the columns was found to fit the TX- and RX-naming convention&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;There seem to be too many columns that fit the TX- and RX-naming convention&#39;</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">tx_rx_pairs</span>
+    
+    
+    
+        
+        </div>
+</pre></div>
+
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Karlsruhe Institute of Technology (KIT) - Campus Alpin.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'0.0.5',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

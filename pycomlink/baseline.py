@@ -5,6 +5,23 @@
 ################################################
 
 def baseline_constant(rsl, wet):
+    """Baseline determination during wet period by keeping the RSL level constant
+        at the level of the preceding dry period
+        
+    Parameters
+    ----------
+    rsl : iterable of float
+          Received signal level or 
+          transmitted power level minus received power level
+    wet : iterable of bool     
+          Information if classified index of times series is wet (True) or dry (False)
+          
+    Returns
+    -------
+    iterable of float
+          Baseline during wet period
+          
+    """
     import numpy as np
     baseline = np.zeros(np.shape(rsl))
     baseline[0] = rsl[0]
@@ -16,6 +33,23 @@ def baseline_constant(rsl, wet):
     return baseline
             
 def baseline_linear(rsl, wet):
+    """Baseline determination during wet period by interpolating the RSL level 
+        linearly between two enframing dry periods
+    
+    Parameters
+    ----------
+    rsl : iterable of float
+          Received signal level or 
+          transmitted power level minus received power level
+    wet : iterable of bool     
+          Information if classified index of times series is wet (True) or dry (False)
+          
+    Returns
+    -------
+    iterable of float
+          Baseline during wet period
+          
+    """    
     import numpy as np
     baseline = np.zeros(np.shape(rsl))
     baseline[0] = rsl[0]

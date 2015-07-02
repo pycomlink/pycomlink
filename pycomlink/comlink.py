@@ -25,81 +25,118 @@ from . import wet_antenna
 from . import mapping
 
 class Comlink():
-    """
-    Commercial microwave link (CML) class for all data processing 
+    """Commercial microwave link (CML) class for all data processing 
     
     Attributes
     ----------
-
     data : pandas.DataFrame
-        OUTDATED!!!! Will be rewritten soon...    
-    
-        DataFrame which holds at minimum one time series of  RX-levels. Then,
-        TX power is assumed to be constant at 20 dBmFor each,
-        far end and near end entries can exists. Furthermore, for protection
-        links additional TX- and RX-level may exists. The naming convention 
-        is:
-         'tx_far'         = TX level far end 
-         'tx_near'        = TX level near end
-         'rx_far'         = RX level far end
-         'rx_near'        = RX level near end
-         'tx_far_protect' = TX level far end of protection link
-         ....
-         ...
-         ..
-         .
-        Further columns can be present in the DataFrame, 
-        e.g. RTT (the round trip time of a SNMP data acquisition request).
+           Dataframe that holds the data of one link 
         
     tx_rx_pairs : dict, optional
-        Dictonary that defines which TX and RX values belong together and
-        which frequency and polarization are used. Example:
-            # The keys, here 'fn' and 'nf' can be named by you. Here 'fn' is
-            # short for far-near, but you could also use AB to indicate the 
-            # connection from site A to site B.
-            tx_rx_pairs =  {'fn': {'name': 'far-near', 
-                                   'tx': 'tx_far'       # Column name in DataFrame
-                                   'rx': 'rx_near',     # Column name in DataFrame
-                                   'tx_site': 'site_B',
-                                   'rx_site': 'site_A',
-                                   'f_GHz': 17.8,
-                                   'pol': 'V',
-                                   'linecolor': 'r'},
-                            'nf': {'name': 'near-far',
-                                   'tx': 'tx_near',     # Column name in DataFrame
-                                   'rx': 'rx_far',      # Column name in DataFrame
-                                   'tx_site': 'site_A',
-                                   'rx_site': 'site_B',
-                                   'f_GHz': 18.8,
-                                   'pol': 'V',
-                                   'linecolor': 'b'}}
-    
-   metadata : dict, opional
-        Dictonary with two keys for the two MW link sites. Each item holds
-        another dict with at least 'lat' and 'lon' values in ???? units...
-        Further keys, like 'ID' or 'site_name' are possible but not mandatory.
-        If the 'lat' and 'lon' values are not supplied, the geolocating 
-        functions do not work of course.
-        Example site info dict:
-            metadata = {'site_A': {'lat': 2123,
-                                   'lon': 324,
-                                   'id': 'MY1231',
-                                   'ip': '127.0.0.1',
-                                   'slot': 2},
-                        'site_B': {'lat': 23123,
-                                   'lon': 1231,
-                                   'id': 'MY1231',
-                                   'ip': '127.0.0.2',
-                                   'slot': 3},
-                        'link_id': 'MY2345_3_MY2345_2',
-                        'length_km': 23.4}
-    
+           Dictonary that holds the configuration of the link including the
+           transmission direction, the frequencies and the polarizations 
+        
+    metadata : dict, optional
+        Dictonary that holds metadata about the link and the two associated sites
+        
+        
     """
+    
     def __init__(self, 
                  data, 
                  tx_rx_pairs=None, 
                  metadata=None,
                  const_TX_power=False):
+                     
+        """Initialisation of commercial microwave link (CML) class
+    
+        Parameters
+        ----------            
+        data : pandas.DataFrame
+               Dataframe that holds the data of the link. 
+               The type of the link (Simplex/Duplex) and the associated transmission
+               directions are automatically extracted from the dataframe's column names.
+               The name should contain 'RX' or 'rx' for the received signal level
+               and 'TX' or 'tx' for tranmitted signal level. For each site (far end,
+               near end) entries can exists. The naming should be clear without
+               ambiguity and conform to one of the conventions 
+               
+               - 'tx_far'          = TX level far end 
+               - 'TX_near'         = TX level near end
+               - 'rx_A'            = RX level far end
+               - 'RX_B'            = RX level near end
+               -  ...
+               -  ...                  
+               
+               If the automatic extraction fails because the collerations can not 
+               be recognized from the column names, the configuration can be specified 
+               with the tx_rx_pairs dictionary.
+               Further columns can be present in the DataFrame, 
+               e.g. RTT (the round trip time of a SNMP data acquisition request).
+            
+        tx_rx_pairs : dict, optional
+               Dictonary that holds the configuration of the link including the
+               transmission direction, the frequencies and the polarizations.
+               The Dictonary defines which TX and RX values belong together, if the
+               automatic recognition fails, and which frequency and polarization are used.
+                             
+               Example
+               -------
+               >>> tx_rx_pairs =  {'fn': {'name': 'far-near', 
+                                          'tx': 'tx_far'       # Column name in DataFrame
+                                          'rx': 'rx_near',     # Column name in DataFrame
+                                          'tx_site': 'site_B',
+                                          'rx_site': 'site_A',
+                                          'f_GHz': 17.8,
+                                          'pol': 'V',
+                                          'linecolor': 'r'},
+                                    'nf': {'name': 'near-far',
+                                          'tx': 'tx_near',     # Column name in DataFrame
+                                          'rx': 'rx_far',      # Column name in DataFrame
+                                          'tx_site': 'site_A',
+                                          'rx_site': 'site_B',
+                                          'f_GHz': 18.8,
+                                          'pol': 'V',
+                                          'linecolor': 'b'}}
+                                     
+               The keys, here 'fn' and 'nf' can be named arbitrarily but should be 
+               clear without ambiguity. 
+               
+               Here 'fn' is short for far-near, but the use of AB to indicate the 
+               connection from site A to site B would be appropriate, too.                                     
+        
+        metadata : dict, optional
+            Dictonary that holds metadata about the link and the two associated sites.
+            The dictonary must have two keys for the two MW link sites. Each item holds
+            another dict with at least 'lat' and 'lon' values in decimal format.
+            Further keys, like 'ID' or 'site_name' are possible but not mandatory.
+            If the 'lat' and 'lon' values are not supplied, the geolocating 
+            functions do not work of course.
+            Additionally the key 'length_km', that holds the link's length in kilometer,
+            should be appended.
+            
+            Example
+            -------            
+            >>> metadata = {'site_A': {'lat': 21.23,
+                                       'lon': 3.24,
+                                       'id': 'MY1231',
+                                       'ip': '127.0.0.1',
+                                       'slot': 2},
+                            'site_B': {'lat': -2.123,
+                                       'lon': -12.31,
+                                       'id': 'MY1232',
+                                       'ip': '127.0.0.2',
+                                       'slot': 3},
+                            'link_id': 'MY1231_2_MY1232_3',
+                            'length_km': 23.4}
+                         
+        const_TX_power : int or float
+            Constant transmittion power level. Should be provided if the link is
+            operated this way and the dataframe only holds one column with 
+            received power level.                  
+                         
+        """             
+        
         self.data = data
         self.tx_rx_pairs = tx_rx_pairs
         self.metadata = metadata
@@ -134,10 +171,8 @@ class Comlink():
         self.processing_info['tx_rx_pairs'] = tx_rx_pairs
 
     def info(self):
-        """Print MW link info 
-        
-        WIP: Print rudimentary MW link information
-        
+        """Print information about the microwave link
+       
         """
         
         # TODO: Deal with protection links or links for which only
@@ -161,7 +196,7 @@ class Comlink():
 
 
     def info_plot(self):
-        """Print MW link info and show location on map 
+        """Print information about the link and plot it on a low resolution map 
                 
         """
         
@@ -221,22 +256,23 @@ class Comlink():
              add_raw_data=False,
              figsize=(6,4),
              **kwargs):
-        """ WIP for generic plotting function
+                 
+        """Generic function to plot times series of data
         
         Parameters
-        ----------
-        
-        param_list : str, list of str, tuple of str, list of tuple of str
-            String or ensemble of sting which give the parameters that 
-            will be plotted.
-        resampling_time: 
+        ----------        
+        param_list : str, list of str, tuple of str, list of tuple of str, optional
+            String or ensemble of string which give the parameters that 
+            will be plotted (Default is 'txrx', which will plot transmitted power 
+            minus received power).
+        resampling_time : pandas parameter, optional
             resampling the raw data
-        add_raw_data:
-            
-        figsize:
-            size of output figure
-        kwargs:
-            matplotlib parameters
+        add_raw_data : bool, optional
+            Not used at the moment (Default False)
+        figsize : matplotlib parameter, optional 
+            Size of output figure in inches (default is (6,4))
+        kwargs :  matplotlib parameters, optional
+        
         """
 
         if resampling_time is not None:
@@ -300,35 +336,48 @@ class Comlink():
                                         f_divide=1e-3,
                                         reuse_last_Pxx=False,
                                         print_info=False):
-        """
-        Perform wet/dry classification for CML time series
+                                            
+        """Perform wet/dry classification for CML time series
+
+        Parameters
+        ----------
+        method : str, optional
+                 String which indicates the classification method (see Notes)
+                 Default is 'std_dev'
+        window_length : int, optional
+                 Length of the sliding window (Default is 128)        
+        threshold : int, optional
+                 Threshold which has to be surpassed to classifiy a period as 'wet'
+                 (Default is 1)        
+        dry_window_length : int, optional
+                 Length of window for identifying dry period used for calibration
+                 purpose. Only for method stft. (Default is 600)
+        f_divide : float
+                 Parameter for classification with method Fourier transformation
+                 (Default is 1e-3)          
+        reuse_last_Pxx : bool
+                 Parameter for classification with method Fourier transformation
+                 (Default is false)  
+        print_info : bool
+                  Print information about executed method (Default is False)
         
-     
-        Attributes:
-        ---------------------------------------------
-        method: str
-            WIP: currently two methods are supported:
-                - std_dev: Rolling standard deviation method (Schleiss & Berne, 2010)
-                - stft: Rolling Fourier-transform method (Chwala et al, 2012)
-        window_length: int
-            length of the sliding window        
-        threshold: int
-            threshold which has to be surpassed to classifiy a period as 'wet'
-        .....................
-        Only for method stft:
+        Note
+        ----        
+        WIP: Currently two classification methods are supported:
+                - std_dev: Rolling standard deviation method [1]_
+                - stft: Rolling Fourier-transform method [2]_      
+                
+        References
+        ----------
+        .. [1] Schleiss, M. and Berne, A.: "Identification of dry and rainy periods 
+                using telecommunication microwave links", IEEE Geoscience and 
+                Remote Sensing, 7, 611-615, 2010
+        .. [2] Chwala, C., Gmeiner, A., Qiu, W., Hipp, S., Nienaber, D., Siart, U.,
+              Eibert, T., Pohl, M., Seltmann, J., Fritz, J. and Kunstmann, H.:
+              "Precipitation observation using microwave backhaul links in the 
+              alpine and pre-alpine region of Southern Germany", Hydrology
+              and Earth System Sciences, 16, 2647-2661, 2012        
         
-        dry_window_length: int
-            length of window for identifying dry period used for calibration purpose
-        f_divide: flt
-        
-        reuse_last_Pxx: bool
-        
-        
-        .....................
-        print_info: bool
-            print information about executed method
-        -------------------------------------------    
-            
         """
         
         # Standard deviation method
@@ -415,19 +464,25 @@ class Comlink():
                                   wet_external=None,
                                   print_info=False):
                                       
-        """
-        Perform baseline determination for CML time series
+        """Perform baseline determination for CML time series
         
-        Attributes:
-        ---------------------------------------------
-        method: str
-            supported methods:
-                constant
-                linear
-        wet_external:      
-        
-        print_info: bool
-            print information about executed method        
+        Parameters
+        ----------
+        method : str, optional
+                 String which indicates the baseline determination method (see Notes)
+                 Default is 'constant'
+        wet_external : iterable of int or iterable of float, optional
+                 External wet/dry classification information. Has to be specified
+                 for each classified index of times series (Default is None)        
+        print_info : bool
+                 Print information about executed method (Default is False)
+                 
+        Note
+        ----
+        WIP: Currently two methods are supported:
+             - constant: Keeping the RSL level constant at the level of the preceding dry period
+             - linear: interpolating the RSL level linearly between two enframing dry periods
+             
         """   
                                       
         if method == 'constant':
@@ -458,19 +513,31 @@ class Comlink():
                                        tau,
                                        wet_external=None):
 
-        """
-        Perform baseline adjustion due to wet antenna for CML time series
+        """Perform baseline adjustion due to wet antenna for CML time series
         
-        Attributes:
-        ---------------------------------------------
-        waa_max: 
-
-        delta_t:    
+        Parameters
+        ----------
+        waa_max : float
+                  Maximum value of wet antenna attenuation   
+        delta_t : float
+                  Parameter for wet antnenna attenation model    
+        tau : float
+              Parameter for wet antnenna attenation model 
         
-        tau:
+        wet_external : iterable of int or iterable of float, optional
+                 External wet/dry classification information. Has to be specified
+                 for each classified index of times series (Default is None)
         
-        wet_external:
-               
+        Note
+        ----        
+        The wet antenna adjusting is based on a peer-reviewed publication [3]_
+                
+        References
+        ----------
+        .. [3] Schleiss, M., Rieckermann, J. and Berne, A.: "Quantification and
+                modeling of wet-antenna attenuation for commercial microwave
+                links", IEEE Geoscience and Remote Sensing Letters, 10, 2013        
+        
         """ 
                                            
         for pair_id in self.processing_info['tx_rx_pairs']:
@@ -491,15 +558,16 @@ class Comlink():
             #return baseline_waa
 
     def calc_A(self, remove_negative_A=True):
-        """
-        Perform calculation of attenuation for CML time series
         
-        Attributes:
-        ---------------------------------------------
-        remove_negative_A: bool
-            assignment: negative values of Attenuation = 0
+        """Perform calculation of attenuation for CML time series
+        
+        Parameters
+        ----------
+        remove_negative_A : bool
+                Negative attenuation values are assigned as zero (Default is True)
                
         """           
+        
         for pair_id in self.processing_info['tx_rx_pairs']:
             self.data['A_' + pair_id] = self.data['txrx_' + pair_id] \
                                       - self.data['baseline_' + pair_id]
@@ -507,23 +575,23 @@ class Comlink():
                 self.data['A_' + pair_id][self.data['A_' + pair_id]<0] = 0
                 
     def calc_R_from_A(self, a=None, b=None, approx_type='ITU'):
-        """
-        Perform calculation of rain rate from attenuation for CML time series
         
-        Attributes:
-        ---------------------------------------------
-        a: flt
-            Parameter of A-R relationship
+        """Perform calculation of rain rate from attenuation for CML time series
+        
+        Parameters
+        ----------
+        a : float, optional
+            Parameter of A-R relationship (Default is None)
             If not given: Approximation considering polarization and frequency of link
-        b: flt
-            Parameter of A-R relationship
-            If not given: Approximation considering polarization and frequency of link        
-        approx_type: str
-            Type used for approximate a and b
-            Supported type : ITU
-            
+        b : float, optional
+            Parameter of A-R relationship  (Default is None)
+            If not given: Approximation considering polarization and frequency of link    
+        approx_type : str, optional
+            Approximation type (the default is 'ITU', which implies parameter
+            approximation using a table recommanded by ITU)     
                
-        """         
+        """   
+        
         if a==None or b==None:
             calc_a_b = True
         else:
@@ -546,13 +614,14 @@ class Comlink():
 ####################
                   
 def derive_tx_rx_pairs(columns_names):
-    """ 
-    Derive the TX-RX pairs from the MW link data columns names
+    
+    """Derive the TX-RX pairs from the MW link data columns names
     
     Right now, this only works for the following cases:
+    
     1. A duplex link with TX and RX columns for each direction. The
-       Naming convention is 'TX_something', or 'tx_something',
-       or 'RX_...', 'rx_...', where `something` is most commonly `far`/`near`
+       naming convention is 'TX_something', or 'tx_something',
+       or 'RX_something', 'rx_something', where `something` is most commonly `far`/`near`
        or `A`/`B`.
     2. A simplex link with one TX and RX columns which also carry the site
        name after a '_' like in case 1.
@@ -560,13 +629,12 @@ def derive_tx_rx_pairs(columns_names):
        and 'RX', or 'tx' and 'rx'.
     
     Parameters
-    ==========
-    
+    ----------    
     column_names : list
         List of columns names from the MW link DataFrame
         
     Returns
-    =======
+    -------
     tx_rx_pairs : dict of dicts
         Dict of dicts of the TX-RX pairs
     

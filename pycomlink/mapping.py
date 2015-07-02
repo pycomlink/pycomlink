@@ -6,11 +6,30 @@ from math import sqrt
 import numpy as np
 
 def inv_dist(lons_mp,lats_mp,values_mp,lons_grid,lats_grid,power,smoothing):  
-    """
-    lons_mp,lats_mp coordinates of measuring points
-    values_mp values at measuring points
+    """Calculate Inverse Distance Weighting interpolation values at regular grid
     
-    lons_grid,lats_grid coordinates of regular grid    
+    Parameters
+    ----------
+    lons_mp : iterable of floats
+               Longitudes of measuring points
+    lats_mp : iterable of floats
+               Latitudes of measuring points               
+    values_mp : iterable of floats
+               Values at measuring points    
+    lons_grid : array of floats
+               Longitudes of regular grid 
+    lats_grid : array of floats
+               Latitudes of regular grid   
+    power : flt
+               Power of distance decay for IDW interpolation. 
+    smoothing : flt
+               Power of smoothing factor for IDW interpolation. 
+               
+    Returns
+    -------
+    array of floats
+         interpolated values at grid points           
+               
     """        
     
     values_idw = np.zeros((lats_grid.size,lons_grid.size))  
@@ -23,12 +42,32 @@ def inv_dist(lons_mp,lats_mp,values_mp,lons_grid,lats_grid,power,smoothing):
 
 
 def gridpointValue(x,y,power,smoothing,x_o,y_o,values_o):  
-    """
-    x,y coordinates lon/lat of regular grid
-    x_o,y_o coordinates lon,lat of measuring point
-    values_o value at measuring point    
+    """Calculate IDW value at particular grid point
+    
+    Parameters
+    ----------
+    x : float
+        Longitude of grid point
+    y : float
+        Latitude of grid point
+    power : flt
+        Power of distance decay
+    smoothing : flt
+        Power of smoothing factor
+    x_o : iterable of floats
+        Longitudes of measuring points
+    y_o : iterable of floats
+        Latitudes of measuring points               
+    values_o : iterable of floats
+         Values at measuring points        
+
+    Returns
+    -------
+    float
+        Value at grid point 
     
     """
+    
     nominator=0  
     denominator=0 
 
@@ -51,8 +90,7 @@ def gridpointValue(x,y,power,smoothing,x_o,y_o,values_o):
                            
 
 def label_loc(lon_a,lat_a,lon_b,lat_b):
-    """
-    
+    """Helper function for method info_plot of class Comlink    
     """
     if lon_a < lon_b and lat_a < lat_b:        
         x_a,y_a = lon_a-0.025,lat_a-0.005       
@@ -72,16 +110,38 @@ def label_loc(lon_a,lat_a,lon_b,lat_b):
                              
 def kriging(lons_mp,lats_mp,values_mp,lons_grid,lats_grid,
             krig_type,variogram_model,drift_terms):
-    """
-    lons_mp,lats_mp coordinates of measuring points
-    values_mp values at measuring points
+                
+    """Calculate Kriging interpolation values at regular grid
     
-    lons_grid,lats_grid coordinates of regular grid  
-    
-    krig_type, variogram_model, drift_terms:     
-                Parameters for Kriging interpolation
-                (see pykrige documentation for information)    
+    Parameters
+    ----------
+    lons_mp : iterable of floats
+               Longitudes of measuring points
+    lats_mp : iterable of floats
+               Latitudes of measuring points               
+    values_mp : iterable of floats
+               Values at measuring points    
+    lons_grid : array of floats
+               Longitudes of regular grid 
+    lats_grid : array of floats
+               Latitudes of regular grid    
+    krig_type : str
+                Parameters for Kriging interpolation. See pykrige documentation
+                for information.
+    variogram_model : str
+                Parameters for Kriging interpolation. See pykrige documentation
+                for information.       
+    drift_terms : str
+                Parameters for Kriging interpolation. See pykrige documentation
+                for information.              
+
+    Returns
+    -------
+    array of floats
+        Interpolated values at grid points 
+  
     """     
+    
     from pykrige.ok import OrdinaryKriging
     from pykrige.uk import UniversalKriging
     

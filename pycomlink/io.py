@@ -22,12 +22,10 @@ from comlinkset import ComlinkSet
 
 
 def write_hdf5(fn, cml, cml_id=None):
-    """ 
-    Write Comlink or Comlink list to HDF5
+    """ Write Comlink or Comlink list to HDF5
     
     Parameters
-    ----------
-    
+    ----------    
     fn : str
         Absolute filename
     cml : Comlink or list of Comlink objects
@@ -68,27 +66,25 @@ def write_hdf5(fn, cml, cml_id=None):
     store.close()
     
 def read_hdf5(fn, force_list_return=False):
-    """
-    Read Comlink or list of Comlinks from HDF5
+    """Read Comlink or list of Comlinks from HDF5
     
     Parameters
     ----------
-
     fn : str
         Absolute filename to a pycomlink-HDF5 file
-    force_list_return : Bool, optional
+    force_list_return : bool, optional
         Set this to True if you always want a list in return even if there
         is only one cml in the HDF5 file. Default is False
         
     Returns
-    -------
-    
+    -------    
     cml : Comlink
         If only one data set was found, the Comlink object that was stored in
         the HDF5 file is returned (except if forec_list_return == True).
     cmls : List of Comlink objects
         If several data sets were found, a list of all Comlink objects
         is returned
+        
     """
     
     store = pd.HDFStore(fn, 'r')
@@ -120,15 +116,13 @@ def read_PROCEMA_raw_data(fn):
     """ Read in PROCEMA data for one MW link stored as CSV or MATLAB binary
     
     Parameters
-    ----------
-    
+    ----------   
     fn : str
         Absolute filename. File can be a PROCEMA MATLAB file or a PROCEMA
         CSV file as exported by the old PROCEMA database
         
     Returns
-    -------
-    
+    -------  
     cml : Comlink Object
     
     """
@@ -246,17 +240,23 @@ def read_PROCEMA_raw_data(fn):
 #############################################
 
 def _mV2RSL(mV, dB_per_V, RSL_clear_sky, mV_clear_sky):
+    """Helper function for PROCEMA data parsing
+    """
     mV = _clean_mV_RSL_record(mV)
     RSL = RSL_clear_sky - (mV_clear_sky - mV) * 1e-3 * dB_per_V
     return RSL
 
 def _clean_mV_RSL_record(mV_raw):
+    """Helper function for PROCEMA data parsing
+    """    
     import numpy as np
     mV = np.array(mV_raw, dtype=float)
     mV[mV==0] = np.NaN
     return mV
     
 def _matlab_datenum_2_datetime(ts_datenum, round_to='seconds'):
+    """Helper function for PROCEMA data parsing
+    """    
     from datetime import datetime, timedelta
     ts = []
     for t in ts_datenum:
@@ -272,6 +272,8 @@ def _matlab_datenum_2_datetime(ts_datenum, round_to='seconds'):
     return ts
     
 def _round_datetime(ts_not_rounded, round_to='seconds'):
+    """Helper function for PROCEMA data parsing
+    """    
     from datetime import timedelta
     seconds_not_rounded = ts_not_rounded.second \
                         + ts_not_rounded.microsecond * 1e-6
@@ -282,8 +284,7 @@ def _round_datetime(ts_not_rounded, round_to='seconds'):
     
 from math import radians, cos, sin, asin, sqrt
 def _haversine(lon1, lat1, lon2, lat2):
-    """
-    Calculate the great circle distance between two points 
+    """Calculate the great circle distance between two points 
     on the earth (specified in decimal degrees)
     """
     # convert decimal degrees to radians 

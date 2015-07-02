@@ -28,25 +28,38 @@ from . import mapping
 
 
 class ComlinkSet():
-    """
-    Commercial microwave link set (CMLS) class 
-        - for all data processing 
-        - for multiple links
-        - contains a list of Comlink Objects defined by Comlink()   
+    """Commercial microwave link set (CMLS) class for data processing of multiple links
     
     Attributes
     ----------
-    cml : list of pycomlink class Comlink
-
+    set : list of pycomlink class Comlink objects
+    set_info : dict
+          Dictionary that holds information about the CMLS object
+        
+    """  
     
-    """    
     def __init__(self, cml_list,area):
+        """Initialisation of commercial microwave link set (CMLS) class 
+           
+            Parameters
+            ----------
+            cml_list : list of pycomlink class Comlink objects
+                List that holds the links located in a specified area. Each list item
+                has to be a Comlink object.
+            area : list of floats
+                List that holds the geographic coordinates of the area borders in
+                decimal format. 
+                The order has to be:
+                area = [lower_longitude,upper_longitude,
+                        lower_latitude, upper_latitude]
+        """
+        
+        
         self.set = cml_list
         self.set_info = {'area':area}
         
     def info(self):
-        """
-        Print ComlinkSet info 
+        """Print information about associated microwave links 
         
         """        
         
@@ -66,7 +79,7 @@ class ComlinkSet():
         
 
     def info_plot(self):
-        """Show ComlinkSet locations on map 
+        """Plot associated links a map 
                 
         """
         plt.figure(figsize=(10,10))
@@ -103,36 +116,39 @@ class ComlinkSet():
                                         f_divide=1e-3,
                                         reuse_last_Pxx=False,
                                         print_info=False):
+        """Perform wet/dry classification for all CML time series in CMLS
+
+        Parameters
+        ----------
+        method : str, optional
+                 String which indicates the classification method (see Notes)
+                 Default is 'std_dev'
+        window_length : int, optional
+                 Length of the sliding window (Default is 128)        
+        threshold : int, optional
+                 threshold which has to be surpassed to classifiy a period as 'wet'
+                 (Default is 1)        
+        dry_window_length : int, optional
+                 Length of window for identifying dry period used for calibration
+                 purpose. Only for method stft. (Default is 600)
+        f_divide : float
+                 Parameter for classification with method Fourier transformation
+                 (Default is 1e-3)          
+        reuse_last_Pxx : bool
+                 Parameter for classification with method Fourier transformation
+                 (Default is false)  
+        print_info : bool
+                  Print information about executed method (Default is False)
+        
+        Note
+        ----        
+        WIP: Currently two classification methods are supported:
+                - std_dev: Rolling standard deviation method [1]_
+                - stft: Rolling Fourier-transform method [2]_                
+                      
+        
         """
-        Perform wet/dry classification for all CML time series in CMLS
         
-     
-        Attributes:
-        ---------------------------------------------
-        method: str
-            WIP: currently two methods are supported:
-                - std_dev: Rolling standard deviation method (Schleiss & Berne, 2010)
-                - stft: Rolling Fourier-transform method (Chwala et al, 2012)
-        window_length: int
-            length of the sliding window        
-        threshold: 
-            threshold which has to be surpassed to classifiy a period as 'wet'
-        .....................
-        Only for method stft:
-        
-        dry_window_length: int
-            length of window for identifying dry period used for calibration purpose
-        f_divide: flt
-        
-        reuse_last_Pxx: bool
-        
-        
-        .....................
-        print_info: bool
-            print information about executed method
-        -------------------------------------------    
-            
-        """
         for cml in self.set:
             cml.do_wet_dry_classification(method, 
                                               window_length,
@@ -150,20 +166,26 @@ class ComlinkSet():
                                   wet_external=None,
                                   print_info=False):
                                       
-        """
-        Perform baseline determination for all CML time series in CMLS
+        """Perform baseline determination for all CML time series in CMLS
         
-        Attributes:
-        ---------------------------------------------
-        method: str
-            supported methods:
-                constant
-                linear
-        wet_external:      
-        
-        print_info: bool
-            print information about executed method        
-        """                              
+        Parameters
+        ----------
+        method : str, optional
+                 String which indicates the baseline determination method (see Notes)
+                 Default is 'constant'
+        wet_external : iterable of int or iterable of float, optional
+                 External wet/dry classification information. Has to be specified
+                 for each classified index of times series (Default is None)        
+        print_info : bool
+                 Print information about executed method (Default is False)
+                 
+        Note
+        ----
+        WIP: Currently two methods are supported:
+             - constant: Keeping the RSL level constant at the level of the preceding dry period
+             - linear: interpolating the RSL level linearly between two enframing dry periods
+             
+        """                            
 
                               
         for cml in self.set:   
@@ -179,19 +201,26 @@ class ComlinkSet():
                                        tau,
                                        wet_external=None):
                                            
-        """
-        Perform baseline adjustion due to wet antenna for all CML time series in CMLS
+        """Perform baseline adjustion due to wet antenna for all CML time series in CMLS
         
-        Attributes:
-        ---------------------------------------------
-        waa_max: 
-
-        delta_t:    
+        Parameters
+        ----------
+        waa_max : float
+                  Maximum value of wet antenna attenuation   
+        delta_t : float
+                  Parameter for wet antnenna attenation model    
+        tau : float
+              Parameter for wet antnenna attenation model 
         
-        tau:
+        wet_external : iterable of int or iterable of float, optional
+                 External wet/dry classification information. Has to be specified
+                 for each classified index of times series (Default is None)
         
-        wet_external:
-               
+        Note
+        ------        
+        The wet antenna adjusting is based on a peer-reviewed publication [3]_
+        
+  
         """ 
                                            
         for cml in self.set:    
@@ -203,13 +232,12 @@ class ComlinkSet():
  
     def calc_A(self, remove_negative_A=True):
         
-        """
-        Perform calculation of attenuation for all CML time series in CMLS
+        """Perform calculation of attenuation for all CML time series in CMLS
         
-        Attributes:
-        ---------------------------------------------
-        remove_negative_A: bool
-            assignment: negative values of Attenuation = 0
+        Parameters
+        ----------
+        remove_negative_A : bool
+                Negative attenuation values are assigned as zero (Default is True)
                
         """         
         
@@ -220,20 +248,19 @@ class ComlinkSet():
                     
     def calc_R_from_A(self, a=None, b=None, approx_type='ITU'):
         
-        """
-        Perform calculation of rain rate from attenuation for all CML time series in CMLS
+        """Perform calculation of rain rate from attenuation for all CML time series in CMLS
         
-        Attributes:
-        ---------------------------------------------
-        a: flt
-            Parameter of A-R relationship
+        Parameters
+        ----------
+        a : float, optional
+            Parameter of A-R relationship (Default is None)
             If not given: Approximation considering polarization and frequency of link
-        b: flt
-            Parameter of A-R relationship
-            If not given: Approximation considering polarization and frequency of link        
-        approx_type: str
-            Type used for approximate a and b
-            Supported type : ITU
+        b : float, optional
+            Parameter of A-R relationship  (Default is None)
+            If not given: Approximation considering polarization and frequency of link    
+        approx_type : str, optional
+            Approximation type (the default is 'ITU', which implies parameter
+            approximation using a table recommanded by ITU) 
             
                
         """          
@@ -254,53 +281,54 @@ class ComlinkSet():
                  krig_type='ordinary',
                  variogram_model='linear',
                  drift_terms=['regional_linear']):
-        """
-        Plotting Inverse Distance Interpolation of Rain Sums or Rain Rate 
-            on regular grid
+                     
+        """ Perform and plot spatial interpolation of rain rate or rain sum on regular grid
         
-        Parameter:
-        ---------------
-        area: list
-            [lower_lon,upper_lon,lower_lat,upper_lat]
-            
-        grid_res: int
-            number of bins of output grid in area
-            
-        int_type:str
+        Parameters
+        ----------   
+        grid_res : int
+            Number of bins of output grid in area            
+        int_type : str
             interpolation method
             'IDW' Inverse Distance Interpolation
-            'Kriging' Kriging Interpolation with pyKrige
-            
-        figsize:
-            size of output figure  
-            
-        time: string
-            datetime string of desired timestamp (for example 'yyyy-mm-dd HH:MM')
-            If given the rainrate for this timestamp is plotted.
-            If not given the accumulation of the whole time series is plotted
-            
-               
-        method: str
-            how to claculate rainrate/sum of duplex link
-                'mean' average of near-far and far-near
-                'max' maximum of near-far and far-near
-                'min' minimum of near-far and far-near
-                'dir1' use only first direction from tx_rx_pairs
-                'dir2' use only second direction from tx_rx_pairs
+            'Kriging' Kriging Interpolation with pyKrige            
+        figsize : matplotlib parameter, optional 
+            Size of output figure in inches (default is (15,10))      
+        time : str, optional
+            Datetime string of desired timestamp (for example 'yyyy-mm-dd HH:MM')
+            Default is None.
+            If given the rain rate for this timestamp is plotted.
+            If not given the accumulation of the whole time series is plotted.         
+        method : str, optional
+            Indicates how to claculate rainrate/sum of bidirectional link
+            (Default is 'mean')
+            'mean' average of near-far and far-near
+            'max' maximum of near-far and far-near
+            'min' minimum of near-far and far-near
+            'dir1' use only first direction from tx_rx_pairs
+            'dir2' use only second direction from tx_rx_pairs                
+        time_resolution : int, optional
+                Resampling time for rain rate calculation. Only used if time
+                is not None (Default is 15)               
+        power : flt, optional
+               Power of distance decay for IDW interpolation. Only used if 
+               int_type is 'IDW' (Default is 2)   
+        smoothing : flt, optional
+               Power of smoothing factor for IDW interpolation. Only used if 
+               int_type is 'IDW' (Default is 0)        
+        krig_type : str, optional
+                Parameters for Kriging interpolation. See pykrige documentation
+                for information. Only used if int_type is 'Kriging' 
+                (Default is 'Ordinary')
+        variogram_model : str, optional
+                Parameters for Kriging interpolation. See pykrige documentation
+                for information. Only used if int_type is 'Kriging' 
+                (Default is 'linear')        
+        drift_terms : str, optional
+                Parameters for Kriging interpolation. See pykrige documentation
+                for information. Only used if int_type is 'Kriging' 
+                (Default is ['regional_linear'])
                 
-        time_resolution: int
-                resampling time for rain rate calculation
-                only used for type 'rr'
-                
-        power, smoothing: flt
-                only if int_type 'IDW'
-                 power of distance decay and smoothing factor for 
-                 IDW interpolation    
-                 
-        krig_type, variogram_model, drift_terms: str
-                only if int_type 'Kriging'     
-                Parameters for Kriging interpolation
-                (see pykrige documentation for information)
         """
         
         fig = plt.figure(figsize=figsize)
@@ -354,30 +382,32 @@ class ComlinkSet():
                            
                        if time is None:
                            for pair_id in cml.processing_info['tx_rx_pairs']:
-                               cumsu[pair_id]=cml.data['R_' + pair_id].resample('H',how='mean').cumsum()
-                           ACC[cml.metadata['link_id']]=cumsu    
+                               if 'R_' + pair_id in cml.data.columns:
+                                   cumsu[pair_id]=cml.data['R_' + pair_id].resample('H',how='mean').cumsum()
+                           if cumsu:        
+                               ACC[cml.metadata['link_id']]=cumsu    
 
         lons_mw=[]
         lats_mw=[]
         values_mw=[]        
-
+ 
         if time is None:
              for cml in self.set:
                  if len(cml.processing_info['tx_rx_pairs']) == 2:
-                     
-                     if method == 'mean':
-                         prep_sum = (ACC[cml.metadata['link_id']][cml.processing_info['tx_rx_pairs'].keys()[0]][-1]+
-                                    ACC[cml.metadata['link_id']][cml.processing_info['tx_rx_pairs'].keys()[1]][-1])/2. 
-                     elif method == 'max':
-                         prep_sum = max(ACC[cml.metadata['link_id']][cml.processing_info['tx_rx_pairs'].keys()[0]][-1],
-                                    ACC[cml.metadata['link_id']][cml.processing_info['tx_rx_pairs'].keys()[1]][-1])
-                     elif method == 'min':
-                         prep_sum = min(ACC[cml.metadata['link_id']][cml.processing_info['tx_rx_pairs'].keys()[0]][-1],
-                                    ACC[cml.metadata['link_id']][cml.processing_info['tx_rx_pairs'].keys()[1]][-1])
-                     elif method == 'dir1':
-                         prep_sum = ACC[cml.metadata['link_id']][cml.processing_info['tx_rx_pairs'].keys()[0]][-1]
-                     elif method == 'dir2':
-                         prep_sum = ACC[cml.metadata['link_id']][cml.processing_info['tx_rx_pairs'].keys()[1]][-1]
+                     if cml.metadata['link_id'] in ACC:
+                         if method == 'mean':
+                             prep_sum = (ACC[cml.metadata['link_id']][cml.processing_info['tx_rx_pairs'].keys()[0]][-1]+
+                                        ACC[cml.metadata['link_id']][cml.processing_info['tx_rx_pairs'].keys()[1]][-1])/2. 
+                         elif method == 'max':
+                             prep_sum = max(ACC[cml.metadata['link_id']][cml.processing_info['tx_rx_pairs'].keys()[0]][-1],
+                                        ACC[cml.metadata['link_id']][cml.processing_info['tx_rx_pairs'].keys()[1]][-1])
+                         elif method == 'min':
+                             prep_sum = min(ACC[cml.metadata['link_id']][cml.processing_info['tx_rx_pairs'].keys()[0]][-1],
+                                        ACC[cml.metadata['link_id']][cml.processing_info['tx_rx_pairs'].keys()[1]][-1])
+                         elif method == 'dir1':
+                             prep_sum = ACC[cml.metadata['link_id']][cml.processing_info['tx_rx_pairs'].keys()[0]][-1]
+                         elif method == 'dir2':
+                             prep_sum = ACC[cml.metadata['link_id']][cml.processing_info['tx_rx_pairs'].keys()[1]][-1]
                                     
                  else:
                      prep_sum = ACC[cml.metadata['link_id']][cml.processing_info['tx_rx_pairs'].keys()[0]][-1]
@@ -393,19 +423,20 @@ class ComlinkSet():
              stop = pd.Timestamp(time) + pd.Timedelta('30s')
              for cml in self.set:
                  if len(cml.processing_info['tx_rx_pairs']) == 2:
-                     if method == 'mean':
-                         prep_sum = ((cml.data['R_'+cml.processing_info['tx_rx_pairs'].keys()[0]].resample(str(time_resolution)+'Min',how='mean')[start:stop]+
-                                     cml.data['R_'+cml.processing_info['tx_rx_pairs'].keys()[1]].resample(str(time_resolution)+'Min',how='mean')[start:stop])/2.)
-                     elif method == 'max':
-                         prep_sum = pd.DataFrame({'a':cml.data['R_'+cml.processing_info['tx_rx_pairs'].keys()[0]].resample(str(time_resolution)+'Min',how='mean')[start:stop],
-                                                  'b':cml.data['R_'+cml.processing_info['tx_rx_pairs'].keys()[1]].resample(str(time_resolution)+'Min',how='mean')[start:stop]}).max(1)
-                     elif method == 'min':
-                          prep_sum = pd.DataFrame({'a':cml.data['R_'+cml.processing_info['tx_rx_pairs'].keys()[0]].resample(str(time_resolution)+'Min',how='mean')[start:stop],
-                                                  'b':cml.data['R_'+cml.processing_info['tx_rx_pairs'].keys()[1]].resample(str(time_resolution)+'Min',how='mean')[start:stop]}).min(1)
-                     elif method == 'dir1':
-                         prep_sum = cml.data['R_'+cml.processing_info['tx_rx_pairs'].keys()[0]].resample(str(time_resolution)+'Min',how='mean')[start:stop]
-                     elif method == 'dir2':
-                         prep_sum = cml.data['R_'+cml.processing_info['tx_rx_pairs'].keys()[1]].resample(str(time_resolution)+'Min',how='mean')[start:stop]      
+                     if 'R_'+cml.processing_info['tx_rx_pairs'].keys()[0] in cml.data.columns and 'R_'+cml.processing_info['tx_rx_pairs'].keys()[1] in cml.data.columns:
+                         if method == 'mean':
+                             prep_sum = ((cml.data['R_'+cml.processing_info['tx_rx_pairs'].keys()[0]].resample(str(time_resolution)+'Min',how='mean')[start:stop]+
+                                         cml.data['R_'+cml.processing_info['tx_rx_pairs'].keys()[1]].resample(str(time_resolution)+'Min',how='mean')[start:stop])/2.)
+                         elif method == 'max':
+                             prep_sum = pd.DataFrame({'a':cml.data['R_'+cml.processing_info['tx_rx_pairs'].keys()[0]].resample(str(time_resolution)+'Min',how='mean')[start:stop],
+                                                      'b':cml.data['R_'+cml.processing_info['tx_rx_pairs'].keys()[1]].resample(str(time_resolution)+'Min',how='mean')[start:stop]}).max(1)
+                         elif method == 'min':
+                              prep_sum = pd.DataFrame({'a':cml.data['R_'+cml.processing_info['tx_rx_pairs'].keys()[0]].resample(str(time_resolution)+'Min',how='mean')[start:stop],
+                                                      'b':cml.data['R_'+cml.processing_info['tx_rx_pairs'].keys()[1]].resample(str(time_resolution)+'Min',how='mean')[start:stop]}).min(1)
+                         elif method == 'dir1':
+                             prep_sum = cml.data['R_'+cml.processing_info['tx_rx_pairs'].keys()[0]].resample(str(time_resolution)+'Min',how='mean')[start:stop]
+                         elif method == 'dir2':
+                             prep_sum = cml.data['R_'+cml.processing_info['tx_rx_pairs'].keys()[1]].resample(str(time_resolution)+'Min',how='mean')[start:stop]      
                  else:
                      prep_sum = cml.data['R_'+cml.processing_info['tx_rx_pairs'].keys()[0]].resample(str(time_resolution)+'Min',how='mean')[start:stop]
 
@@ -429,11 +460,14 @@ class ComlinkSet():
   
         if time is None:                                                        
             cs = plt.contourf(gridx,gridy,interpol,levels=levels_sum,cmap=plt.cm.winter_r,transform=ccrs.PlateCarree())
+            plt.title('accumulated rainfall from time period: '+(self.set[0].data.index[0]).strftime('%Y-%m-%d %H:%M')+'UTC - '+
+                        (self.set[0].data.index[-1]).strftime('%Y-%m-%d %H:%M')+'UTC',loc='right')
             cbar = plt.colorbar(cs,orientation='vertical')
             cbar.set_label('mm')
         else:
 
             cs = plt.contourf(gridx,gridy,interpol,levels=levels_rr,cmap=plt.cm.winter_r,alpha=0.6,transform=ccrs.PlateCarree())
+            plt.title((pd.Timestamp(time)).strftime('%Y-%m-%d %H:%M')+'UTC',loc='right')
             cbar = plt.colorbar(cs,orientation='vertical')
             cbar.set_label('mm/h')
        

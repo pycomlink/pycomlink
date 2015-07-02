@@ -1,0 +1,347 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pycomlink.mapping &mdash; pycomlink 0.0.5 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="pycomlink 0.0.5 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="../../index.html" class="icon icon-home"> pycomlink
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul class="simple">
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../pycomlink.Comlink.html"><code class="docutils literal"><span class="pre">pycomlink.Comlink</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pycomlink.Comlink.html#module-pycomlink.comlinkset"><code class="docutils literal"><span class="pre">pycomlink.ComlinkSet</span></code></a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../pycomlink.html"><code class="docutils literal"><span class="pre">pycomlink.A_R_relation</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pycomlink.html#module-pycomlink.baseline"><code class="docutils literal"><span class="pre">pycomlink.baseline</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pycomlink.html#module-pycomlink.io"><code class="docutils literal"><span class="pre">pycomlink.io</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pycomlink.html#module-pycomlink.mapping"><code class="docutils literal"><span class="pre">pycomlink.mapping</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pycomlink.html#module-pycomlink.wet_antenna"><code class="docutils literal"><span class="pre">pycomlink.wet_antenna</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pycomlink.html#module-pycomlink.wet_dry"><code class="docutils literal"><span class="pre">pycomlink.wet_dry</span></code></a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">pycomlink</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+    <li>pycomlink.mapping</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document">
+            
+  <h1>Source code for pycomlink.mapping</h1><div class="highlight"><pre>
+<span class="c">################################################</span>
+<span class="c"># Functions to calculate spatial interpolation #</span>
+<span class="c">################################################</span>
+
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">sqrt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+
+<div class="viewcode-block" id="inv_dist"><a class="viewcode-back" href="../../pycomlink.html#pycomlink.mapping.inv_dist">[docs]</a><span class="k">def</span> <span class="nf">inv_dist</span><span class="p">(</span><span class="n">lons_mp</span><span class="p">,</span><span class="n">lats_mp</span><span class="p">,</span><span class="n">values_mp</span><span class="p">,</span><span class="n">lons_grid</span><span class="p">,</span><span class="n">lats_grid</span><span class="p">,</span><span class="n">power</span><span class="p">,</span><span class="n">smoothing</span><span class="p">):</span>  
+    <span class="sd">&quot;&quot;&quot;Calculate Inverse Distance Weighting interpolation values at regular grid</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    lons_mp : iterable of floats</span>
+<span class="sd">               Longitudes of measuring points</span>
+<span class="sd">    lats_mp : iterable of floats</span>
+<span class="sd">               Latitudes of measuring points               </span>
+<span class="sd">    values_mp : iterable of floats</span>
+<span class="sd">               Values at measuring points    </span>
+<span class="sd">    lons_grid : array of floats</span>
+<span class="sd">               Longitudes of regular grid </span>
+<span class="sd">    lats_grid : array of floats</span>
+<span class="sd">               Latitudes of regular grid   </span>
+<span class="sd">    power : flt</span>
+<span class="sd">               Power of distance decay for IDW interpolation. </span>
+<span class="sd">    smoothing : flt</span>
+<span class="sd">               Power of smoothing factor for IDW interpolation. </span>
+<span class="sd">               </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    array of floats</span>
+<span class="sd">         interpolated values at grid points           </span>
+<span class="sd">               </span>
+<span class="sd">    &quot;&quot;&quot;</span>        
+    
+    <span class="n">values_idw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">lats_grid</span><span class="o">.</span><span class="n">size</span><span class="p">,</span><span class="n">lons_grid</span><span class="o">.</span><span class="n">size</span><span class="p">))</span>  
+    
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">lons_grid</span><span class="o">.</span><span class="n">size</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">lats_grid</span><span class="o">.</span><span class="n">size</span><span class="p">):</span>
+            <span class="n">values_idw</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">gridpointValue</span><span class="p">(</span><span class="n">lons_grid</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">lats_grid</span><span class="p">[</span><span class="n">j</span><span class="p">],</span><span class="n">power</span><span class="p">,</span><span class="n">smoothing</span><span class="p">,</span>
+                                                <span class="n">lons_mp</span><span class="p">,</span><span class="n">lats_mp</span><span class="p">,</span><span class="n">values_mp</span><span class="p">)</span> 
+    <span class="k">return</span> <span class="n">values_idw</span>
+
+</div>
+<div class="viewcode-block" id="gridpointValue"><a class="viewcode-back" href="../../pycomlink.html#pycomlink.mapping.gridpointValue">[docs]</a><span class="k">def</span> <span class="nf">gridpointValue</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">power</span><span class="p">,</span><span class="n">smoothing</span><span class="p">,</span><span class="n">x_o</span><span class="p">,</span><span class="n">y_o</span><span class="p">,</span><span class="n">values_o</span><span class="p">):</span>  
+    <span class="sd">&quot;&quot;&quot;Calculate IDW value at particular grid point</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : float</span>
+<span class="sd">        Longitude of grid point</span>
+<span class="sd">    y : float</span>
+<span class="sd">        Latitude of grid point</span>
+<span class="sd">    power : flt</span>
+<span class="sd">        Power of distance decay</span>
+<span class="sd">    smoothing : flt</span>
+<span class="sd">        Power of smoothing factor</span>
+<span class="sd">    x_o : iterable of floats</span>
+<span class="sd">        Longitudes of measuring points</span>
+<span class="sd">    y_o : iterable of floats</span>
+<span class="sd">        Latitudes of measuring points               </span>
+<span class="sd">    values_o : iterable of floats</span>
+<span class="sd">         Values at measuring points        </span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        Value at grid point </span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">nominator</span><span class="o">=</span><span class="mi">0</span>  
+    <span class="n">denominator</span><span class="o">=</span><span class="mi">0</span> 
+
+    <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">values_o</span><span class="p">)):</span>  
+        <span class="c"># WIP to be revised        </span>
+        <span class="c">#very simple distance calculation</span>
+        <span class="n">dist</span> <span class="o">=</span> <span class="n">sqrt</span><span class="p">((</span><span class="n">x</span><span class="o">-</span><span class="n">x_o</span><span class="p">[</span><span class="n">ii</span><span class="p">])</span><span class="o">*</span><span class="p">(</span><span class="n">x</span><span class="o">-</span><span class="n">x_o</span><span class="p">[</span><span class="n">ii</span><span class="p">])</span><span class="o">+</span><span class="p">(</span><span class="n">y</span><span class="o">-</span><span class="n">y_o</span><span class="p">[</span><span class="n">ii</span><span class="p">])</span><span class="o">*</span><span class="p">(</span><span class="n">y</span><span class="o">-</span><span class="n">y_o</span><span class="p">[</span><span class="n">ii</span><span class="p">])</span><span class="o">+</span><span class="n">smoothing</span><span class="o">*</span><span class="n">smoothing</span><span class="p">)</span>
+        <span class="c">#If the point is really close to one of the data points, </span>
+        <span class="c">#            return the data point value to avoid singularities  </span>
+        <span class="k">if</span><span class="p">(</span><span class="n">dist</span><span class="o">&lt;</span><span class="mf">0.0000000001</span><span class="p">):</span>  
+            <span class="k">return</span> <span class="n">values_o</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span>  
+        <span class="n">nominator</span><span class="o">=</span><span class="n">nominator</span><span class="o">+</span><span class="p">(</span><span class="n">values_o</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span><span class="o">/</span><span class="nb">pow</span><span class="p">(</span><span class="n">dist</span><span class="p">,</span><span class="n">power</span><span class="p">))</span>  
+        <span class="n">denominator</span><span class="o">=</span><span class="n">denominator</span><span class="o">+</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="nb">pow</span><span class="p">(</span><span class="n">dist</span><span class="p">,</span><span class="n">power</span><span class="p">))</span>  
+    <span class="c">#Return NODATA if the denominator is zero  </span>
+    <span class="k">if</span> <span class="n">denominator</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>  
+        <span class="n">value</span> <span class="o">=</span> <span class="n">nominator</span><span class="o">/</span><span class="n">denominator</span>  
+    <span class="k">else</span><span class="p">:</span>  
+        <span class="n">value</span> <span class="o">=</span> <span class="o">-</span><span class="mi">9999</span>  
+    <span class="k">return</span> <span class="n">value</span>
+                           
+</div>
+<div class="viewcode-block" id="label_loc"><a class="viewcode-back" href="../../pycomlink.html#pycomlink.mapping.label_loc">[docs]</a><span class="k">def</span> <span class="nf">label_loc</span><span class="p">(</span><span class="n">lon_a</span><span class="p">,</span><span class="n">lat_a</span><span class="p">,</span><span class="n">lon_b</span><span class="p">,</span><span class="n">lat_b</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Helper function for method info_plot of class Comlink    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">lon_a</span> <span class="o">&lt;</span> <span class="n">lon_b</span> <span class="ow">and</span> <span class="n">lat_a</span> <span class="o">&lt;</span> <span class="n">lat_b</span><span class="p">:</span>        
+        <span class="n">x_a</span><span class="p">,</span><span class="n">y_a</span> <span class="o">=</span> <span class="n">lon_a</span><span class="o">-</span><span class="mf">0.025</span><span class="p">,</span><span class="n">lat_a</span><span class="o">-</span><span class="mf">0.005</span>       
+        <span class="n">x_b</span><span class="p">,</span><span class="n">y_b</span> <span class="o">=</span> <span class="n">lon_b</span><span class="o">+</span><span class="mf">0.01</span><span class="p">,</span><span class="n">lat_b</span><span class="o">+</span><span class="mf">0.005</span>
+    <span class="k">elif</span> <span class="n">lon_a</span> <span class="o">&lt;</span> <span class="n">lon_b</span> <span class="ow">and</span> <span class="n">lat_a</span> <span class="o">&gt;</span> <span class="n">lat_b</span><span class="p">:</span>        
+        <span class="n">x_a</span><span class="p">,</span><span class="n">y_a</span> <span class="o">=</span> <span class="n">lon_a</span><span class="o">-</span><span class="mf">0.025</span><span class="p">,</span><span class="n">lat_a</span><span class="o">+</span><span class="mf">0.005</span>    
+        <span class="n">x_b</span><span class="p">,</span><span class="n">y_b</span> <span class="o">=</span> <span class="n">lon_b</span><span class="o">+</span><span class="mf">0.01</span><span class="p">,</span><span class="n">lat_b</span><span class="o">-</span><span class="mf">0.005</span>       
+    <span class="k">elif</span> <span class="n">lon_a</span> <span class="o">&gt;</span> <span class="n">lon_b</span> <span class="ow">and</span> <span class="n">lat_a</span> <span class="o">&gt;</span> <span class="n">lat_b</span><span class="p">:</span>        
+        <span class="n">x_a</span><span class="p">,</span><span class="n">y_a</span> <span class="o">=</span> <span class="n">lon_a</span><span class="o">+</span><span class="mf">0.01</span><span class="p">,</span><span class="n">lat_a</span><span class="o">+</span><span class="mf">0.005</span>       
+        <span class="n">x_b</span><span class="p">,</span><span class="n">y_b</span> <span class="o">=</span> <span class="n">lon_b</span><span class="o">-</span><span class="mf">0.025</span><span class="p">,</span><span class="n">lat_b</span><span class="o">-</span><span class="mf">0.005</span>
+    <span class="k">elif</span> <span class="n">lon_a</span> <span class="o">&gt;</span> <span class="n">lon_b</span> <span class="ow">and</span> <span class="n">lat_a</span> <span class="o">&lt;</span> <span class="n">lat_b</span><span class="p">:</span>        
+        <span class="n">x_a</span><span class="p">,</span><span class="n">y_a</span> <span class="o">=</span> <span class="n">lon_a</span><span class="o">+</span><span class="mf">0.01</span><span class="p">,</span><span class="n">lat_a</span><span class="o">-</span><span class="mf">0.005</span>     
+        <span class="n">x_b</span><span class="p">,</span><span class="n">y_b</span> <span class="o">=</span> <span class="n">lon_b</span><span class="o">-</span><span class="mf">0.025</span><span class="p">,</span><span class="n">lat_b</span><span class="o">+</span><span class="mf">0.005</span>
+    <span class="n">xy</span> <span class="o">=</span> <span class="p">[</span><span class="n">x_a</span><span class="p">,</span><span class="n">y_a</span><span class="p">,</span><span class="n">x_b</span><span class="p">,</span><span class="n">y_b</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">xy</span>
+                             
+                             </div>
+<div class="viewcode-block" id="kriging"><a class="viewcode-back" href="../../pycomlink.html#pycomlink.mapping.kriging">[docs]</a><span class="k">def</span> <span class="nf">kriging</span><span class="p">(</span><span class="n">lons_mp</span><span class="p">,</span><span class="n">lats_mp</span><span class="p">,</span><span class="n">values_mp</span><span class="p">,</span><span class="n">lons_grid</span><span class="p">,</span><span class="n">lats_grid</span><span class="p">,</span>
+            <span class="n">krig_type</span><span class="p">,</span><span class="n">variogram_model</span><span class="p">,</span><span class="n">drift_terms</span><span class="p">):</span>
+                
+    <span class="sd">&quot;&quot;&quot;Calculate Kriging interpolation values at regular grid</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    lons_mp : iterable of floats</span>
+<span class="sd">               Longitudes of measuring points</span>
+<span class="sd">    lats_mp : iterable of floats</span>
+<span class="sd">               Latitudes of measuring points               </span>
+<span class="sd">    values_mp : iterable of floats</span>
+<span class="sd">               Values at measuring points    </span>
+<span class="sd">    lons_grid : array of floats</span>
+<span class="sd">               Longitudes of regular grid </span>
+<span class="sd">    lats_grid : array of floats</span>
+<span class="sd">               Latitudes of regular grid    </span>
+<span class="sd">    krig_type : str</span>
+<span class="sd">                Parameters for Kriging interpolation. See pykrige documentation</span>
+<span class="sd">                for information.</span>
+<span class="sd">    variogram_model : str</span>
+<span class="sd">                Parameters for Kriging interpolation. See pykrige documentation</span>
+<span class="sd">                for information.       </span>
+<span class="sd">    drift_terms : str</span>
+<span class="sd">                Parameters for Kriging interpolation. See pykrige documentation</span>
+<span class="sd">                for information.              </span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    array of floats</span>
+<span class="sd">        Interpolated values at grid points </span>
+<span class="sd">  </span>
+<span class="sd">    &quot;&quot;&quot;</span>     
+    
+    <span class="kn">from</span> <span class="nn">pykrige.ok</span> <span class="kn">import</span> <span class="n">OrdinaryKriging</span>
+    <span class="kn">from</span> <span class="nn">pykrige.uk</span> <span class="kn">import</span> <span class="n">UniversalKriging</span>
+    
+    <span class="k">if</span> <span class="n">krig_type</span> <span class="o">==</span> <span class="s">&#39;ordinary&#39;</span><span class="p">:</span>
+       <span class="n">OK</span> <span class="o">=</span> <span class="n">OrdinaryKriging</span><span class="p">(</span><span class="n">lons_mp</span><span class="p">,</span> <span class="n">lats_mp</span><span class="p">,</span> <span class="n">values_mp</span><span class="p">,</span>
+                            <span class="n">variogram_model</span><span class="o">=</span><span class="n">variogram_model</span><span class="p">,</span>
+                            <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">enable_plotting</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span> 
+       <span class="n">z</span><span class="p">,</span> <span class="n">s_kr</span> <span class="o">=</span> <span class="n">OK</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;grid&#39;</span><span class="p">,</span> <span class="n">lons_grid</span><span class="p">,</span> <span class="n">lats_grid</span><span class="p">)</span>   
+    <span class="k">elif</span> <span class="n">krig_type</span> <span class="o">==</span> <span class="s">&#39;universal&#39;</span><span class="p">:</span>
+       <span class="n">UK</span> <span class="o">=</span> <span class="n">UniversalKriging</span><span class="p">(</span><span class="n">lons_mp</span><span class="p">,</span> <span class="n">lats_mp</span><span class="p">,</span> <span class="n">values_mp</span><span class="p">,</span>
+                            <span class="n">variogram_model</span><span class="o">=</span><span class="n">variogram_model</span><span class="p">,</span>
+                            <span class="n">drift_terms</span><span class="o">=</span><span class="n">drift_terms</span><span class="p">,</span>
+                            <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">enable_plotting</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span> 
+       <span class="n">z</span><span class="p">,</span> <span class="n">s_kr</span> <span class="o">=</span> <span class="n">UK</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;grid&#39;</span><span class="p">,</span> <span class="n">lons_grid</span><span class="p">,</span> <span class="n">lats_grid</span><span class="p">)</span> 
+    <span class="k">else</span><span class="p">:</span>
+       <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;Kriging type not supported&#39;</span><span class="p">)</span>   
+    <span class="k">return</span> <span class="n">z</span>       
+                          
+    
+                             </div>
+</pre></div>
+
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Karlsruhe Institute of Technology (KIT) - Campus Alpin.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'0.0.5',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

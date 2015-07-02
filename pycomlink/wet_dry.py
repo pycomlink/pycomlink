@@ -9,17 +9,76 @@
 #-------------------------------------#
                                                                                                     
 def wet_dry_std_dev(rsl, window_length, threshold):
+    
+    """Perform wet/dry classification with Rolling standard deviation method
+    
+    Parameters
+    ----------
+    rsl : iterable of float
+         Time series of received signal level          
+    window_length : int
+         Length of the sliding window     
+    threshold : int
+         Threshold which has to be surpassed to classifiy a period as 'wet'
+         
+    Returns
+    -------
+    iterable of int
+        Time series of wet/dry classification  
+
+    Note
+    ----
+    Implementation of Rolling standard deviation method [1]_
+    
+    References
+    ----------
+    .. [1] Schleiss, M. and Berne, A.: "Identification of dry and rainy periods 
+           using telecommunication microwave links", IEEE Geoscience and 
+           Remote Sensing, 7, 611-615, 2010  
+    
+    """
+    
     roll_std_dev = rolling_std_dev(rsl, window_length)
     wet = roll_std_dev > threshold
     return wet, roll_std_dev
 
 def rolling_window(a, window):
+    
+    """Define sliding window
+    
+    Parameters
+    ----------
+    a : iterable of float
+         Time series of values          
+    window : int
+         Length of the sliding window     
+    """
+    
     import numpy as np
     shape = a.shape[:-1] + (a.shape[-1] - window + 1, window)
     strides = a.strides + (a.strides[-1],)
     return np.lib.stride_tricks.as_strided(a, shape=shape, strides=strides)
 
 def rolling_std_dev(x, window_length, pad_only_left=False):
+    
+    """Calculate standard deviation in sliding window
+    
+    Parameters
+    ----------
+    x : iterable of float
+         Time series of values          
+    window_length : int
+         Length of the sliding window   
+    pad_only_left : bool
+        Default is False
+        
+    Returns
+    -------
+    array of float
+        standard deviation in sliding window
+
+    """        
+    
     import numpy as np
     roll_std_dev = np.std(rolling_window(x, window_length), 1)
     pad_nan = np.zeros(window_length-1)
@@ -42,6 +101,25 @@ def rolling_std_dev(x, window_length, pad_only_left=False):
 #-----------------------------------------------#
 
 def find_lowest_std_dev_period(rsl, window_length=600):
+    
+    """Find beginning and end of dry period
+    
+    Parameters
+    ----------
+    rsl : iterable of float
+         Time series of received signal level   
+    window_length : int, optional
+         Length of window for identifying dry period (Default is 600)    
+         
+    Returns
+    -------
+    int
+        Index of beginning of dry period
+    int
+        Index of end of dry period    
+    
+    """
+    
     import numpy as np
     from matplotlib import mlab
     
@@ -58,11 +136,63 @@ def find_lowest_std_dev_period(rsl, window_length=600):
 def wet_dry_stft(rsl, window_length, threshold, f_divide, 
                  t_dry_start, t_dry_stop, 
                  window=None, Pxx=None, f=None, f_sampling=1/60.0):
+                     
+    """Perform wet/dry classification with Rolling Fourier-transform method
+    
+    Parameters
+    ----------
+    rsl : iterable of float
+         Time series of received signal level          
+    window_length : int
+         Length of the sliding window 
+    threshold : int
+         Threshold which has to be surpassed to classifiy a period as 'wet'
+    f_divide : float
+          Parameter for classification with method Fourier transformation
+    t_dry_start : int
+        Index of starting point dry period
+    t_dry_stop : int
+        Index of end of dry period
+    window : array of float, optional
+        Values of window function. If not given a Hamming window function is
+        applied (Default is None)
+    Pxx : 2-D array of float, optional
+        Spectogram used for the wet/dry classification. Gets computed if not given
+        (Default is None)
+    f : arra of float, optional
+        Frequencies corresponding to the rows in Pxx. Gets computed if not given.
+        (Default is None)
+    f_sampling : float, optional    
+        Sampling frequency (samples per time unit). It is used to calculate 
+        the Fourier frequencies, freqs, in cycles per time unit.
+        (Default is 1/60.0)
+        
+    Returns
+    -------
+    iterable of int
+        Time series of wet/dry classification  
+    dict
+        Dictionary holding information about the classification    
+    
+    Note
+    ----
+    Implementation of Rolling Fourier-transform method [2]_ 
+    
+    References
+    ----------
+    .. [2] Chwala, C., Gmeiner, A., Qiu, W., Hipp, S., Nienaber, D., Siart, U.,
+           Eibert, T., Pohl, M., Seltmann, J., Fritz, J. and Kunstmann, H.:
+           "Precipitation observation using microwave backhaul links in the 
+           alpine and pre-alpine region of Southern Germany", Hydrology
+           and Earth System Sciences, 16, 2647-2661, 2012   
+           
+    """                 
+                     
     import numpy as np
     #from pylab import specgram
     from matplotlib.mlab import specgram as specg
     
-    # Calculate spectrogarm Pxx if it is not supplied as function argument 
+    # Calculate spectrogram Pxx if it is not supplied as function argument 
     if Pxx is None:
         # Set up sliding window for STFT
         NFFT = window_length
@@ -123,6 +253,8 @@ def wet_dry_stft(rsl, window_length, threshold, f_divide,
 ####################
 
 def nans(shape, dtype=float):
+    """Helper function for wet/dry classification
+    """
     import numpy as np
     a = np.empty(shape, dtype)
     a.fill(np.nan)

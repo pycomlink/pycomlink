@@ -1,0 +1,745 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pycomlink.A_R_relation &mdash; pycomlink 0.0.5 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="pycomlink 0.0.5 documentation" href="index.html"/>
+        <link rel="prev" title="pycomlink.Comlink" href="pycomlink.Comlink.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="index.html" class="icon icon-home"> pycomlink
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul class="simple">
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="pycomlink.Comlink.html"><code class="docutils literal"><span class="pre">pycomlink.Comlink</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="pycomlink.Comlink.html#module-pycomlink.comlinkset"><code class="docutils literal"><span class="pre">pycomlink.ComlinkSet</span></code></a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href=""><code class="docutils literal"><span class="pre">pycomlink.A_R_relation</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="#module-pycomlink.baseline"><code class="docutils literal"><span class="pre">pycomlink.baseline</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="#module-pycomlink.io"><code class="docutils literal"><span class="pre">pycomlink.io</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="#module-pycomlink.mapping"><code class="docutils literal"><span class="pre">pycomlink.mapping</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="#module-pycomlink.wet_antenna"><code class="docutils literal"><span class="pre">pycomlink.wet_antenna</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="#module-pycomlink.wet_dry"><code class="docutils literal"><span class="pre">pycomlink.wet_dry</span></code></a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">pycomlink</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li><code class="docutils literal"><span class="pre">pycomlink.A_R_relation</span></code></li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/pycomlink.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document">
+            
+  <div class="section" id="module-pycomlink.A_R_relation">
+<span id="pycomlink-a-r-relation"></span><h1><code class="docutils literal"><span class="pre">pycomlink.A_R_relation</span></code><a class="headerlink" href="#module-pycomlink.A_R_relation" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="pycomlink.A_R_relation.a_b">
+<code class="descclassname">pycomlink.A_R_relation.</code><code class="descname">a_b</code><span class="sig-paren">(</span><em>f_GHz</em>, <em>pol</em>, <em>approx_type='ITU'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pycomlink/A_R_relation.html#a_b"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycomlink.A_R_relation.a_b" title="Permalink to this definition">¶</a></dt>
+<dd><p>Approximation of parameters for A-R relationship</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>f_GHz</strong> (<em>int or float</em>) &#8211; Frequency of the microwave link in GHz</li>
+<li><strong>pol</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Polarization of the microwave link</li>
+<li><strong>approx_type</strong> (<em>str, optional</em>) &#8211; Approximation type (the default is &#8216;ITU&#8217;, which implies parameter
+approximation using a table recommanded by ITU)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>a,b</strong> &#8211;
+Parameters of A-R relationship</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/library/functions.html#float" title="(in Python v2.7)">float</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>The frequency value must be between 1 Ghz and 100 GHz.</p>
+<p>The polarization has to be indicated by &#8216;h&#8217; or &#8216;H&#8217; for horizontal and
+&#8216;v&#8217; or &#8216;V&#8217; for vertical polarization respectively.</p>
+<p class="last">Currently only &#8216;ITU&#8217; for approx_type is accepted. The approximation makes
+use of a table recommanded by ITU <a class="footnote-reference" href="#id2" id="id1">[4]</a>.</p>
+</div>
+<p class="rubric">References</p>
+<table class="docutils footnote" frame="void" id="id2" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[4]</a></td><td>ITU, &#8220;ITU-R: Specific attenuation model for rain for use in
+prediction methods&#8221;, International Telecommunication Union, 2013</td></tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycomlink.A_R_relation.calc_R_from_A">
+<code class="descclassname">pycomlink.A_R_relation.</code><code class="descname">calc_R_from_A</code><span class="sig-paren">(</span><em>A</em>, <em>a</em>, <em>b</em>, <em>L</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pycomlink/A_R_relation.html#calc_R_from_A"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycomlink.A_R_relation.calc_R_from_A" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate rain rate from attenuation using the A-R Relationship</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>A</strong> (<em>float or iterable of float</em>) &#8211; Attenuation of microwave signal</li>
+<li><strong>a</strong> (<em>float, optional</em>) &#8211; Parameter of A-R relationship</li>
+<li><strong>b</strong> (<em>float, optional</em>) &#8211; Parameter of A-R relationship</li>
+<li><strong>L</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; length of the link</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Rain rate</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">float or iterable of float</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>The A-R Relationship is defined as</p>
+<div class="last math">
+\[A = aR^{b}\]</div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pycomlink.baseline">
+<span id="pycomlink-baseline"></span><h1><code class="docutils literal"><span class="pre">pycomlink.baseline</span></code><a class="headerlink" href="#module-pycomlink.baseline" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="pycomlink.baseline.baseline_constant">
+<code class="descclassname">pycomlink.baseline.</code><code class="descname">baseline_constant</code><span class="sig-paren">(</span><em>rsl</em>, <em>wet</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pycomlink/baseline.html#baseline_constant"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycomlink.baseline.baseline_constant" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Baseline determination during wet period by keeping the RSL level constant</dt>
+<dd>at the level of the preceding dry period</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>rsl</strong> (<em>iterable of float</em>) &#8211; Received signal level or
+transmitted power level minus received power level</li>
+<li><strong>wet</strong> (<em>iterable of bool</em>) &#8211; Information if classified index of times series is wet (True) or dry (False)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Baseline during wet period</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">iterable of float</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycomlink.baseline.baseline_linear">
+<code class="descclassname">pycomlink.baseline.</code><code class="descname">baseline_linear</code><span class="sig-paren">(</span><em>rsl</em>, <em>wet</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pycomlink/baseline.html#baseline_linear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycomlink.baseline.baseline_linear" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Baseline determination during wet period by interpolating the RSL level</dt>
+<dd>linearly between two enframing dry periods</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>rsl</strong> (<em>iterable of float</em>) &#8211; Received signal level or
+transmitted power level minus received power level</li>
+<li><strong>wet</strong> (<em>iterable of bool</em>) &#8211; Information if classified index of times series is wet (True) or dry (False)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Baseline during wet period</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">iterable of float</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pycomlink.io">
+<span id="pycomlink-io"></span><h1><code class="docutils literal"><span class="pre">pycomlink.io</span></code><a class="headerlink" href="#module-pycomlink.io" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="pycomlink.io.read_PROCEMA_raw_data">
+<code class="descclassname">pycomlink.io.</code><code class="descname">read_PROCEMA_raw_data</code><span class="sig-paren">(</span><em>fn</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pycomlink/io.html#read_PROCEMA_raw_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycomlink.io.read_PROCEMA_raw_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read in PROCEMA data for one MW link stored as CSV or MATLAB binary</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fn</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Absolute filename. File can be a PROCEMA MATLAB file or a PROCEMA
+CSV file as exported by the old PROCEMA database</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>cml</strong></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">Comlink Object</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycomlink.io.read_hdf5">
+<code class="descclassname">pycomlink.io.</code><code class="descname">read_hdf5</code><span class="sig-paren">(</span><em>fn</em>, <em>force_list_return=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pycomlink/io.html#read_hdf5"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycomlink.io.read_hdf5" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read Comlink or list of Comlinks from HDF5</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>fn</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Absolute filename to a pycomlink-HDF5 file</li>
+<li><strong>force_list_return</strong> (<em>bool, optional</em>) &#8211; Set this to True if you always want a list in return even if there
+is only one cml in the HDF5 file. Default is False</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><strong>cml</strong> (<em>Comlink</em>) &#8211;
+If only one data set was found, the Comlink object that was stored in
+the HDF5 file is returned (except if forec_list_return == True).</li>
+<li><strong>cmls</strong> (<em>List of Comlink objects</em>) &#8211;
+If several data sets were found, a list of all Comlink objects
+is returned</li>
+</ul>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycomlink.io.write_hdf5">
+<code class="descclassname">pycomlink.io.</code><code class="descname">write_hdf5</code><span class="sig-paren">(</span><em>fn</em>, <em>cml</em>, <em>cml_id=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pycomlink/io.html#write_hdf5"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycomlink.io.write_hdf5" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write Comlink or Comlink list to HDF5</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>fn</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Absolute filename</li>
+<li><strong>cml</strong> (<em>Comlink or list of Comlink objects</em>) &#8211; Comlink object or list of these</li>
+<li><strong>cml_id</strong> (<em>str, optional</em>) &#8211; Name of the CML which will be used to identify it in the HDF storer.
+Default is to use cml.metadata.link_id</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pycomlink.mapping">
+<span id="pycomlink-mapping"></span><h1><code class="docutils literal"><span class="pre">pycomlink.mapping</span></code><a class="headerlink" href="#module-pycomlink.mapping" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="pycomlink.mapping.gridpointValue">
+<code class="descclassname">pycomlink.mapping.</code><code class="descname">gridpointValue</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>power</em>, <em>smoothing</em>, <em>x_o</em>, <em>y_o</em>, <em>values_o</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pycomlink/mapping.html#gridpointValue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycomlink.mapping.gridpointValue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate IDW value at particular grid point</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; Longitude of grid point</li>
+<li><strong>y</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; Latitude of grid point</li>
+<li><strong>power</strong> (<em>flt</em>) &#8211; Power of distance decay</li>
+<li><strong>smoothing</strong> (<em>flt</em>) &#8211; Power of smoothing factor</li>
+<li><strong>x_o</strong> (<em>iterable of floats</em>) &#8211; Longitudes of measuring points</li>
+<li><strong>y_o</strong> (<em>iterable of floats</em>) &#8211; Latitudes of measuring points</li>
+<li><strong>values_o</strong> (<em>iterable of floats</em>) &#8211; Values at measuring points</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Value at grid point</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/library/functions.html#float" title="(in Python v2.7)">float</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycomlink.mapping.inv_dist">
+<code class="descclassname">pycomlink.mapping.</code><code class="descname">inv_dist</code><span class="sig-paren">(</span><em>lons_mp</em>, <em>lats_mp</em>, <em>values_mp</em>, <em>lons_grid</em>, <em>lats_grid</em>, <em>power</em>, <em>smoothing</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pycomlink/mapping.html#inv_dist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycomlink.mapping.inv_dist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate Inverse Distance Weighting interpolation values at regular grid</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lons_mp</strong> (<em>iterable of floats</em>) &#8211; Longitudes of measuring points</li>
+<li><strong>lats_mp</strong> (<em>iterable of floats</em>) &#8211; Latitudes of measuring points</li>
+<li><strong>values_mp</strong> (<em>iterable of floats</em>) &#8211; Values at measuring points</li>
+<li><strong>lons_grid</strong> (<em>array of floats</em>) &#8211; Longitudes of regular grid</li>
+<li><strong>lats_grid</strong> (<em>array of floats</em>) &#8211; Latitudes of regular grid</li>
+<li><strong>power</strong> (<em>flt</em>) &#8211; Power of distance decay for IDW interpolation.</li>
+<li><strong>smoothing</strong> (<em>flt</em>) &#8211; Power of smoothing factor for IDW interpolation.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">interpolated values at grid points</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">array of floats</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycomlink.mapping.kriging">
+<code class="descclassname">pycomlink.mapping.</code><code class="descname">kriging</code><span class="sig-paren">(</span><em>lons_mp</em>, <em>lats_mp</em>, <em>values_mp</em>, <em>lons_grid</em>, <em>lats_grid</em>, <em>krig_type</em>, <em>variogram_model</em>, <em>drift_terms</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pycomlink/mapping.html#kriging"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycomlink.mapping.kriging" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate Kriging interpolation values at regular grid</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lons_mp</strong> (<em>iterable of floats</em>) &#8211; Longitudes of measuring points</li>
+<li><strong>lats_mp</strong> (<em>iterable of floats</em>) &#8211; Latitudes of measuring points</li>
+<li><strong>values_mp</strong> (<em>iterable of floats</em>) &#8211; Values at measuring points</li>
+<li><strong>lons_grid</strong> (<em>array of floats</em>) &#8211; Longitudes of regular grid</li>
+<li><strong>lats_grid</strong> (<em>array of floats</em>) &#8211; Latitudes of regular grid</li>
+<li><strong>krig_type</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Parameters for Kriging interpolation. See pykrige documentation
+for information.</li>
+<li><strong>variogram_model</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Parameters for Kriging interpolation. See pykrige documentation
+for information.</li>
+<li><strong>drift_terms</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Parameters for Kriging interpolation. See pykrige documentation
+for information.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Interpolated values at grid points</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">array of floats</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycomlink.mapping.label_loc">
+<code class="descclassname">pycomlink.mapping.</code><code class="descname">label_loc</code><span class="sig-paren">(</span><em>lon_a</em>, <em>lat_a</em>, <em>lon_b</em>, <em>lat_b</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pycomlink/mapping.html#label_loc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycomlink.mapping.label_loc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function for method info_plot of class Comlink</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pycomlink.wet_antenna">
+<span id="pycomlink-wet-antenna"></span><h1><code class="docutils literal"><span class="pre">pycomlink.wet_antenna</span></code><a class="headerlink" href="#module-pycomlink.wet_antenna" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="pycomlink.wet_antenna.waa_Schleiss_recursive">
+<code class="descclassname">pycomlink.wet_antenna.</code><code class="descname">waa_Schleiss_recursive</code><span class="sig-paren">(</span><em>A</em>, <em>waa</em>, <em>waa_max</em>, <em>delta_t</em>, <em>tau</em>, <em>wet</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pycomlink/wet_antenna.html#waa_Schleiss_recursive"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycomlink.wet_antenna.waa_Schleiss_recursive" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate wet antenna attenuation</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>A</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; Attenuation value</li>
+<li><strong>waa</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; Value of wet antenna attenuation at the preceding timestep</li>
+<li><strong>waa_max</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; Maximum value of wet antenna attenuation</li>
+<li><strong>delta_t</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; Parameter for wet antnenna attenation model</li>
+<li><strong>tau</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; Parameter for wet antnenna attenation model</li>
+<li><strong>wet</strong> (<em>int or float</em>) &#8211; Wet/dry classification information.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Value of wet antenna attenuation</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/library/functions.html#float" title="(in Python v2.7)">float</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The wet antenna adjusting is based on a peer-reviewed publication <a class="footnote-reference" href="#id4" id="id3">[3]</a></p>
+</div>
+<p class="rubric">References</p>
+<table class="docutils footnote" frame="void" id="id4" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id3">[3]</a></td><td>Schleiss, M., Rieckermann, J. and Berne, A.: &#8220;Quantification and
+modeling of wet-antenna attenuation for commercial microwave
+links&#8221;, IEEE Geoscience and Remote Sensing Letters, 10, 2013</td></tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycomlink.wet_antenna.waa_adjust_baseline">
+<code class="descclassname">pycomlink.wet_antenna.</code><code class="descname">waa_adjust_baseline</code><span class="sig-paren">(</span><em>rsl</em>, <em>baseline</em>, <em>waa_max</em>, <em>delta_t</em>, <em>tau</em>, <em>wet</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pycomlink/wet_antenna.html#waa_adjust_baseline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycomlink.wet_antenna.waa_adjust_baseline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate baseline adjustion due to wet antenna</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>rsl</strong> (<em>iterable of float</em>) &#8211; Time series of received signal level</li>
+<li><strong>baseline</strong> (<em>iterable of float</em>) &#8211; Time series of baseline for rsl</li>
+<li><strong>waa_max</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; Maximum value of wet antenna attenuation</li>
+<li><strong>delta_t</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; Parameter for wet antnenna attenation model</li>
+<li><strong>tau</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; Parameter for wet antnenna attenation model</li>
+<li><strong>wet</strong> (<em>iterable of int or iterable of float</em>) &#8211; Time series with wet/dry classification information.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><em>iterable of float</em> &#8211;
+Adjusted time series of baseline</li>
+<li><em>iterable of float</em> &#8211;
+Time series of wet antenna attenuation</li>
+</ul>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pycomlink.wet_dry">
+<span id="pycomlink-wet-dry"></span><h1><code class="docutils literal"><span class="pre">pycomlink.wet_dry</span></code><a class="headerlink" href="#module-pycomlink.wet_dry" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="pycomlink.wet_dry.find_lowest_std_dev_period">
+<code class="descclassname">pycomlink.wet_dry.</code><code class="descname">find_lowest_std_dev_period</code><span class="sig-paren">(</span><em>rsl</em>, <em>window_length=600</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pycomlink/wet_dry.html#find_lowest_std_dev_period"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycomlink.wet_dry.find_lowest_std_dev_period" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find beginning and end of dry period</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>rsl</strong> (<em>iterable of float</em>) &#8211; Time series of received signal level</li>
+<li><strong>window_length</strong> (<em>int, optional</em>) &#8211; Length of window for identifying dry period (Default is 600)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><em>int</em> &#8211;
+Index of beginning of dry period</li>
+<li><em>int</em> &#8211;
+Index of end of dry period</li>
+</ul>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycomlink.wet_dry.nans">
+<code class="descclassname">pycomlink.wet_dry.</code><code class="descname">nans</code><span class="sig-paren">(</span><em>shape</em>, <em>dtype=&lt;type 'float'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pycomlink/wet_dry.html#nans"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycomlink.wet_dry.nans" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function for wet/dry classification</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycomlink.wet_dry.rolling_std_dev">
+<code class="descclassname">pycomlink.wet_dry.</code><code class="descname">rolling_std_dev</code><span class="sig-paren">(</span><em>x</em>, <em>window_length</em>, <em>pad_only_left=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pycomlink/wet_dry.html#rolling_std_dev"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycomlink.wet_dry.rolling_std_dev" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate standard deviation in sliding window</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<em>iterable of float</em>) &#8211; Time series of values</li>
+<li><strong>window_length</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Length of the sliding window</li>
+<li><strong>pad_only_left</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Default is False</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">standard deviation in sliding window</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">array of float</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycomlink.wet_dry.rolling_window">
+<code class="descclassname">pycomlink.wet_dry.</code><code class="descname">rolling_window</code><span class="sig-paren">(</span><em>a</em>, <em>window</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pycomlink/wet_dry.html#rolling_window"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycomlink.wet_dry.rolling_window" title="Permalink to this definition">¶</a></dt>
+<dd><p>Define sliding window</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>a</strong> (<em>iterable of float</em>) &#8211; Time series of values</li>
+<li><strong>window</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Length of the sliding window</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycomlink.wet_dry.wet_dry_std_dev">
+<code class="descclassname">pycomlink.wet_dry.</code><code class="descname">wet_dry_std_dev</code><span class="sig-paren">(</span><em>rsl</em>, <em>window_length</em>, <em>threshold</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pycomlink/wet_dry.html#wet_dry_std_dev"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycomlink.wet_dry.wet_dry_std_dev" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform wet/dry classification with Rolling standard deviation method</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>rsl</strong> (<em>iterable of float</em>) &#8211; Time series of received signal level</li>
+<li><strong>window_length</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Length of the sliding window</li>
+<li><strong>threshold</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Threshold which has to be surpassed to classifiy a period as &#8216;wet&#8217;</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Time series of wet/dry classification</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">iterable of int</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Implementation of Rolling standard deviation method <a class="footnote-reference" href="#id6" id="id5">[1]</a></p>
+</div>
+<p class="rubric">References</p>
+<table class="docutils footnote" frame="void" id="id6" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id5">[1]</a></td><td>Schleiss, M. and Berne, A.: &#8220;Identification of dry and rainy periods
+using telecommunication microwave links&#8221;, IEEE Geoscience and
+Remote Sensing, 7, 611-615, 2010</td></tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycomlink.wet_dry.wet_dry_stft">
+<code class="descclassname">pycomlink.wet_dry.</code><code class="descname">wet_dry_stft</code><span class="sig-paren">(</span><em>rsl</em>, <em>window_length</em>, <em>threshold</em>, <em>f_divide</em>, <em>t_dry_start</em>, <em>t_dry_stop</em>, <em>window=None</em>, <em>Pxx=None</em>, <em>f=None</em>, <em>f_sampling=0.016666666666666666</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pycomlink/wet_dry.html#wet_dry_stft"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycomlink.wet_dry.wet_dry_stft" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform wet/dry classification with Rolling Fourier-transform method</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>rsl</strong> (<em>iterable of float</em>) &#8211; Time series of received signal level</li>
+<li><strong>window_length</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Length of the sliding window</li>
+<li><strong>threshold</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Threshold which has to be surpassed to classifiy a period as &#8216;wet&#8217;</li>
+<li><strong>f_divide</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; Parameter for classification with method Fourier transformation</li>
+<li><strong>t_dry_start</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Index of starting point dry period</li>
+<li><strong>t_dry_stop</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Index of end of dry period</li>
+<li><strong>window</strong> (<em>array of float, optional</em>) &#8211; Values of window function. If not given a Hamming window function is
+applied (Default is None)</li>
+<li><strong>Pxx</strong> (<em>2-D array of float, optional</em>) &#8211; Spectogram used for the wet/dry classification. Gets computed if not given
+(Default is None)</li>
+<li><strong>f</strong> (<em>arra of float, optional</em>) &#8211; Frequencies corresponding to the rows in Pxx. Gets computed if not given.
+(Default is None)</li>
+<li><strong>f_sampling</strong> (<em>float, optional</em>) &#8211; Sampling frequency (samples per time unit). It is used to calculate
+the Fourier frequencies, freqs, in cycles per time unit.
+(Default is 1/60.0)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><em>iterable of int</em> &#8211;
+Time series of wet/dry classification</li>
+<li><em>dict</em> &#8211;
+Dictionary holding information about the classification</li>
+</ul>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Implementation of Rolling Fourier-transform method <a class="footnote-reference" href="#id8" id="id7">[2]</a></p>
+</div>
+<p class="rubric">References</p>
+<table class="docutils footnote" frame="void" id="id8" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id7">[2]</a></td><td>Chwala, C., Gmeiner, A., Qiu, W., Hipp, S., Nienaber, D., Siart, U.,
+Eibert, T., Pohl, M., Seltmann, J., Fritz, J. and Kunstmann, H.:
+&#8220;Precipitation observation using microwave backhaul links in the
+alpine and pre-alpine region of Southern Germany&#8221;, Hydrology
+and Earth System Sciences, 16, 2647-2661, 2012</td></tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="pycomlink.Comlink.html" class="btn btn-neutral" title="pycomlink.Comlink" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Karlsruhe Institute of Technology (KIT) - Campus Alpin.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.0.5',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

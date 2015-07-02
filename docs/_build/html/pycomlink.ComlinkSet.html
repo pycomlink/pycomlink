@@ -1,0 +1,413 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pycomlink.ComlinkSet Object &mdash; pycomlink 0.0.5 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="pycomlink 0.0.5 documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="index.html" class="icon icon-home"> pycomlink
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul class="simple">
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="pycomlink.Comlink.html"><code class="docutils literal"><span class="pre">pycomlink.Comlink</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="pycomlink.Comlink.html#module-pycomlink.comlinkset"><code class="docutils literal"><span class="pre">pycomlink.ComlinkSet</span></code></a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="pycomlink.html"><code class="docutils literal"><span class="pre">pycomlink.A_R_relation</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="pycomlink.html#module-pycomlink.baseline"><code class="docutils literal"><span class="pre">pycomlink.baseline</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="pycomlink.html#module-pycomlink.io"><code class="docutils literal"><span class="pre">pycomlink.io</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="pycomlink.html#module-pycomlink.mapping"><code class="docutils literal"><span class="pre">pycomlink.mapping</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="pycomlink.html#module-pycomlink.wet_antenna"><code class="docutils literal"><span class="pre">pycomlink.wet_antenna</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="pycomlink.html#module-pycomlink.wet_dry"><code class="docutils literal"><span class="pre">pycomlink.wet_dry</span></code></a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">pycomlink</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li><code class="docutils literal"><span class="pre">pycomlink.ComlinkSet</span></code> Object</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/pycomlink.ComlinkSet.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document">
+            
+  <div class="section" id="module-pycomlink.comlinkset">
+<span id="pycomlink-comlinkset-object"></span><h1><code class="docutils literal"><span class="pre">pycomlink.ComlinkSet</span></code> Object<a class="headerlink" href="#module-pycomlink.comlinkset" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="pycomlink.comlinkset.ComlinkSet">
+<em class="property">class </em><code class="descclassname">pycomlink.comlinkset.</code><code class="descname">ComlinkSet</code><span class="sig-paren">(</span><em>cml_list</em>, <em>area</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pycomlink/comlinkset.html#ComlinkSet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycomlink.comlinkset.ComlinkSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Commercial microwave link set (CMLS) class for data processing of multiple links</p>
+<dl class="attribute">
+<dt id="pycomlink.comlinkset.ComlinkSet.set">
+<code class="descname">set</code><a class="headerlink" href="#pycomlink.comlinkset.ComlinkSet.set" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>list of pycomlink class Comlink objects</em></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycomlink.comlinkset.ComlinkSet.set_info">
+<code class="descname">set_info</code><a class="headerlink" href="#pycomlink.comlinkset.ComlinkSet.set_info" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>dict</em></p>
+<p>Dictionary that holds information about the CMLS object</p>
+</dd></dl>
+
+<p>Initialisation of commercial microwave link set (CMLS) class</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>cml_list</strong> (<em>list of pycomlink class Comlink objects</em>) &#8211; List that holds the links located in a specified area. Each list item
+has to be a Comlink object.</li>
+<li><strong>area</strong> (<em>list of floats</em>) &#8211; <p>List that holds the geographic coordinates of the area borders in
+decimal format.
+The order has to be:
+area = [lower_longitude,upper_longitude,</p>
+<blockquote>
+<div>lower_latitude, upper_latitude]</div></blockquote>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="pycomlink.comlinkset.ComlinkSet.calc_A">
+<code class="descname">calc_A</code><span class="sig-paren">(</span><em>remove_negative_A=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pycomlink/comlinkset.html#ComlinkSet.calc_A"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycomlink.comlinkset.ComlinkSet.calc_A" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform calculation of attenuation for all CML time series in CMLS</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>remove_negative_A</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Negative attenuation values are assigned as zero (Default is True)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pycomlink.comlinkset.ComlinkSet.calc_R_from_A">
+<code class="descname">calc_R_from_A</code><span class="sig-paren">(</span><em>a=None</em>, <em>b=None</em>, <em>approx_type='ITU'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pycomlink/comlinkset.html#ComlinkSet.calc_R_from_A"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycomlink.comlinkset.ComlinkSet.calc_R_from_A" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform calculation of rain rate from attenuation for all CML time series in CMLS</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>a</strong> (<em>float, optional</em>) &#8211; Parameter of A-R relationship (Default is None)
+If not given: Approximation considering polarization and frequency of link</li>
+<li><strong>b</strong> (<em>float, optional</em>) &#8211; Parameter of A-R relationship  (Default is None)
+If not given: Approximation considering polarization and frequency of link</li>
+<li><strong>approx_type</strong> (<em>str, optional</em>) &#8211; Approximation type (the default is &#8216;ITU&#8217;, which implies parameter
+approximation using a table recommanded by ITU)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pycomlink.comlinkset.ComlinkSet.do_baseline_determination">
+<code class="descname">do_baseline_determination</code><span class="sig-paren">(</span><em>method='constant'</em>, <em>wet_external=None</em>, <em>print_info=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pycomlink/comlinkset.html#ComlinkSet.do_baseline_determination"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycomlink.comlinkset.ComlinkSet.do_baseline_determination" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform baseline determination for all CML time series in CMLS</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>method</strong> (<em>str, optional</em>) &#8211; String which indicates the baseline determination method (see Notes)
+Default is &#8216;constant&#8217;</li>
+<li><strong>wet_external</strong> (<em>iterable of int or iterable of float, optional</em>) &#8211; External wet/dry classification information. Has to be specified
+for each classified index of times series (Default is None)</li>
+<li><strong>print_info</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Print information about executed method (Default is False)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<dl class="last docutils">
+<dt>WIP: Currently two methods are supported:</dt>
+<dd><ul class="first last simple">
+<li>constant: Keeping the RSL level constant at the level of the preceding dry period</li>
+<li>linear: interpolating the RSL level linearly between two enframing dry periods</li>
+</ul>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="pycomlink.comlinkset.ComlinkSet.do_wet_antenna_baseline_adjust">
+<code class="descname">do_wet_antenna_baseline_adjust</code><span class="sig-paren">(</span><em>waa_max</em>, <em>delta_t</em>, <em>tau</em>, <em>wet_external=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pycomlink/comlinkset.html#ComlinkSet.do_wet_antenna_baseline_adjust"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycomlink.comlinkset.ComlinkSet.do_wet_antenna_baseline_adjust" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform baseline adjustion due to wet antenna for all CML time series in CMLS</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>waa_max</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; Maximum value of wet antenna attenuation</li>
+<li><strong>delta_t</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; Parameter for wet antnenna attenation model</li>
+<li><strong>tau</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; Parameter for wet antnenna attenation model</li>
+<li><strong>wet_external</strong> (<em>iterable of int or iterable of float, optional</em>) &#8211; External wet/dry classification information. Has to be specified
+for each classified index of times series (Default is None)</li>
+<li><strong>Note</strong> &#8211; </li>
+<li><strong>------</strong> &#8211; </li>
+<li><strong>wet antenna adjusting is based on a peer-reviewed publication 3</strong> (<em>The</em>) &#8211; </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pycomlink.comlinkset.ComlinkSet.do_wet_dry_classification">
+<code class="descname">do_wet_dry_classification</code><span class="sig-paren">(</span><em>method='std_dev'</em>, <em>window_length=128</em>, <em>threshold=1</em>, <em>dry_window_length=600</em>, <em>f_divide=0.001</em>, <em>reuse_last_Pxx=False</em>, <em>print_info=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pycomlink/comlinkset.html#ComlinkSet.do_wet_dry_classification"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycomlink.comlinkset.ComlinkSet.do_wet_dry_classification" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform wet/dry classification for all CML time series in CMLS</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>method</strong> (<em>str, optional</em>) &#8211; String which indicates the classification method (see Notes)
+Default is &#8216;std_dev&#8217;</li>
+<li><strong>window_length</strong> (<em>int, optional</em>) &#8211; Length of the sliding window (Default is 128)</li>
+<li><strong>threshold</strong> (<em>int, optional</em>) &#8211; threshold which has to be surpassed to classifiy a period as &#8216;wet&#8217;
+(Default is 1)</li>
+<li><strong>dry_window_length</strong> (<em>int, optional</em>) &#8211; Length of window for identifying dry period used for calibration
+purpose. Only for method stft. (Default is 600)</li>
+<li><strong>f_divide</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; Parameter for classification with method Fourier transformation
+(Default is 1e-3)</li>
+<li><strong>reuse_last_Pxx</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Parameter for classification with method Fourier transformation
+(Default is false)</li>
+<li><strong>print_info</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Print information about executed method (Default is False)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<dl class="last docutils">
+<dt>WIP: Currently two classification methods are supported:</dt>
+<dd><ul class="first last simple">
+<li>std_dev: Rolling standard deviation method <a href="#id4"><span class="problematic" id="id5"><span id="id2"></span>[1]_</span></a></li>
+<li>stft: Rolling Fourier-transform method <a href="#id6"><span class="problematic" id="id7"><span id="id3"></span>[2]_</span></a></li>
+</ul>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="pycomlink.comlinkset.ComlinkSet.info">
+<code class="descname">info</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pycomlink/comlinkset.html#ComlinkSet.info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycomlink.comlinkset.ComlinkSet.info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print information about associated microwave links</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pycomlink.comlinkset.ComlinkSet.info_plot">
+<code class="descname">info_plot</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pycomlink/comlinkset.html#ComlinkSet.info_plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycomlink.comlinkset.ComlinkSet.info_plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot associated links a map</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pycomlink.comlinkset.ComlinkSet.spat_interpol">
+<code class="descname">spat_interpol</code><span class="sig-paren">(</span><em>grid_res, int_type, figsize=(15, 10), time=None, method='mean', time_resolution=15, power=2, smoothing=0, krig_type='ordinary', variogram_model='linear', drift_terms=['regional_linear']</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pycomlink/comlinkset.html#ComlinkSet.spat_interpol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycomlink.comlinkset.ComlinkSet.spat_interpol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform and plot spatial interpolation of rain rate or rain sum on regular grid</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>grid_res</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Number of bins of output grid in area</li>
+<li><strong>int_type</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; interpolation method
+&#8216;IDW&#8217; Inverse Distance Interpolation
+&#8216;Kriging&#8217; Kriging Interpolation with pyKrige</li>
+<li><strong>figsize</strong> (<em>matplotlib parameter, optional</em>) &#8211; Size of output figure in inches (default is (15,10))</li>
+<li><strong>time</strong> (<em>str, optional</em>) &#8211; Datetime string of desired timestamp (for example &#8216;yyyy-mm-dd HH:MM&#8217;)
+Default is None.
+If given the rain rate for this timestamp is plotted.
+If not given the accumulation of the whole time series is plotted.</li>
+<li><strong>method</strong> (<em>str, optional</em>) &#8211; Indicates how to claculate rainrate/sum of bidirectional link
+(Default is &#8216;mean&#8217;)
+&#8216;mean&#8217; average of near-far and far-near
+&#8216;max&#8217; maximum of near-far and far-near
+&#8216;min&#8217; minimum of near-far and far-near
+&#8216;dir1&#8217; use only first direction from tx_rx_pairs
+&#8216;dir2&#8217; use only second direction from tx_rx_pairs</li>
+<li><strong>time_resolution</strong> (<em>int, optional</em>) &#8211; Resampling time for rain rate calculation. Only used if time
+is not None (Default is 15)</li>
+<li><strong>power</strong> (<em>flt, optional</em>) &#8211; Power of distance decay for IDW interpolation. Only used if
+int_type is &#8216;IDW&#8217; (Default is 2)</li>
+<li><strong>smoothing</strong> (<em>flt, optional</em>) &#8211; Power of smoothing factor for IDW interpolation. Only used if
+int_type is &#8216;IDW&#8217; (Default is 0)</li>
+<li><strong>krig_type</strong> (<em>str, optional</em>) &#8211; Parameters for Kriging interpolation. See pykrige documentation
+for information. Only used if int_type is &#8216;Kriging&#8217;
+(Default is &#8216;Ordinary&#8217;)</li>
+<li><strong>variogram_model</strong> (<em>str, optional</em>) &#8211; Parameters for Kriging interpolation. See pykrige documentation
+for information. Only used if int_type is &#8216;Kriging&#8217;
+(Default is &#8216;linear&#8217;)</li>
+<li><strong>drift_terms</strong> (<em>str, optional</em>) &#8211; Parameters for Kriging interpolation. See pykrige documentation
+for information. Only used if int_type is &#8216;Kriging&#8217;
+(Default is [&#8216;regional_linear&#8217;])</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Karlsruhe Institute of Technology (KIT) - Campus Alpin.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.0.5',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -4,10 +4,68 @@
 ############################################
 
 def calc_R_from_A(A, a, b, L):
+    """Calculate rain rate from attenuation using the A-R Relationship
+    
+    Parameters
+    ----------
+    A : float or iterable of float
+        Attenuation of microwave signal
+    a : float, optional
+        Parameter of A-R relationship
+    b : float, optional
+        Parameter of A-R relationship
+    L : float
+        length of the link
+        
+    Returns
+    -------
+    float or iterable of float
+        Rain rate    
+    
+    Note
+    ----    
+    The A-R Relationship is defined as
+    
+    .. math:: A = aR^{b}    
+    
+    """
     R = (A/(a*L))**(1/b)
     return R
 
 def a_b(f_GHz, pol, approx_type='ITU'):
+    """Approximation of parameters for A-R relationship
+    
+    Parameters
+    ----------
+    f_GHz : int or float
+            Frequency of the microwave link in GHz
+    pol : str
+            Polarization of the microwave link 
+    approx_type : str, optional
+            Approximation type (the default is 'ITU', which implies parameter
+            approximation using a table recommanded by ITU)
+            
+    Returns
+    -------
+    a,b : float
+          Parameters of A-R relationship      
+     
+    Note
+    ----     
+    The frequency value must be between 1 Ghz and 100 GHz.    
+    
+    The polarization has to be indicated by 'h' or 'H' for horizontal and 
+    'v' or 'V' for vertical polarization respectively.
+    
+    Currently only 'ITU' for approx_type is accepted. The approximation makes
+    use of a table recommanded by ITU [4]_.   
+    
+    References
+    ----------
+    .. [4] ITU, "ITU-R: Specific attenuation model for rain for use in 
+        prediction methods", International Telecommunication Union, 2013 
+         
+    """
     from scipy.interpolate import interp1d
     
     if f_GHz>=1 and f_GHz<=100:
@@ -18,7 +76,7 @@ def a_b(f_GHz, pol, approx_type='ITU'):
             f_a = interp1d(ITU_table[0,:], ITU_table[1,:], kind='cubic')    
             f_b = interp1d(ITU_table[0,:], ITU_table[3,:], kind='cubic')
         else:
-            ValueError('Polarizatoin must be V, v, H or h.')
+            ValueError('Polarization must be V, v, H or h.')
         a = f_a(f_GHz)
         b = f_b(f_GHz)
     else:

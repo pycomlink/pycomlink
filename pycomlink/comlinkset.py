@@ -13,10 +13,12 @@
 from __future__ import division
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.basemap import Basemap
+import cartopy.crs as ccrs    
+from cartopy.io.img_tiles import GoogleTiles
+import pandas as pd
+
 import math
 import matplotlib
-import matplotlib.animation as animation
 
 from . import wet_dry
 from . import baseline
@@ -38,8 +40,9 @@ class ComlinkSet():
 
     
     """    
-    def __init__(self, cml_list):
+    def __init__(self, cml_list,area):
         self.set = cml_list
+        self.set_info = {'area':area}
         
     def info(self):
         """
@@ -49,17 +52,26 @@ class ComlinkSet():
         
         print '============================================================='
         print 'Number of Comlink Objects in ComlinkSet: ' + str(len(self.set))
+        print '  ----- '+"{:.2f}".format(self.set_info['area'][3])+' -----'
+        print '  |               |'
+        print "{:.2f}".format(self.set_info['area'][0])+'   area    ' \
+                +"{:.2f}".format(self.set_info['area'][1])
+        print '  |               |'        
+        print '  ----- '+"{:.2f}".format(self.set_info['area'][2])+' -----'        
+
         print 'IDs: ' 
         for cml in self.set:
-            if not cml.data.empty:
-                print '     ' + str(cml.metadata['link_id'])
+            print '     ' + str(cml.metadata['link_id'])
         print '============================================================='
         
+
     def info_plot(self):
         """Show ComlinkSet locations on map 
                 
         """
-        fig = plt.figure(figsize=(10,10))
+        plt.figure(figsize=(10,10))
+        ax = plt.axes(projection=ccrs.PlateCarree())
+
         lons=[]
         lats=[]
         for cml in self.set:
@@ -73,25 +85,15 @@ class ComlinkSet():
               min(lats)-.05,
               max(lats)+.05]           
         
-        mp = Basemap(projection='merc',llcrnrlat=area[2],urcrnrlat=area[3],\
-            llcrnrlon=area[0],urcrnrlon=area[1],lat_ts=20,resolution='h')
-        mp.drawcoastlines(color='blue')
-        mp.drawrivers(color='blue')
-        mp.drawcountries()
-        mp.shadedrelief() 
-        # draw parallels.
-        parallels = np.arange(40.,60.,0.2)
-        mp.drawparallels(parallels,labels=[1,0,0,0],fontsize=10)
-        # draw meridians
-        meridians = np.arange(0.,20.,0.2)
-        mp.drawmeridians(meridians,labels=[0,0,0,1],fontsize=10)   
+        ax.set_extent((area[0], area[1], area[2], area[3]), crs=ccrs.PlateCarree())
+        gg_tiles = GoogleTiles()
+        ax.add_image(gg_tiles, 11)        
         
         for cml in self.set:
-            mp.drawgreatcircle(cml.metadata['site_A']['lon'],
-                               cml.metadata['site_A']['lat'],
-                               cml.metadata['site_B']['lon'],
-                               cml.metadata['site_B']['lat'],
-                               linewidth=2,color='k')
+                   plt.plot([cml.metadata['site_A']['lon'],cml.metadata['site_B']['lon']],
+                            [cml.metadata['site_A']['lat'],cml.metadata['site_B']['lat']],
+                            linewidth=2,color='k',
+                            transform=ccrs.Geodetic())        
         
         
     def do_wet_dry_classification(self, method='std_dev', 
@@ -113,7 +115,7 @@ class ComlinkSet():
                 - stft: Rolling Fourier-transform method (Chwala et al, 2012)
         window_length: int
             length of the sliding window        
-        threshold: int
+        threshold: 
             threshold which has to be surpassed to classifiy a period as 'wet'
         .....................
         Only for method stft:
@@ -132,8 +134,7 @@ class ComlinkSet():
             
         """
         for cml in self.set:
-            if not cml.data.empty:
-                cml.do_wet_dry_classification(method, 
+            cml.do_wet_dry_classification(method, 
                                               window_length,
                                               threshold,
                                               dry_window_length,
@@ -166,8 +167,7 @@ class ComlinkSet():
 
                               
         for cml in self.set:   
-            if not cml.data.empty:       
-                cml.do_baseline_determination(method,
+            cml.do_baseline_determination(method,
                                               wet_external,
                                               print_info)
   
@@ -195,8 +195,7 @@ class ComlinkSet():
         """ 
                                            
         for cml in self.set:    
-            if not cml.data.empty:        
-                cml.do_wet_antenna_baseline_adjust(waa_max,
+            cml.do_wet_antenna_baseline_adjust(waa_max,
                                                    delta_t,
                                                    tau,
                                                    wet_external)
@@ -215,8 +214,7 @@ class ComlinkSet():
         """         
         
         for cml in self.set:
-            if not cml.data.empty:
-                cml.calc_A(remove_negative_A)
+            cml.calc_A(remove_negative_A)
  
                     
                     
@@ -240,17 +238,22 @@ class ComlinkSet():
                
         """          
         for cml in self.set:
-            if not cml.data.empty:
-                cml.calc_R_from_A(a,b,approx_type)                
+            if (cml.processing_info['tx_rx_pairs']['fn']['f_GHz'] is not None 
+               and cml.processing_info['tx_rx_pairs']['nf']['f_GHz'] is not None):
+                   cml.calc_R_from_A(a,b,approx_type)                
                 
                                                            
-        
-            
-    def plot_idw(self, area, grid_res,
+               
+    def spat_interpol(self, grid_res,
+                 int_type,
                  figsize=(15,10),
-                 acc_type='sum',
+                 time=None,
+                 method='mean',
                  time_resolution=15,
-                 power=2,smoothing=0):
+                 power=2,smoothing=0,
+                 krig_type='ordinary',
+                 variogram_model='linear',
+                 drift_terms=['regional_linear']):
         """
         Plotting Inverse Distance Interpolation of Rain Sums or Rain Rate 
             on regular grid
@@ -263,134 +266,176 @@ class ComlinkSet():
         grid_res: int
             number of bins of output grid in area
             
-        figsize:
-            size of output figure    
+        int_type:str
+            interpolation method
+            'IDW' Inverse Distance Interpolation
+            'Kriging' Kriging Interpolation with pyKrige
             
-        acc_type: str
-            type of accumulation
-                'sum' precipitation sum of selected period
-                'rr' rain rate resampled by time_resolution
+        figsize:
+            size of output figure  
+            
+        time: string
+            datetime string of desired timestamp (for example 'yyyy-mm-dd HH:MM')
+            If given the rainrate for this timestamp is plotted.
+            If not given the accumulation of the whole time series is plotted
+            
+               
+        method: str
+            how to claculate rainrate/sum of duplex link
+                'mean' average of near-far and far-near
+                'max' maximum of near-far and far-near
+                'min' minimum of near-far and far-near
+                'dir1' use only first direction from tx_rx_pairs
+                'dir2' use only second direction from tx_rx_pairs
+                
         time_resolution: int
                 resampling time for rain rate calculation
                 only used for type 'rr'
                 
         power, smoothing: flt
+                only if int_type 'IDW'
                  power of distance decay and smoothing factor for 
-                 IDW interpolation       
+                 IDW interpolation    
+                 
+        krig_type, variogram_model, drift_terms: str
+                only if int_type 'Kriging'     
+                Parameters for Kriging interpolation
+                (see pykrige documentation for information)
         """
         
         fig = plt.figure(figsize=figsize)
-        mp = Basemap(projection='merc',llcrnrlat=area[2],urcrnrlat=area[3],\
-            llcrnrlon=area[0],urcrnrlon=area[1],lat_ts=20,resolution=None)
-        mp.shadedrelief() 
-        # draw parallels.
-        parallels = np.arange(40.,60.,0.5)
-        mp.drawparallels(parallels,labels=[1,0,0,0],fontsize=10)
-        # draw meridians
-        meridians = np.arange(0.,20.,0.5)
-        mp.drawmeridians(meridians,labels=[0,0,0,1],fontsize=10) 
-        
-        
-        nws_precip_colors = [
-        "#d6e2ff",  # 0.01 - 0.10 mm
-        "#b5c9ff",  # 0.10 - 0.25 mm
-        "#8eb2ff",  # 0.25 - 0.50 m
-        "#7f96ff",  # 0.50 - 0.75
-        "#6370f7",  # 0.75 - 1.00 
-        "#0063ff",  # 1.00 - 1.50 
-        "#009696",  # 1.50 - 2.00 
-        "#00c633",  # 2.00 - 2.50 
-        "#63ff00",  # 2.50 - 3.00 
-        "#96ff00",  # 3.00 - 4.00
-        "#c6ff33",  # 4.00 - 5.00 
-        "#ffff00",  # 5.00 - 6.00 
-        "#ffc600",  # 6.00 - 8.00 
-        "#ffa000",  # 8.00 - 10.00 
-        "#ff7c00",  # 10.00 - 15.00
-        "#ff1900"   # > 15.00
-        ]
-        precip_colormap = matplotlib.colors.ListedColormap(nws_precip_colors)        
-        levels_rr = [0.01, 0.1, 0.25, 0.50, 0.75, 1.0, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0,
-          6.0, 8.0, 10.,15., 100.0]  
-        levels_sum = [1.00, 2.0, 3.0, 4.0, 5.0,6.0, 7.0,8.0,9.0, 10.0, 15.0, 20.0,
-          25.0, 50.0, 100.,250.,500.]           
-        norm_rr = matplotlib.colors.BoundaryNorm(levels_rr, 15)  
-        norm_sum = matplotlib.colors.BoundaryNorm(levels_sum, 15)
+        ax = plt.axes(projection=ccrs.PlateCarree())
+        gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True,
+                  linewidth=2, color='gray', alpha=0.5, linestyle='--')        
+        gl.xlabels_top = False
+        ax.set_extent((self.set_info['area'][0]-.05, self.set_info['area'][1]+.05,
+                       self.set_info['area'][2]-.05, self.set_info['area'][3]+.05),
+                         crs=ccrs.PlateCarree())
+        gg_tiles = GoogleTiles()
+
+        ax.add_image(gg_tiles, 11)                 
+        for cml in self.set:
+            if 'site_A' in cml.metadata and 'site_B' in cml.metadata:
+                if 'lat' in cml.metadata['site_A'] and \
+                   'lon' in cml.metadata['site_A'] and \
+                   'lat' in cml.metadata['site_B'] and \
+                   'lon' in cml.metadata['site_B']:
+                       plt.plot([cml.metadata['site_A']['lon'],cml.metadata['site_B']['lon']],
+                         [cml.metadata['site_A']['lat'],cml.metadata['site_B']['lat']],
+                         linewidth=1,color='k',
+                         transform=ccrs.Geodetic()) 
+
+
+        levels_rr = [0.5, 1.0, 1.5,2.0, 2.5, 5.0, 7.5, 10.0,12.5,15.0,20.0]
+        levels_sum = [5.0,10.0,15.0,20.0,25.0,50.0,75.0,100.0,150.0,200.0,250.0]          
+
         
         #Definition of output grid
-        gridx = np.linspace(area[0],area[1],grid_res)
-        gridy = np.linspace(area[2],area[3],grid_res)
-        grid = np.meshgrid(gridx,gridy)    
-        x,y = mp(grid[0],grid[1])
-
+        gridx = np.linspace(self.set_info['area'][0],self.set_info['area'][1],grid_res)
+        gridy = np.linspace(self.set_info['area'][2],self.set_info['area'][3],grid_res)   
        
         # MW data and metadata
+        ACC = {}       
+        for cml in self.set:
+            cumsu = {}
+            if 'site_A' in cml.metadata and 'site_B' in cml.metadata:
+                if 'lat' in cml.metadata['site_A'] and \
+                   'lon' in cml.metadata['site_A'] and \
+                   'lat' in cml.metadata['site_B'] and \
+                   'lon' in cml.metadata['site_B']:
+                       plt.plot([cml.metadata['site_A']['lon'],cml.metadata['site_B']['lon']],
+                             [cml.metadata['site_A']['lat'],cml.metadata['site_B']['lat']],
+                             linewidth=1,color='k',
+                             transform=ccrs.Geodetic())  
+                       cml.metadata['lat_center'] = (cml.metadata['site_A']['lat']
+                                                           +cml.metadata['site_B']['lat'])/2.
+                       cml.metadata['lon_center'] = (cml.metadata['site_A']['lon']
+                                                           +cml.metadata['site_B']['lon'])/2.                                                           
+                           
+                       if time is None:
+                           for pair_id in cml.processing_info['tx_rx_pairs']:
+                               cumsu[pair_id]=cml.data['R_' + pair_id].resample('H',how='mean').cumsum()
+                           ACC[cml.metadata['link_id']]=cumsu    
+
         lons_mw=[]
         lats_mw=[]
-        values_mw=[]
-        if acc_type == 'sum':
-            for cml in self.set: 
-                if not cml.data.empty:
-                   prep_sum=((cml.data.R_fn.resample('H',how='mean')+
-                                       cml.data.R_nf.resample('H',how='mean'))/2.).sum() 
-                   if not math.isnan(prep_sum):                     
-                       lons_mw.append((cml.metadata['site_A']['lon']
-                                      +cml.metadata['site_B']['lon'])/2.)
-                       lats_mw.append((cml.metadata['site_A']['lat']
-                                      +cml.metadata['site_B']['lat'])/2.)
-                       values_mw.append(prep_sum)
-                                   
-            inv_d_values=mapping.inv_dist(lons_mw,lats_mw,values_mw,
-                                          gridx,gridy,power,smoothing)
-            
-                                                                
-            cs = mp.contourf(x,y,inv_d_values,levels=levels_sum,norm=norm_sum,cmap=precip_colormap)
-            ln,lt = mp(lons_mw,lats_mw)
+        values_mw=[]        
 
-            mp.scatter(ln,lt,c=values_mw,cmap=precip_colormap, alpha=0.6, s=60,norm=norm_sum)            
-            cbar = mp.colorbar(cs,location='bottom',pad="5%")
-            cbar.set_label('mm')
-  
-        elif acc_type == 'rr':
+        if time is None:
+             for cml in self.set:
+                 if len(cml.processing_info['tx_rx_pairs']) == 2:
+                     
+                     if method == 'mean':
+                         prep_sum = (ACC[cml.metadata['link_id']][cml.processing_info['tx_rx_pairs'].keys()[0]][-1]+
+                                    ACC[cml.metadata['link_id']][cml.processing_info['tx_rx_pairs'].keys()[1]][-1])/2. 
+                     elif method == 'max':
+                         prep_sum = max(ACC[cml.metadata['link_id']][cml.processing_info['tx_rx_pairs'].keys()[0]][-1],
+                                    ACC[cml.metadata['link_id']][cml.processing_info['tx_rx_pairs'].keys()[1]][-1])
+                     elif method == 'min':
+                         prep_sum = min(ACC[cml.metadata['link_id']][cml.processing_info['tx_rx_pairs'].keys()[0]][-1],
+                                    ACC[cml.metadata['link_id']][cml.processing_info['tx_rx_pairs'].keys()[1]][-1])
+                     elif method == 'dir1':
+                         prep_sum = ACC[cml.metadata['link_id']][cml.processing_info['tx_rx_pairs'].keys()[0]][-1]
+                     elif method == 'dir2':
+                         prep_sum = ACC[cml.metadata['link_id']][cml.processing_info['tx_rx_pairs'].keys()[1]][-1]
+                                    
+                 else:
+                     prep_sum = ACC[cml.metadata['link_id']][cml.processing_info['tx_rx_pairs'].keys()[0]][-1]
+                 
+                 if not math.isnan(prep_sum):  
+                     lons_mw.append(cml.metadata['lon_center'])
+                     lats_mw.append(cml.metadata['lat_center'])
+                     values_mw.append(prep_sum)     
 
-            def animate(i):
-
-                for cml in self.set:
-                    if not cml.data.empty:
-
-                        prep_rr = (cml.data.R_fn.resample(str(time_resolution)+'Min',how='mean')[i]+
-                                   cml.data.R_nf.resample(str(time_resolution)+'Min',how='mean')[i])/2.                
-                    
-                
-                        if not math.isnan(prep_rr):                     
-                            lons_mw.append((cml.metadata['site_A']['lon']
-                                           +cml.metadata['site_B']['lon'])/2.)
-                            lats_mw.append((cml.metadata['site_A']['lat']
-                                           +cml.metadata['site_B']['lat'])/2.)
-                            values_mw.append(prep_rr)   
-    
-                inv_d_values=mapping.inv_dist(lons_mw,lats_mw,values_mw,
-                                              gridx,gridy,
-                                              power,smoothing)                           
-                
-                plt.title(str(self.set[0].data.resample(str(time_resolution)+'Min').index[i]))
-    
-                cs = mp.contourf(x,y,inv_d_values,levels=levels_rr,norm=norm_rr,cmap=precip_colormap)
-                ln,lt = mp(lons_mw,lats_mw)
-                mp.scatter(ln,lt,c=values_mw,cmap=precip_colormap, alpha=0.6, s=60,norm=norm_rr)                
-                cbar = mp.colorbar(cs,location='bottom',pad="5%")
-                cbar.set_label('mm/h')
-                            
-            anim = animation.FuncAnimation(fig, animate, 
-                                           frames=len(self.set[0].data.resample(str(time_resolution)+'Min').index),
-                                           interval=1000, blit=True)        
-                            
-            anim.save('animation.gif', writer='imagemagick')    
-                         
-            
+              
         else:
-            ValueError('acc_type has to be "sum" or "rr"');
-        
+             start = pd.Timestamp(time) - pd.Timedelta('30s')
+             stop = pd.Timestamp(time) + pd.Timedelta('30s')
+             for cml in self.set:
+                 if len(cml.processing_info['tx_rx_pairs']) == 2:
+                     if method == 'mean':
+                         prep_sum = ((cml.data['R_'+cml.processing_info['tx_rx_pairs'].keys()[0]].resample(str(time_resolution)+'Min',how='mean')[start:stop]+
+                                     cml.data['R_'+cml.processing_info['tx_rx_pairs'].keys()[1]].resample(str(time_resolution)+'Min',how='mean')[start:stop])/2.)
+                     elif method == 'max':
+                         prep_sum = pd.DataFrame({'a':cml.data['R_'+cml.processing_info['tx_rx_pairs'].keys()[0]].resample(str(time_resolution)+'Min',how='mean')[start:stop],
+                                                  'b':cml.data['R_'+cml.processing_info['tx_rx_pairs'].keys()[1]].resample(str(time_resolution)+'Min',how='mean')[start:stop]}).max(1)
+                     elif method == 'min':
+                          prep_sum = pd.DataFrame({'a':cml.data['R_'+cml.processing_info['tx_rx_pairs'].keys()[0]].resample(str(time_resolution)+'Min',how='mean')[start:stop],
+                                                  'b':cml.data['R_'+cml.processing_info['tx_rx_pairs'].keys()[1]].resample(str(time_resolution)+'Min',how='mean')[start:stop]}).min(1)
+                     elif method == 'dir1':
+                         prep_sum = cml.data['R_'+cml.processing_info['tx_rx_pairs'].keys()[0]].resample(str(time_resolution)+'Min',how='mean')[start:stop]
+                     elif method == 'dir2':
+                         prep_sum = cml.data['R_'+cml.processing_info['tx_rx_pairs'].keys()[1]].resample(str(time_resolution)+'Min',how='mean')[start:stop]      
+                 else:
+                     prep_sum = cml.data['R_'+cml.processing_info['tx_rx_pairs'].keys()[0]].resample(str(time_resolution)+'Min',how='mean')[start:stop]
 
+                 if not math.isnan(prep_sum):  
+                     lons_mw.append(cml.metadata['lon_center'])
+                     lats_mw.append(cml.metadata['lat_center'])
+                     values_mw.append(prep_sum.values)
+                     
+                    
+                        
+                        
+        if int_type == 'IDW':          
+            interpol=mapping.inv_dist(lons_mw,lats_mw,values_mw,
+                                          gridx,gridy,power,smoothing)
+        elif int_type == 'Kriging':
+            interpol=mapping.kriging(lons_mw,lats_mw,values_mw,gridx,gridy, 
+                                     krig_type,variogram_model,drift_terms)  
+        else:
+            ValueError('Interpolation method not supported')                             
+                                          
+  
+        if time is None:                                                        
+            cs = plt.contourf(gridx,gridy,interpol,levels=levels_sum,cmap=plt.cm.winter_r,transform=ccrs.PlateCarree())
+            cbar = plt.colorbar(cs,orientation='vertical')
+            cbar.set_label('mm')
+        else:
+
+            cs = plt.contourf(gridx,gridy,interpol,levels=levels_rr,cmap=plt.cm.winter_r,alpha=0.6,transform=ccrs.PlateCarree())
+            cbar = plt.colorbar(cs,orientation='vertical')
+            cbar.set_label('mm/h')
+       
 
                  

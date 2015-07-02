@@ -14,7 +14,9 @@ from __future__ import division
 
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.basemap import Basemap
+import cartopy.crs as ccrs    
+from cartopy.io.img_tiles import GoogleTiles
+
 
 from . import wet_dry
 from . import baseline
@@ -157,7 +159,7 @@ class Comlink():
         print '  L: ' + str(self.metadata['length_km']) + ' km'
         print '============================================================='
 
-    
+
     def info_plot(self):
         """Print MW link info and show location on map 
                 
@@ -176,56 +178,43 @@ class Comlink():
                           + self.metadata['site_B']['ip']
         print '  L: ' + str(self.metadata['length_km']) + ' km'
 
-        
-        #Plot geographic Information
-      
         if 'site_A' in self.metadata and 'site_B' in self.metadata:
             if 'lat' in self.metadata['site_A'] and \
                'lon' in self.metadata['site_A'] and \
                'lat' in self.metadata['site_B'] and \
-               'lon' in self.metadata['site_B']:  
+               'lon' in self.metadata['site_B']:                
                    print ' Lat: ' + str(self.metadata['site_A']['lat'])+ '                      '  \
                           + str(self.metadata['site_B']['lat'])   
                    print ' Lon: ' + str(self.metadata['site_A']['lon']) + '                     '  \
-                          + str(self.metadata['site_B']['lon'])                           
+                          + str(self.metadata['site_B']['lon']) 
                           
-                   area=[min(self.metadata['site_A']['lon'],self.metadata['site_B']['lon'])-.25,
-                         max(self.metadata['site_A']['lon'],self.metadata['site_B']['lon'])+.25,
-                         min(self.metadata['site_A']['lat'],self.metadata['site_B']['lat'])-.15,
-                         max(self.metadata['site_A']['lat'],self.metadata['site_B']['lat'])+.15]
+                   area=[min(self.metadata['site_A']['lon'],self.metadata['site_B']['lon'])-.15,
+                         max(self.metadata['site_A']['lon'],self.metadata['site_B']['lon'])+.15,
+                         min(self.metadata['site_A']['lat'],self.metadata['site_B']['lat'])-.1,
+                         max(self.metadata['site_A']['lat'],self.metadata['site_B']['lat'])+.1]
+                         
+                   plt.figure(figsize=(7, 9))
+                   ax = plt.axes(projection=ccrs.PlateCarree())
+                   ax.set_extent((area[0], area[1], area[2], area[3]), crs=ccrs.PlateCarree())
+                   gg_tiles = GoogleTiles()
+                   ax.add_image(gg_tiles, 11)
 
-                   fig = plt.figure(figsize=(5,5))
-                   mp = Basemap(projection='merc',llcrnrlat=area[2],urcrnrlat=area[3],
-                                llcrnrlon=area[0],urcrnrlon=area[1],lat_ts=20,resolution='h')
-    
-                   mp.drawcoastlines(color='blue')
-                   mp.drawrivers(color='blue')
-                   mp.drawcountries()
-                   mp.shadedrelief() 
-                   # draw parallels.
-                   parallels = np.arange(40.,60.,0.2)
-                   mp.drawparallels(parallels,labels=[1,0,0,0],fontsize=10)
-                   # draw meridians
-                   meridians = np.arange(0.,20.,0.2)
-                   mp.drawmeridians(meridians,labels=[0,0,0,1],fontsize=10) 
-                   mp.drawgreatcircle(self.metadata['site_A']['lon'],
-                                      self.metadata['site_A']['lat'],
-                                      self.metadata['site_B']['lon'],
-                                      self.metadata['site_B']['lat'],
-                                      linewidth=3,color='k')        
- 
+                   plt.plot([self.metadata['site_A']['lon'],self.metadata['site_B']['lon']],
+                            [self.metadata['site_A']['lat'],self.metadata['site_B']['lat']],
+                            linewidth=3,color='k',
+                            transform=ccrs.Geodetic())
                    xy=mapping.label_loc(self.metadata['site_A']['lon'],
                                         self.metadata['site_A']['lat'],
                                         self.metadata['site_B']['lon'],
                                         self.metadata['site_B']['lat'])
-                   x,y = mp(xy[0],xy[1])
-                   plt.text(x,y,'A',fontsize=15) 
-                   x,y = mp(xy[2],xy[3])
-                   plt.text(x,y,'B',fontsize=15) 
-                                             
-        print '============================================================='        
-        
-    
+
+                   plt.text(xy[0],xy[1],'A',fontsize=15,transform=ccrs.Geodetic()) 
+                   plt.text(xy[2],xy[3],'B',fontsize=15,transform=ccrs.Geodetic())        
+                   plt.show() 
+                   
+        print '============================================================='                   
+ 
+   
     def plot(self, 
              param_list=['txrx'], 
              resampling_time=None, 
@@ -345,7 +334,7 @@ class Comlink():
         # Standard deviation method
         if method == 'std_dev':
             if print_info:
-                print 'Performing wet/dry classification'
+                print 'Performing wet/dry classification for link '+ self.metadata['link_id']
                 print ' Method = std_dev'
                 print ' window_length = ' + str(window_length)
                 print ' threshold = ' + str(threshold)
@@ -363,7 +352,7 @@ class Comlink():
         # Shor-term Fourier transformation method
         elif method == 'stft':
             if print_info:
-                print 'Performing wet/dry classification'
+                print 'Performing wet/dry classification for link '+ self.metadata['link_id']
                 print ' Method = stft'
                 print ' dry_window_length = ' + str(dry_window_length)
                 print ' window_length = ' + str(window_length)

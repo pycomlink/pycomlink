@@ -15,7 +15,7 @@ from __future__ import division
 import numpy as np
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs    
-from cartopy.io.img_tiles import GoogleTiles
+import cartopy.io as cio
 
 
 from . import wet_dry
@@ -231,7 +231,7 @@ class Comlink():
                    plt.figure(figsize=(7, 9))
                    ax = plt.axes(projection=ccrs.PlateCarree())
                    ax.set_extent((area[0], area[1], area[2], area[3]), crs=ccrs.PlateCarree())
-                   gg_tiles = GoogleTiles()
+                   gg_tiles = cio.img_tiles.GoogleTiles()
                    ax.add_image(gg_tiles, 11)
 
                    plt.plot([self.metadata['site_A']['lon'],self.metadata['site_B']['lon']],

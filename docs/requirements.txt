@@ -3,4 +3,5 @@ pandas
 matplotlib
 scipy
 cartopy
+pykrige
 mock

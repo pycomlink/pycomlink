@@ -13,8 +13,7 @@
 from __future__ import division
 import numpy as np
 import matplotlib.pyplot as plt
-import cartopy.crs as ccrs    
-import cartopy.io.img_tiles as cio
+import cartopy
 import pandas as pd
 
 import math
@@ -86,7 +85,7 @@ class ComlinkSet():
                 
         """
         plt.figure(figsize=(10,10))
-        ax = plt.axes(projection=ccrs.PlateCarree())
+        ax = plt.axes(projection=cartopy.crs.PlateCarree())
 
         lons=[]
         lats=[]
@@ -101,15 +100,15 @@ class ComlinkSet():
               min(lats)-.05,
               max(lats)+.05]           
         
-        ax.set_extent((area[0], area[1], area[2], area[3]), crs=ccrs.PlateCarree())
-        gg_tiles = cio.GoogleTiles()
+        ax.set_extent((area[0], area[1], area[2], area[3]), crs=cartopy.crs.PlateCarree())
+        gg_tiles = cartopy.io.GoogleTiles()
         ax.add_image(gg_tiles, 11)        
         
         for cml in self.set:
                    plt.plot([cml.metadata['site_A']['lon'],cml.metadata['site_B']['lon']],
                             [cml.metadata['site_A']['lat'],cml.metadata['site_B']['lat']],
                             linewidth=2,color='k',
-                            transform=ccrs.Geodetic())        
+                            transform=cartopy.crs.Geodetic())        
         
     
 
@@ -369,14 +368,14 @@ class ComlinkSet():
         """
         
         fig = plt.figure(figsize=figsize)
-        ax = plt.axes(projection=ccrs.PlateCarree())
-        gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True,
+        ax = plt.axes(projection=cartopy.crs.PlateCarree())
+        gl = ax.gridlines(crs=cartopy.crs.PlateCarree(), draw_labels=True,
                   linewidth=2, color='gray', alpha=0.5, linestyle='--')        
         gl.xlabels_top = False
         ax.set_extent((self.set_info['area'][0]-.05, self.set_info['area'][1]+.05,
                        self.set_info['area'][2]-.05, self.set_info['area'][3]+.05),
-                         crs=ccrs.PlateCarree())
-        gg_tiles = cio.GoogleTiles()
+                         crs=cartopy.crs.PlateCarree())
+        gg_tiles = cartopy.io.img_tiles.GoogleTiles()
 
         ax.add_image(gg_tiles, 11)                 
         for cml in self.set:
@@ -388,7 +387,7 @@ class ComlinkSet():
                        plt.plot([cml.metadata['site_A']['lon'],cml.metadata['site_B']['lon']],
                          [cml.metadata['site_A']['lat'],cml.metadata['site_B']['lat']],
                          linewidth=1,color='k',
-                         transform=ccrs.Geodetic()) 
+                         transform=cartopy.crs.Geodetic()) 
 
 
         levels_rr = [0.5, 1.0, 1.5,2.0, 2.5, 5.0, 7.5, 10.0,12.5,15.0,20.0]
@@ -411,7 +410,7 @@ class ComlinkSet():
                        plt.plot([cml.metadata['site_A']['lon'],cml.metadata['site_B']['lon']],
                              [cml.metadata['site_A']['lat'],cml.metadata['site_B']['lat']],
                              linewidth=1,color='k',
-                             transform=ccrs.Geodetic())  
+                             transform=cartopy.crs.Geodetic())  
                        cml.metadata['lat_center'] = (cml.metadata['site_A']['lat']
                                                            +cml.metadata['site_B']['lat'])/2.
                        cml.metadata['lon_center'] = (cml.metadata['site_A']['lon']
@@ -496,14 +495,14 @@ class ComlinkSet():
                                           
   
         if time is None:                                                        
-            cs = plt.contourf(gridx,gridy,interpol,levels=levels_sum,cmap=plt.cm.winter_r,transform=ccrs.PlateCarree())
+            cs = plt.contourf(gridx,gridy,interpol,levels=levels_sum,cmap=plt.cm.winter_r,transform=cartopy.crs.PlateCarree())
             plt.title('accumulated rainfall from time period: '+(self.set[0].data.index[0]).strftime('%Y-%m-%d %H:%M')+'UTC - '+
                         (self.set[0].data.index[-1]).strftime('%Y-%m-%d %H:%M')+'UTC',loc='right')
             cbar = plt.colorbar(cs,orientation='vertical')
             cbar.set_label('mm')
         else:
 
-            cs = plt.contourf(gridx,gridy,interpol,levels=levels_rr,cmap=plt.cm.winter_r,alpha=0.6,transform=ccrs.PlateCarree())
+            cs = plt.contourf(gridx,gridy,interpol,levels=levels_rr,cmap=plt.cm.winter_r,alpha=0.6,transform=cartopy.crs.PlateCarree())
             plt.title((pd.Timestamp(time)).strftime('%Y-%m-%d %H:%M')+'UTC',loc='right')
             cbar = plt.colorbar(cs,orientation='vertical')
             cbar.set_label('mm/h')

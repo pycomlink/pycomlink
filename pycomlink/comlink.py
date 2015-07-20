@@ -15,9 +15,7 @@ from __future__ import division
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import cartopy.crs as ccrs    
-import cartopy.io.img_tiles as cio
-
+import cartopy
 
 from . import wet_dry
 from . import baseline
@@ -235,22 +233,22 @@ class Comlink():
                          max(self.metadata['site_A']['lat'],self.metadata['site_B']['lat'])+.1]
                          
                    plt.figure(figsize=(7, 9))
-                   ax = plt.axes(projection=ccrs.PlateCarree())
-                   ax.set_extent((area[0], area[1], area[2], area[3]), crs=ccrs.PlateCarree())
-                   gg_tiles = cio.GoogleTiles()
+                   ax = plt.axes(projection=cartopy.crs.PlateCarree())
+                   ax.set_extent((area[0], area[1], area[2], area[3]), crs=cartopy.crs.PlateCarree())
+                   gg_tiles = cartopy.io.img_tiles.GoogleTiles()
                    ax.add_image(gg_tiles, 11)
 
                    plt.plot([self.metadata['site_A']['lon'],self.metadata['site_B']['lon']],
                             [self.metadata['site_A']['lat'],self.metadata['site_B']['lat']],
                             linewidth=3,color='k',
-                            transform=ccrs.Geodetic())
+                            transform=cartopy.crs.Geodetic())
                    xy=mapping.label_loc(self.metadata['site_A']['lon'],
                                         self.metadata['site_A']['lat'],
                                         self.metadata['site_B']['lon'],
                                         self.metadata['site_B']['lat'])
 
-                   plt.text(xy[0],xy[1],'A',fontsize=15,transform=ccrs.Geodetic()) 
-                   plt.text(xy[2],xy[3],'B',fontsize=15,transform=ccrs.Geodetic())        
+                   plt.text(xy[0],xy[1],'A',fontsize=15,transform=cartopy.crs.Geodetic()) 
+                   plt.text(xy[2],xy[3],'B',fontsize=15,transform=cartopy.crs.Geodetic())        
                    plt.show() 
                    
         print '============================================================='                   

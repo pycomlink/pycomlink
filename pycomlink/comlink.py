@@ -13,9 +13,10 @@
 from __future__ import division
 
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs    
-import cartopy.io as cio
+import cartopy.io.img_tiles as cio
 
 
 from . import wet_dry
@@ -162,12 +163,17 @@ class Comlink():
         
         # TODO resolve protection link data in DataFrame
 
-        # Calculate TX-RX
-        # TODO change name of `column_names` since this does not make
-        #      sense anymore.
+        # Calculate TX-RX                                    
         for pair_id, column_names in tx_rx_pairs.iteritems():
-            self.data['txrx_' + pair_id] = self.data[column_names['tx']] \
-                                         - self.data[column_names['rx']]
+            for key in column_names:
+                
+                if key == 'TX' or key == 'tx':
+                    tx_series = self.data[tx_rx_pairs[pair_id][key]]
+                elif key == 'RX' or key == 'rx':
+                    rx_series = self.data[tx_rx_pairs[pair_id][key]]
+                
+            self.data['txrx_' + pair_id] = tx_series - rx_series                                          
+                                         
         self.processing_info['tx_rx_pairs'] = tx_rx_pairs
 
     def info(self):
@@ -231,7 +237,7 @@ class Comlink():
                    plt.figure(figsize=(7, 9))
                    ax = plt.axes(projection=ccrs.PlateCarree())
                    ax.set_extent((area[0], area[1], area[2], area[3]), crs=ccrs.PlateCarree())
-                   gg_tiles = cio.img_tiles.GoogleTiles()
+                   gg_tiles = cio.GoogleTiles()
                    ax.add_image(gg_tiles, 11)
 
                    plt.plot([self.metadata['site_A']['lon'],self.metadata['site_B']['lon']],
@@ -249,6 +255,141 @@ class Comlink():
                    
         print '============================================================='                   
  
+   
+    def quality_test(self,rx_range=[-85,-10],tx_range=[-6,35],figsize=(6,4)):
+        """Perform quality tests of TX, RX time series and print information
+        
+        Parameters
+        ----------
+        rx_range : list, optional
+            List of lower and upper limit of plausible RX values in dBm. 
+            Default is [-75,-10]
+        tx_range : list, optional
+            List of lower and upper limit of plausible TX values in dBm. 
+            Default is [-6,35]    
+        figsize : matplotlib parameter, optional 
+            Size of output figure in inches (default is (6,4))   
+            
+        Note
+        ----
+        WIP : Currently three simple tests are implemented:
+                - Outlier test: Test for TX/RX values outside of a specified range
+                - Plausability test: Test if hourly rolling mean is within the 
+                                     specified range.
+                - Completeness test: Counts the number of data gaps                     
+                   
+        """
+        
+        for pair_id, column_names in self.processing_info['tx_rx_pairs'].iteritems():
+            
+            for key in column_names:
+                
+                if key == 'rx' or key == 'RX':
+                    limit = rx_range
+                elif key == 'tx' or key == 'TX':
+                    limit = tx_range
+                    
+                if key == 'rx' or key == 'tx' or key == 'RX' or key == 'TX':
+                    
+                    column = self.processing_info['tx_rx_pairs'][pair_id][key]
+                    
+                    print '------'
+                    print ' - ' +column+ ':'
+                    
+                    #Outlier test
+                    outlier = self.data[column][(self.data[column] < limit[0]) | 
+                                                (self.data[column] > limit[1])]
+                                             
+                    if len(outlier) == 0:            
+                        print '    Outlier test passed.'
+                        self.processing_info['outlier_test'+str(column)] = 'passed'   
+                    else:
+                        self.processing_info['outlier_test'+str(column)] = 'failed'
+                        self.processing_info['outlier'+str(column)] = outlier
+                        print '    Outlier test failed. Consider method remove_bad_values.'
+                        plt.figure(figsize=figsize)
+                        plt.ylabel(column)
+                        if key == 'rx' or key == 'RX':                        
+                            plt.fill_between(self.data.index,rx_range[0], 
+                                             rx_range[1],color='g', alpha=0.2)
+                            plt.ylim((-300,100))                  
+                        elif key == 'tx' or key == 'TX':                        
+                            plt.fill_between(self.data.index,tx_range[0], 
+                                             tx_range[1],color='g', alpha=0.2)                                             
+                            plt.ylim((-100,300))                  
+                        plt.plot(self.data.index,self.data[column],'k')
+                        plt.plot(outlier.index,outlier,'r.')        
+                        plt.show()  
+                        
+                    #Plausability test
+                    rol_mean = pd.rolling_mean(self.data[column],
+                                                window=60, center=True)    
+                    rol_mean_in=rol_mean                                         
+                    rol_mean_out=rol_mean  
+                                                        
+                    rol_mean_out[(rol_mean > limit[0]) & 
+                                 (rol_mean < limit[1])] = None
+                    rol_mean_in[(rol_mean < limit[0]) | 
+                                (rol_mean > limit[1])] = None   
+                                                 
+                    if ((rol_mean < limit[0]) | (rol_mean > limit[1])).any(): 
+                        self.processing_info['plausability_test'+str(column)] = 'failed'
+                        print "    Plausability test failed. Consider method remove_bad_values or check for protection link."
+                        plt.figure(figsize=figsize)
+                        plt.ylabel(column)
+                        if key == 'rx' or key == 'RX':                        
+                            plt.fill_between(self.data.index,rx_range[0], 
+                                             rx_range[1],color='g', alpha=0.2)
+                            plt.ylim((-300,100))                  
+                        elif key == 'tx' or key == 'TX':                        
+                            plt.fill_between(self.data.index,tx_range[0], 
+                                             tx_range[1],color='g', alpha=0.2)                                             
+                            plt.ylim((-100,300))                  
+                        plt.plot(self.data.index,self.data[column],'k')
+                        plt.plot(rol_mean_in.index,rol_mean_in,'g',linewidth=2)   
+                        plt.plot(rol_mean_out.index,rol_mean_out,'r',linewidth=2)
+                        plt.show()                                                  
+                        
+                    else:
+                        print '    Plausability test passed.'
+                        self.processing_info['plausability_test'+str(column)] = 'passed'        
+     
+        print '-------------------' 
+        print 'Completeness test:'
+        print 'Number of data gaps'
+        count_nan = self.data.isnull().sum()
+        print count_nan
+        self.processing_info['data_gap_number'] = count_nan
+        
+    def remove_bad_values(self,bad_value=-99.9):
+        """Detect bad values and convert to NaN
+        
+        Parameters
+        ----------
+        bad_value : int or float
+                Bad value to be removed
+        
+        """
+
+        for pair_id, column_names in self.processing_info['tx_rx_pairs'].iteritems():
+            for key in column_names:
+                
+                if key == 'rx' or key == 'tx' or key == 'RX' or key == 'TX':
+                    self.data[self.processing_info['tx_rx_pairs']
+                                [pair_id][key]].replace(bad_value,np.nan,inplace=True)                
+                
+                if key == 'TX' or key == 'tx':
+                    tx_series = self.data[self.processing_info['tx_rx_pairs']
+                                            [pair_id][key]]
+                elif key == 'RX' or key == 'rx':
+                    rx_series = self.data[self.processing_info['tx_rx_pairs']
+                                            [pair_id][key]]
+                
+            #Recalculate TXRX
+            self.data['txrx_' + pair_id] = tx_series - rx_series     
+        
+   
+   
    
     def plot(self, 
              param_list=['txrx'], 
@@ -363,7 +504,7 @@ class Comlink():
         
         Note
         ----        
-        WIP: Currently two classification methods are supported:
+        WIP : Currently two classification methods are supported:
                 - std_dev: Rolling standard deviation method [1]_
                 - stft: Rolling Fourier-transform method [2]_      
                 

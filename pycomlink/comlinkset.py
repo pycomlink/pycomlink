@@ -14,7 +14,7 @@ from __future__ import division
 import numpy as np
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs    
-import cartopy.io as cio
+import cartopy.io.img_tiles as cio
 import pandas as pd
 
 import math
@@ -102,7 +102,7 @@ class ComlinkSet():
               max(lats)+.05]           
         
         ax.set_extent((area[0], area[1], area[2], area[3]), crs=ccrs.PlateCarree())
-        gg_tiles = cio.img_tiles.GoogleTiles()
+        gg_tiles = cio.GoogleTiles()
         ax.add_image(gg_tiles, 11)        
         
         for cml in self.set:
@@ -111,7 +111,41 @@ class ComlinkSet():
                             linewidth=2,color='k',
                             transform=ccrs.Geodetic())        
         
+    
+
+
+    def quality_test(self,rx_range=[-80,-10],tx_range=[-6,35],figsize=(6,4)):
+        """Perform quality tests of TX, RX time series and print information
         
+        Parameters
+        ----------
+        rx_range : list, optional
+            List of lower and upper limit of plausible RX values in dBm. 
+            Default is [-75,-10]
+        tx_range : list, optional
+            List of lower and upper limit of plausible TX values in dBm. 
+            Default is [-6,35]    
+        figsize : matplotlib parameter, optional 
+            Size of output figure in inches (default is (6,4))    
+                   
+        """
+        for cml in self.set:
+            cml.quality_test(rx_range,tx_range,figsize)
+
+
+    def remove_bad_values(self,bad_value=-99.9):
+        """Detect bad values and convert to NaN
+        
+        Parameters
+        ----------
+        bad_value : int or float
+                Bad value to be removed
+        
+        """
+        for cml in self.set:
+            cml.remove_bad_values(bad_value)
+
+    
     def do_wet_dry_classification(self, method='std_dev', 
                                         window_length=128,
                                         threshold=1,
@@ -342,7 +376,7 @@ class ComlinkSet():
         ax.set_extent((self.set_info['area'][0]-.05, self.set_info['area'][1]+.05,
                        self.set_info['area'][2]-.05, self.set_info['area'][3]+.05),
                          crs=ccrs.PlateCarree())
-        gg_tiles = cio.img_tiles.GoogleTiles()
+        gg_tiles = cio.GoogleTiles()
 
         ax.add_image(gg_tiles, 11)                 
         for cml in self.set:

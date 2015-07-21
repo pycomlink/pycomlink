@@ -102,7 +102,7 @@ class ComlinkSet():
               max(lats)+.05]           
         
         ax.set_extent((area[0], area[1], area[2], area[3]), crs=cartopy.crs.PlateCarree())
-        gg_tiles = img_tiles.GoogleTiles()
+        gg_tiles=img_tiles.OSM()
         ax.add_image(gg_tiles, 11)        
         
         for cml in self.set:
@@ -376,7 +376,7 @@ class ComlinkSet():
         ax.set_extent((self.set_info['area'][0]-.05, self.set_info['area'][1]+.05,
                        self.set_info['area'][2]-.05, self.set_info['area'][3]+.05),
                          crs=cartopy.crs.PlateCarree())
-        gg_tiles = img_tiles.GoogleTiles()
+        gg_tiles = img_tiles.OSM()
 
         ax.add_image(gg_tiles, 11)                 
         for cml in self.set:

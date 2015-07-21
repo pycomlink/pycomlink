@@ -236,7 +236,7 @@ class Comlink():
                    plt.figure(figsize=(7, 9))
                    ax = plt.axes(projection=cartopy.crs.PlateCarree())
                    ax.set_extent((area[0], area[1], area[2], area[3]), crs=cartopy.crs.PlateCarree())
-                   gg_tiles = img_tiles.GoogleTiles()
+                   gg_tiles=img_tiles.MapQuestOSM()
                    ax.add_image(gg_tiles, 11)
 
                    plt.plot([self.metadata['site_A']['lon'],self.metadata['site_B']['lon']],

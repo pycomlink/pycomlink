@@ -31,7 +31,8 @@ def baseline_constant(rsl, wet):
         else:
             baseline[i] = rsl[i]
     return baseline
-            
+
+
 def baseline_linear(rsl, wet):
     """Baseline determination during wet period by interpolating the RSL level 
         linearly between two enframing dry periods
@@ -56,7 +57,11 @@ def baseline_linear(rsl, wet):
     last_dry_i = 0
     last_dry_rsl = rsl[0]
     last_i_is_wet = False
-    for i, (rsl_i, wet_i) in enumerate(zip(rsl, wet), start=1):
+    for i, (rsl_i, wet_i) in enumerate(zip(rsl, wet)):
+        # Skip first iteration step:
+        if i == 0:
+            continue
+
         is_wet = wet_i
         # Check for NaN values. If NaN, then continue with
         # the last wet/dry state
@@ -80,7 +85,7 @@ def baseline_linear(rsl, wet):
             last_dry_rsl = rsl_i
         # within a dry period
         elif not last_i_is_wet and not is_wet:
-            baseline[i] = rsl[i]
+            baseline[i] = rsl_i
             last_i_is_wet = False             
             last_dry_i = i
             last_dry_rsl = rsl_i

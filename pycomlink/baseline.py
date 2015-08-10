@@ -54,9 +54,10 @@ def baseline_linear(rsl, wet):
     baseline = np.zeros(np.shape(rsl))
     baseline[0] = rsl[0]
     last_dry_i = 0
+    last_dry_rsl = rsl[0]
     last_i_is_wet = False
-    for i in range(1,len(rsl)):
-        is_wet = wet[i]
+    for i, (rsl_i, wet_i) in enumerate(zip(rsl, wet), start=1):
+        is_wet = wet_i
         # Check for NaN values. If NaN, then continue with
         # the last wet/dry state
         if np.isnan(is_wet):
@@ -71,16 +72,18 @@ def baseline_linear(rsl, wet):
         elif last_i_is_wet and not is_wet:
             #!! Only works correctly with 'i+1'. With 'i' the first dry
             #!! baseline value is kept at 0. No clue why we need the '+1'
-            baseline[last_dry_i:i+1] = np.linspace(rsl[last_dry_i], 
-                                                 rsl[i],
-                                                 i-last_dry_i+1)
+            baseline[last_dry_i:i+1] = np.linspace(last_dry_rsl,
+                                                   rsl_i,
+                                                   i-last_dry_i+1)
             last_i_is_wet = False
             last_dry_i = i
+            last_dry_rsl = rsl_i
         # within a dry period
         elif not last_i_is_wet and not is_wet:
             baseline[i] = rsl[i]
             last_i_is_wet = False             
             last_dry_i = i
+            last_dry_rsl = rsl_i
         else:
             print 'This should be impossible'
             raise

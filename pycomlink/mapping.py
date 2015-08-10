@@ -146,16 +146,24 @@ def kriging(lons_mp,lats_mp,values_mp,lons_grid,lats_grid,
     from pykrige.uk import UniversalKriging
     
     if krig_type == 'ordinary':
-       OK = OrdinaryKriging(lons_mp, lats_mp, values_mp,
+        try:
+            OK = OrdinaryKriging(lons_mp, lats_mp, values_mp,
                             variogram_model=variogram_model,
                             verbose=False, enable_plotting=False) 
-       z, s_kr = OK.execute('grid', lons_grid, lats_grid)   
+            z, s_kr = OK.execute('grid', lons_grid, lats_grid)   
+        except ValueError:
+            pass
+            z = np.empty((len(lons_grid),len(lats_grid))) 
     elif krig_type == 'universal':
-       UK = UniversalKriging(lons_mp, lats_mp, values_mp,
+        try:
+            UK = UniversalKriging(lons_mp, lats_mp, values_mp,
                             variogram_model=variogram_model,
                             drift_terms=drift_terms,
                             verbose=False, enable_plotting=False) 
-       z, s_kr = UK.execute('grid', lons_grid, lats_grid) 
+            z, s_kr = UK.execute('grid', lons_grid, lats_grid) 
+        except ValueError:
+            pass
+            z = np.empty((len(lons_grid),len(lats_grid)))
     else:
        ValueError('Kriging type not supported')   
     return z       

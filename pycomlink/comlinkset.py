@@ -13,8 +13,8 @@
 from __future__ import division
 import numpy as np
 import matplotlib.pyplot as plt
-import cartopy.crs as ccrs    
-import cartopy.io.img_tiles as cio
+import cartopy
+from cartopy.io import img_tiles
 import pandas as pd
 
 import math
@@ -86,7 +86,7 @@ class ComlinkSet():
                 
         """
         plt.figure(figsize=(10,10))
-        ax = plt.axes(projection=ccrs.PlateCarree())
+        ax = plt.axes(projection=cartopy.crs.PlateCarree())
 
         lons=[]
         lats=[]
@@ -101,15 +101,15 @@ class ComlinkSet():
               min(lats)-.05,
               max(lats)+.05]           
         
-        ax.set_extent((area[0], area[1], area[2], area[3]), crs=ccrs.PlateCarree())
-        gg_tiles = cio.GoogleTiles()
+        ax.set_extent((area[0], area[1], area[2], area[3]), crs=cartopy.crs.PlateCarree())
+        gg_tiles=img_tiles.OSM()
         ax.add_image(gg_tiles, 11)        
         
         for cml in self.set:
                    plt.plot([cml.metadata['site_A']['lon'],cml.metadata['site_B']['lon']],
                             [cml.metadata['site_A']['lat'],cml.metadata['site_B']['lat']],
                             linewidth=2,color='k',
-                            transform=ccrs.Geodetic())        
+                            transform=cartopy.crs.Geodetic())        
         
     
 
@@ -342,8 +342,7 @@ class ComlinkSet():
             'mean' average of near-far and far-near
             'max' maximum of near-far and far-near
             'min' minimum of near-far and far-near
-            'dir1' use only first direction from tx_rx_pairs
-            'dir2' use only second direction from tx_rx_pairs                
+            'nf', 'fn', 'fnp' etc. use direction from tx_rx_pairs               
         time_resolution : int, optional
                 Resampling time for rain rate calculation. Only used if time
                 is not None (Default is 15)               
@@ -369,14 +368,14 @@ class ComlinkSet():
         """
         
         fig = plt.figure(figsize=figsize)
-        ax = plt.axes(projection=ccrs.PlateCarree())
-        gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True,
+        ax = plt.axes(projection=cartopy.crs.PlateCarree())
+        gl = ax.gridlines(crs=cartopy.crs.PlateCarree(), draw_labels=True,
                   linewidth=2, color='gray', alpha=0.5, linestyle='--')        
         gl.xlabels_top = False
         ax.set_extent((self.set_info['area'][0]-.05, self.set_info['area'][1]+.05,
                        self.set_info['area'][2]-.05, self.set_info['area'][3]+.05),
-                         crs=ccrs.PlateCarree())
-        gg_tiles = cio.GoogleTiles()
+                         crs=cartopy.crs.PlateCarree())
+        gg_tiles = img_tiles.OSM()
 
         ax.add_image(gg_tiles, 11)                 
         for cml in self.set:
@@ -388,7 +387,7 @@ class ComlinkSet():
                        plt.plot([cml.metadata['site_A']['lon'],cml.metadata['site_B']['lon']],
                          [cml.metadata['site_A']['lat'],cml.metadata['site_B']['lat']],
                          linewidth=1,color='k',
-                         transform=ccrs.Geodetic()) 
+                         transform=cartopy.crs.Geodetic()) 
 
 
         levels_rr = [0.5, 1.0, 1.5,2.0, 2.5, 5.0, 7.5, 10.0,12.5,15.0,20.0]
@@ -399,10 +398,8 @@ class ComlinkSet():
         gridx = np.linspace(self.set_info['area'][0],self.set_info['area'][1],grid_res)
         gridy = np.linspace(self.set_info['area'][2],self.set_info['area'][3],grid_res)   
        
-        # MW data and metadata
-        ACC = {}       
+        # MW data and metadata      
         for cml in self.set:
-            cumsu = {}
             if 'site_A' in cml.metadata and 'site_B' in cml.metadata:
                 if 'lat' in cml.metadata['site_A'] and \
                    'lon' in cml.metadata['site_A'] and \
@@ -411,7 +408,7 @@ class ComlinkSet():
                        plt.plot([cml.metadata['site_A']['lon'],cml.metadata['site_B']['lon']],
                              [cml.metadata['site_A']['lat'],cml.metadata['site_B']['lat']],
                              linewidth=1,color='k',
-                             transform=ccrs.Geodetic())  
+                             transform=cartopy.crs.Geodetic())  
                        cml.metadata['lat_center'] = (cml.metadata['site_A']['lat']
                                                            +cml.metadata['site_B']['lat'])/2.
                        cml.metadata['lon_center'] = (cml.metadata['site_A']['lon']
@@ -420,9 +417,7 @@ class ComlinkSet():
                        if time is None:
                            for pair_id in cml.processing_info['tx_rx_pairs']:
                                if 'R_' + pair_id in cml.data.columns:
-                                   cumsu[pair_id]=cml.data['R_' + pair_id].resample('H',how='mean').cumsum()
-                           if cumsu:        
-                               ACC[cml.metadata['link_id']]=cumsu    
+                                   cml.processing_info['accR_' + pair_id] = cml.data['R_' + pair_id].resample('H',how='mean').cumsum()[-1]  
 
         lons_mw=[]
         lats_mw=[]
@@ -430,80 +425,103 @@ class ComlinkSet():
  
         if time is None:
              for cml in self.set:
-                 if len(cml.processing_info['tx_rx_pairs']) == 2:
-                     if cml.metadata['link_id'] in ACC:
-                         if method == 'mean':
-                             prep_sum = (ACC[cml.metadata['link_id']][cml.processing_info['tx_rx_pairs'].keys()[0]][-1]+
-                                        ACC[cml.metadata['link_id']][cml.processing_info['tx_rx_pairs'].keys()[1]][-1])/2. 
-                         elif method == 'max':
-                             prep_sum = max(ACC[cml.metadata['link_id']][cml.processing_info['tx_rx_pairs'].keys()[0]][-1],
-                                        ACC[cml.metadata['link_id']][cml.processing_info['tx_rx_pairs'].keys()[1]][-1])
-                         elif method == 'min':
-                             prep_sum = min(ACC[cml.metadata['link_id']][cml.processing_info['tx_rx_pairs'].keys()[0]][-1],
-                                        ACC[cml.metadata['link_id']][cml.processing_info['tx_rx_pairs'].keys()[1]][-1])
-                         elif method == 'dir1':
-                             prep_sum = ACC[cml.metadata['link_id']][cml.processing_info['tx_rx_pairs'].keys()[0]][-1]
-                         elif method == 'dir2':
-                             prep_sum = ACC[cml.metadata['link_id']][cml.processing_info['tx_rx_pairs'].keys()[1]][-1]
-                                    
+                 plist = []
+                 for pair_id in cml.processing_info['tx_rx_pairs']:
+                     if 'accR_' + pair_id in cml.processing_info.keys():
+                         plist.append(cml.processing_info['accR_'+pair_id])        
+                 if method == 'mean':
+                     try:
+                         precip = np.mean(plist)
+                     except ValueError:
+                         pass
+                 elif method == 'max':    
+                     try:
+                         precip = np.max(plist)
+                     except ValueError:
+                         pass
+                 elif method == 'min':
+                     try:
+                         precip = np.min(plist)  
+                     except ValueError:
+                         pass
+                 elif method in cml.processing_info['tx_rx_pairs']:
+                     if 'accR_' + pair_id in cml.processing_info.keys():
+                         precip = cml.processing_info['accR_'+method]
+                     else:
+                         print 'Pair ID '+method+' not available for link '+cml.metadata['link_id']
+                         precip = None                         
                  else:
-                     prep_sum = ACC[cml.metadata['link_id']][cml.processing_info['tx_rx_pairs'].keys()[0]][-1]
-                 
-                 if not math.isnan(prep_sum):  
-                     lons_mw.append(cml.metadata['lon_center'])
-                     lats_mw.append(cml.metadata['lat_center'])
-                     values_mw.append(prep_sum)     
+                     print method+' not available for link '+cml.metadata['link_id']
+                     precip = None     
 
+                 if precip:                                   
+                     if not math.isnan(precip):  
+                         lons_mw.append(cml.metadata['lon_center'])
+                         lats_mw.append(cml.metadata['lat_center'])
+                         values_mw.append(precip)     
+  
               
         else:
              start = pd.Timestamp(time) - pd.Timedelta('30s')
              stop = pd.Timestamp(time) + pd.Timedelta('30s')
              for cml in self.set:
-                 if len(cml.processing_info['tx_rx_pairs']) == 2:
-                     if 'R_'+cml.processing_info['tx_rx_pairs'].keys()[0] in cml.data.columns and 'R_'+cml.processing_info['tx_rx_pairs'].keys()[1] in cml.data.columns:
-                         if method == 'mean':
-                             prep_sum = ((cml.data['R_'+cml.processing_info['tx_rx_pairs'].keys()[0]].resample(str(time_resolution)+'Min',how='mean')[start:stop]+
-                                         cml.data['R_'+cml.processing_info['tx_rx_pairs'].keys()[1]].resample(str(time_resolution)+'Min',how='mean')[start:stop])/2.)
-                         elif method == 'max':
-                             prep_sum = pd.DataFrame({'a':cml.data['R_'+cml.processing_info['tx_rx_pairs'].keys()[0]].resample(str(time_resolution)+'Min',how='mean')[start:stop],
-                                                      'b':cml.data['R_'+cml.processing_info['tx_rx_pairs'].keys()[1]].resample(str(time_resolution)+'Min',how='mean')[start:stop]}).max(1)
-                         elif method == 'min':
-                              prep_sum = pd.DataFrame({'a':cml.data['R_'+cml.processing_info['tx_rx_pairs'].keys()[0]].resample(str(time_resolution)+'Min',how='mean')[start:stop],
-                                                      'b':cml.data['R_'+cml.processing_info['tx_rx_pairs'].keys()[1]].resample(str(time_resolution)+'Min',how='mean')[start:stop]}).min(1)
-                         elif method == 'dir1':
-                             prep_sum = cml.data['R_'+cml.processing_info['tx_rx_pairs'].keys()[0]].resample(str(time_resolution)+'Min',how='mean')[start:stop]
-                         elif method == 'dir2':
-                             prep_sum = cml.data['R_'+cml.processing_info['tx_rx_pairs'].keys()[1]].resample(str(time_resolution)+'Min',how='mean')[start:stop]      
+                 plist = []
+                 for pair_id in cml.processing_info['tx_rx_pairs']:
+                     if 'R_' + pair_id in cml.data.keys():
+                         plist.append((cml.data['R_'+pair_id].resample(str(time_resolution)+'Min',how='mean')[start:stop]).values[0])
+ 
+                 if method == 'mean':
+                     try:
+                         precip = np.mean(plist)
+                     except ValueError:
+                         pass
+                 elif method == 'max':
+                     try:
+                         precip = np.max(plist)
+                     except ValueError:
+                         pass
+                 elif method == 'min':
+                     try:
+                         precip = np.min(plist)  
+                     except ValueError:
+                         pass
+                 elif method in cml.processing_info['tx_rx_pairs']:
+                     if 'R_' + pair_id in cml.data.keys():
+                         precip = (cml.data['R_'+method].resample(str(time_resolution)+'Min',how='mean')[start:stop]).values[0]
+                     else:
+                         print 'Pair ID '+method+' not available for link '+cml.metadata['link_id']
+                         precip = None
                  else:
-                     prep_sum = cml.data['R_'+cml.processing_info['tx_rx_pairs'].keys()[0]].resample(str(time_resolution)+'Min',how='mean')[start:stop]
-
-                 if not math.isnan(prep_sum):  
-                     lons_mw.append(cml.metadata['lon_center'])
-                     lats_mw.append(cml.metadata['lat_center'])
-                     values_mw.append(prep_sum.values)
-                     
+                     print method+' not available for link '+cml.metadata['link_id']
+                     precip = None
+    
+                 if precip:                 
+                     if not math.isnan(precip):  
+                         lons_mw.append(cml.metadata['lon_center'])
+                         lats_mw.append(cml.metadata['lat_center'])
+                         values_mw.append(precip)                                                                    
                     
-                        
-                        
-        if int_type == 'IDW':          
+                                 
+        if int_type == 'IDW':       
             interpol=mapping.inv_dist(lons_mw,lats_mw,values_mw,
                                           gridx,gridy,power,smoothing)
+                              
         elif int_type == 'Kriging':
             interpol=mapping.kriging(lons_mw,lats_mw,values_mw,gridx,gridy, 
-                                     krig_type,variogram_model,drift_terms)  
+                                     krig_type,variogram_model,drift_terms)                                      
         else:
             ValueError('Interpolation method not supported')                             
                                           
   
         if time is None:                                                        
-            cs = plt.contourf(gridx,gridy,interpol,levels=levels_sum,cmap=plt.cm.winter_r,transform=ccrs.PlateCarree())
+            cs = plt.contourf(gridx,gridy,interpol,levels=levels_sum,cmap=plt.cm.winter_r,transform=cartopy.crs.PlateCarree())
             plt.title('accumulated rainfall from time period: '+(self.set[0].data.index[0]).strftime('%Y-%m-%d %H:%M')+'UTC - '+
                         (self.set[0].data.index[-1]).strftime('%Y-%m-%d %H:%M')+'UTC',loc='right')
             cbar = plt.colorbar(cs,orientation='vertical')
             cbar.set_label('mm')
         else:
 
-            cs = plt.contourf(gridx,gridy,interpol,levels=levels_rr,cmap=plt.cm.winter_r,alpha=0.6,transform=ccrs.PlateCarree())
+            cs = plt.contourf(gridx,gridy,interpol,levels=levels_rr,cmap=plt.cm.winter_r,alpha=0.6,transform=cartopy.crs.PlateCarree())
             plt.title((pd.Timestamp(time)).strftime('%Y-%m-%d %H:%M')+'UTC',loc='right')
             cbar = plt.colorbar(cs,orientation='vertical')
             cbar.set_label('mm/h')

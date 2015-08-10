@@ -159,7 +159,7 @@ def wet_dry_stft(rsl, window_length, threshold, f_divide,
     Pxx : 2-D array of float, optional
         Spectogram used for the wet/dry classification. Gets computed if not given
         (Default is None)
-    f : arra of float, optional
+    f : array of float, optional
         Frequencies corresponding to the rows in Pxx. Gets computed if not given.
         (Default is None)
     f_sampling : float, optional    

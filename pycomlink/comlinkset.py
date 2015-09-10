@@ -49,7 +49,7 @@ class ComlinkSet():
             area : list of floats
                 List that holds the geographic coordinates of the area borders in
                 decimal format. 
-                The order has to be:
+                The order is mandatory.
                 
                 Example
                 -------
@@ -302,9 +302,11 @@ class ComlinkSet():
                
         """          
         for cml in self.set:
-            if (cml.processing_info['tx_rx_pairs']['fn']['f_GHz'] is not None 
-               and cml.processing_info['tx_rx_pairs']['nf']['f_GHz'] is not None):
-                   cml.calc_R_from_A(a,b,approx_type)                
+            for pair_id in cml.processing_info['tx_rx_pairs']:
+                if cml.processing_info['tx_rx_pairs'][pair_id]['f_GHz'] is not None: 
+                   cml.calc_R_from_A(a,b,approx_type)     
+                else:
+                   cml.data['R_'+pair_id] = None 
                 
                                                            
                
@@ -317,7 +319,8 @@ class ComlinkSet():
                  power=2,smoothing=0,
                  krig_type='ordinary',
                  variogram_model='linear',
-                 drift_terms=['regional_linear']):
+                 drift_terms=['regional_linear'],
+                 out_file=None):
                      
         """ Perform and plot spatial interpolation of rain rate or rain sum on regular grid
         
@@ -364,9 +367,12 @@ class ComlinkSet():
                 Parameters for Kriging interpolation. See pykrige documentation
                 for information. Only used if int_type is 'Kriging' 
                 (Default is ['regional_linear'])
+        out_file : str, optional
+                file path of output image file
+                (Default is None)
                 
         """
-        
+
         fig = plt.figure(figsize=figsize)
         ax = plt.axes(projection=cartopy.crs.PlateCarree())
         gl = ax.gridlines(crs=cartopy.crs.PlateCarree(), draw_labels=True,
@@ -427,23 +433,31 @@ class ComlinkSet():
              for cml in self.set:
                  plist = []
                  for pair_id in cml.processing_info['tx_rx_pairs']:
-                     if 'accR_' + pair_id in cml.processing_info.keys():
-                         plist.append(cml.processing_info['accR_'+pair_id])        
+                     try:
+                         plist.append(cml.processing_info['accR_'+pair_id])
+                     except:
+                         pass       
                  if method == 'mean':
                      try:
                          precip = np.mean(plist)
                      except ValueError:
                          pass
+                     except TypeError:
+                         pass                     
                  elif method == 'max':    
                      try:
                          precip = np.max(plist)
                      except ValueError:
                          pass
+                     except TypeError:
+                         pass                      
                  elif method == 'min':
                      try:
                          precip = np.min(plist)  
                      except ValueError:
                          pass
+                     except TypeError:
+                         pass                      
                  elif method in cml.processing_info['tx_rx_pairs']:
                      if 'accR_' + pair_id in cml.processing_info.keys():
                          precip = cml.processing_info['accR_'+method]
@@ -454,11 +468,10 @@ class ComlinkSet():
                      print method+' not available for link '+cml.metadata['link_id']
                      precip = None     
 
-                 if precip:                                   
-                     if not math.isnan(precip):  
-                         lons_mw.append(cml.metadata['lon_center'])
-                         lats_mw.append(cml.metadata['lat_center'])
-                         values_mw.append(precip)     
+                 if precip >= 0.:                                     
+                     lons_mw.append(cml.metadata['lon_center'])
+                     lats_mw.append(cml.metadata['lat_center'])
+                     values_mw.append(precip)     
   
               
         else:
@@ -467,24 +480,32 @@ class ComlinkSet():
              for cml in self.set:
                  plist = []
                  for pair_id in cml.processing_info['tx_rx_pairs']:
-                     if 'R_' + pair_id in cml.data.keys():
+                     try:
                          plist.append((cml.data['R_'+pair_id].resample(str(time_resolution)+'Min',how='mean')[start:stop]).values[0])
+                     except:
+                         pass
  
                  if method == 'mean':
                      try:
                          precip = np.mean(plist)
                      except ValueError:
                          pass
+                     except TypeError:
+                         pass                        
                  elif method == 'max':
                      try:
                          precip = np.max(plist)
                      except ValueError:
                          pass
+                     except TypeError:
+                         pass                        
                  elif method == 'min':
                      try:
                          precip = np.min(plist)  
                      except ValueError:
                          pass
+                     except TypeError:
+                         pass                        
                  elif method in cml.processing_info['tx_rx_pairs']:
                      if 'R_' + pair_id in cml.data.keys():
                          precip = (cml.data['R_'+method].resample(str(time_resolution)+'Min',how='mean')[start:stop]).values[0]
@@ -494,37 +515,40 @@ class ComlinkSet():
                  else:
                      print method+' not available for link '+cml.metadata['link_id']
                      precip = None
-    
-                 if precip:                 
-                     if not math.isnan(precip):  
-                         lons_mw.append(cml.metadata['lon_center'])
-                         lats_mw.append(cml.metadata['lat_center'])
-                         values_mw.append(precip)                                                                    
+     
+                 if precip >= 0.:    
+                     lons_mw.append(cml.metadata['lon_center'])
+                     lats_mw.append(cml.metadata['lat_center'])
+                     values_mw.append(precip)                                                                    
                     
-                                 
-        if int_type == 'IDW':       
-            interpol=mapping.inv_dist(lons_mw,lats_mw,values_mw,
-                                          gridx,gridy,power,smoothing)
-                              
-        elif int_type == 'Kriging':
-            interpol=mapping.kriging(lons_mw,lats_mw,values_mw,gridx,gridy, 
-                                     krig_type,variogram_model,drift_terms)                                      
-        else:
-            ValueError('Interpolation method not supported')                             
-                                          
-  
-        if time is None:                                                        
-            cs = plt.contourf(gridx,gridy,interpol,levels=levels_sum,cmap=plt.cm.winter_r,transform=cartopy.crs.PlateCarree())
+        if not all(v==0.0 for v in values_mw):                         
+            if int_type == 'IDW':       
+                interpol=mapping.inv_dist(lons_mw,lats_mw,values_mw,
+                                              gridx,gridy,power,smoothing)
+                                  
+            elif int_type == 'Kriging':
+                interpol=mapping.kriging(lons_mw,lats_mw,values_mw,gridx,gridy, 
+                                         krig_type,variogram_model,drift_terms)                                      
+            else:
+                ValueError('Interpolation method not supported')                             
+                                                                            
+        if time is None:    
+            if not all(v==0.0 for v in values_mw):                                                    
+                cs = plt.contourf(gridx,gridy,interpol,levels=levels_sum,cmap=plt.cm.winter_r,transform=cartopy.crs.PlateCarree())
+                cbar = plt.colorbar(cs,orientation='vertical', shrink=0.4)
+                cbar.set_label('mm')
             plt.title('accumulated rainfall from time period: '+(self.set[0].data.index[0]).strftime('%Y-%m-%d %H:%M')+'UTC - '+
                         (self.set[0].data.index[-1]).strftime('%Y-%m-%d %H:%M')+'UTC',loc='right')
-            cbar = plt.colorbar(cs,orientation='vertical')
-            cbar.set_label('mm')
-        else:
 
-            cs = plt.contourf(gridx,gridy,interpol,levels=levels_rr,cmap=plt.cm.winter_r,alpha=0.6,transform=cartopy.crs.PlateCarree())
+        else:
+            if not all(v==0.0 for v in values_mw):
+                cs = plt.contourf(gridx,gridy,interpol,levels=levels_rr,cmap=plt.cm.winter_r,alpha=0.6,transform=cartopy.crs.PlateCarree())
+                cbar = plt.colorbar(cs,orientation='vertical', shrink=0.4)
+                cbar.set_label('mm/h')            
             plt.title((pd.Timestamp(time)).strftime('%Y-%m-%d %H:%M')+'UTC',loc='right')
-            cbar = plt.colorbar(cs,orientation='vertical')
-            cbar.set_label('mm/h')
+
        
+        if out_file is not None:
+            plt.savefig(out_file,bbox_inches='tight',pad_inches=0)
 
                  

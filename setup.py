@@ -38,6 +38,5 @@ setup(
         'numpy', 
         'scipy', 
         'pandas', 
-        'matplotlib', 
-        'basemap'],
+        'matplotlib'],
 )

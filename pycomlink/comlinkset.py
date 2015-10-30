@@ -285,7 +285,7 @@ class ComlinkSet():
                     
     def calc_R_from_A(self, a=None, b=None, approx_type='ITU'):
         
-        """Perform calculation of rain rate from attenuation for all CML time series in CMLS
+        """Perform calculation of rain rate from attenuation for all CML time series in CMLS . 
         
         Parameters
         ----------
@@ -299,23 +299,32 @@ class ComlinkSet():
             Approximation type (the default is 'ITU', which implies parameter
             approximation using a table recommanded by ITU) 
             
-               
-        """          
+        Note
+        ----
+        cml without length in metadata and frequency information in processing 
+        info are removed from cmls.set
+        """   
+        
         for cml in self.set:
+            remove=False
+            if not cml.metadata['length_km']:
+                remove=True
             for pair_id in cml.processing_info['tx_rx_pairs']:
-                if cml.processing_info['tx_rx_pairs'][pair_id]['f_GHz'] is not None: 
-                   cml.calc_R_from_A(a,b,approx_type)     
-                else:
-                   cml.data['R_'+pair_id] = None 
+                if not cml.processing_info['tx_rx_pairs'][pair_id]['f_GHz']:
+                    remove=True
+            if remove:
+                self.set.remove(cml)        
+        
+        for cml in self.set:
+                cml.calc_R_from_A(a,b,approx_type)     
                 
                                                            
                
     def spat_interpol(self, grid_res,
                  int_type,
-                 figsize=(15,10),
+                 figsize=(15,15),
                  time=None,
                  method='mean',
-                 time_resolution=15,
                  power=2,smoothing=0,
                  krig_type='ordinary',
                  variogram_model='linear',
@@ -345,10 +354,7 @@ class ComlinkSet():
             'mean' average of near-far and far-near
             'max' maximum of near-far and far-near
             'min' minimum of near-far and far-near
-            'nf', 'fn', 'fnp' etc. use direction from tx_rx_pairs               
-        time_resolution : int, optional
-                Resampling time for rain rate calculation. Only used if time
-                is not None (Default is 15)               
+            'nf', 'fn', 'fnp' etc. use direction from tx_rx_pairs                           
         power : flt, optional
                Power of distance decay for IDW interpolation. Only used if 
                int_type is 'IDW' (Default is 2)   
@@ -396,7 +402,7 @@ class ComlinkSet():
                          transform=cartopy.crs.Geodetic()) 
 
 
-        levels_rr = [0.5, 1.0, 1.5,2.0, 2.5, 5.0, 7.5, 10.0,12.5,15.0,20.0]
+        levels_rr = [0.1, 1.0, 1.5,2.0, 2.5, 5.0, 7.5, 10.0,12.5,15.0,20.0]
         levels_sum = [5.0,10.0,15.0,20.0,25.0,50.0,75.0,100.0,150.0,200.0,250.0]          
 
         
@@ -422,8 +428,8 @@ class ComlinkSet():
                            
                        if time is None:
                            for pair_id in cml.processing_info['tx_rx_pairs']:
-                               if 'R_' + pair_id in cml.data.columns:
-                                   cml.processing_info['accR_' + pair_id] = cml.data['R_' + pair_id].resample('H',how='mean').cumsum()[-1]  
+                                   cml.processing_info['accR_' + pair_id] = \
+                                       cml.data['R_' + pair_id].resample('H',how='mean').cumsum()[-1]  
 
         lons_mw=[]
         lats_mw=[]
@@ -433,89 +439,67 @@ class ComlinkSet():
              for cml in self.set:
                  plist = []
                  for pair_id in cml.processing_info['tx_rx_pairs']:
-                     try:
-                         plist.append(cml.processing_info['accR_'+pair_id])
-                     except:
-                         pass       
+                         plist.append(cml.processing_info['accR_'+pair_id])    
                  if method == 'mean':
-                     try:
-                         precip = np.mean(plist)
-                     except ValueError:
-                         pass
-                     except TypeError:
-                         pass                     
+                         precip = np.mean(plist)                  
                  elif method == 'max':    
-                     try:
-                         precip = np.max(plist)
-                     except ValueError:
-                         pass
-                     except TypeError:
-                         pass                      
+                         precip = np.max(plist)                     
                  elif method == 'min':
-                     try:
-                         precip = np.min(plist)  
-                     except ValueError:
-                         pass
-                     except TypeError:
-                         pass                      
+                         precip = np.min(plist)                      
                  elif method in cml.processing_info['tx_rx_pairs']:
                      if 'accR_' + pair_id in cml.processing_info.keys():
                          precip = cml.processing_info['accR_'+method]
                      else:
-                         print 'Pair ID '+method+' not available for link '+cml.metadata['link_id']
+                         print 'Warning: Pair ID '+method+' not available for link '+\
+                                     cml.metadata['link_id'] + ' (link is ignored)'
                          precip = None                         
                  else:
-                     print method+' not available for link '+cml.metadata['link_id']
+                     print 'Error: '+method+' not available for link '+\
+                                 cml.metadata['link_id'] + ' (link is ignored)'
+                     print '      Use "mean","max","min" or pair_id'            
                      precip = None     
 
                  if precip >= 0.:                                     
                      lons_mw.append(cml.metadata['lon_center'])
                      lats_mw.append(cml.metadata['lat_center'])
                      values_mw.append(precip)     
-  
-              
+                
         else:
-             start = pd.Timestamp(time) - pd.Timedelta('30s')
-             stop = pd.Timestamp(time) + pd.Timedelta('30s')
+             start = pd.Timestamp(time) - pd.Timedelta('10s')
+             stop = pd.Timestamp(time) + pd.Timedelta('10s')
              for cml in self.set:
                  plist = []
-                 for pair_id in cml.processing_info['tx_rx_pairs']:
-                     try:
-                         plist.append((cml.data['R_'+pair_id].resample(str(time_resolution)+'Min',how='mean')[start:stop]).values[0])
-                     except:
-                         pass
+                 if start > self.set[0].data.index[0] and stop < self.set[0].data.index[-1]:
+                     print start,stop
+                     for pair_id in cml.processing_info['tx_rx_pairs']:
+                         plist.append((cml.data['R_'+pair_id][start:stop]).values[0])
  
-                 if method == 'mean':
-                     try:
-                         precip = np.mean(plist)
-                     except ValueError:
-                         pass
-                     except TypeError:
-                         pass                        
-                 elif method == 'max':
-                     try:
-                         precip = np.max(plist)
-                     except ValueError:
-                         pass
-                     except TypeError:
-                         pass                        
-                 elif method == 'min':
-                     try:
-                         precip = np.min(plist)  
-                     except ValueError:
-                         pass
-                     except TypeError:
-                         pass                        
-                 elif method in cml.processing_info['tx_rx_pairs']:
-                     if 'R_' + pair_id in cml.data.keys():
-                         precip = (cml.data['R_'+method].resample(str(time_resolution)+'Min',how='mean')[start:stop]).values[0]
+                     if method == 'mean':
+                             precip = np.mean(plist)                     
+                     elif method == 'max':
+                             precip = np.max(plist)                        
+                     elif method == 'min':
+                             precip = np.min(plist)                          
+                     elif method in cml.processing_info['tx_rx_pairs']:
+                         if 'R_' + pair_id in cml.data.keys():
+                             precip = (cml.data['R_'+method][start:stop]).values[0]
+                         else:
+                             print 'Warning: Pair ID '+method+' not available for link '+\
+                                     cml.metadata['link_id'] + ' (link is ignored)'
+                             precip = None
                      else:
-                         print 'Pair ID '+method+' not available for link '+cml.metadata['link_id']
+                         print 'Error: '+method+' not available for link '+\
+                                 cml.metadata['link_id'] + ' (link is ignored)'
+                         print '      Use "mean","max","min" or pair_id'        
                          precip = None
+                
                  else:
-                     print method+' not available for link '+cml.metadata['link_id']
-                     precip = None
-     
+                        print 'Warning: Selected time not in data for link '+cml.metadata['link_id'] + \
+                                ' (link is ignored)'
+                        print '        Selectable time span:',self.set[0].data.index[0], \
+                                                             self.set[0].data.index[-1] 
+                        precip=None
+                        
                  if precip >= 0.:    
                      lons_mw.append(cml.metadata['lon_center'])
                      lats_mw.append(cml.metadata['lat_center'])
@@ -531,10 +515,12 @@ class ComlinkSet():
                                          krig_type,variogram_model,drift_terms)                                      
             else:
                 ValueError('Interpolation method not supported')                             
-                                                                            
+            
+                                                                    
         if time is None:    
             if not all(v==0.0 for v in values_mw):                                                    
-                cs = plt.contourf(gridx,gridy,interpol,levels=levels_sum,cmap=plt.cm.winter_r,transform=cartopy.crs.PlateCarree())
+                cs = plt.contourf(gridx,gridy,interpol,levels=levels_sum,
+                                  cmap=plt.cm.winter_r,transform=cartopy.crs.PlateCarree())
                 cbar = plt.colorbar(cs,orientation='vertical', shrink=0.4)
                 cbar.set_label('mm')
             plt.title('accumulated rainfall from time period: '+(self.set[0].data.index[0]).strftime('%Y-%m-%d %H:%M')+'UTC - '+
@@ -542,13 +528,16 @@ class ComlinkSet():
 
         else:
             if not all(v==0.0 for v in values_mw):
-                cs = plt.contourf(gridx,gridy,interpol,levels=levels_rr,cmap=plt.cm.winter_r,alpha=0.6,transform=cartopy.crs.PlateCarree())
+                cs = plt.contourf(gridx,gridy,interpol,levels=levels_rr,
+                                  cmap=plt.cm.winter_r,alpha=0.6,transform=cartopy.crs.PlateCarree())
+                #cs = plt.pcolormesh(gridx,gridy,interpol,cmap=plt.cm.winter_r,
+                #                    vmin=0.5, vmax=25)                  
                 cbar = plt.colorbar(cs,orientation='vertical', shrink=0.4)
                 cbar.set_label('mm/h')            
             plt.title((pd.Timestamp(time)).strftime('%Y-%m-%d %H:%M')+'UTC',loc='right')
 
        
         if out_file is not None:
-            plt.savefig(out_file,bbox_inches='tight',pad_inches=0)
+            plt.savefig(out_file,bbox_inches='tight',pad_inches=0,format='png')
 
                  

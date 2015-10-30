@@ -134,7 +134,7 @@ def find_lowest_std_dev_period(rsl, window_length=600):
     return dry_start, dry_stop
  
 def wet_dry_stft(rsl, window_length, threshold, f_divide, 
-                 t_dry_start, t_dry_stop, 
+                 t_dry_start, t_dry_stop, mirror,
                  window=None, Pxx=None, f=None, f_sampling=1/60.0):
                      
     """Perform wet/dry classification with Rolling Fourier-transform method
@@ -153,6 +153,8 @@ def wet_dry_stft(rsl, window_length, threshold, f_divide,
         Index of starting point dry period
     t_dry_stop : int
         Index of end of dry period
+    mirror : bool 
+        Mirrroring values in window at end of time series        
     window : array of float, optional
         Values of window function. If not given a Hamming window function is
         applied (Default is None)
@@ -166,6 +168,7 @@ def wet_dry_stft(rsl, window_length, threshold, f_divide,
         Sampling frequency (samples per time unit). It is used to calculate 
         the Fourier frequencies, freqs, in cycles per time unit.
         (Default is 1/60.0)
+    mirror : bool   
         
     Returns
     -------
@@ -190,20 +193,30 @@ def wet_dry_stft(rsl, window_length, threshold, f_divide,
                      
     import numpy as np
     #from pylab import specgram
-    from matplotlib.mlab import specgram as specg
-    
+    from matplotlib.mlab import specgram as specg    
+        
     # Calculate spectrogram Pxx if it is not supplied as function argument 
     if Pxx is None:
         # Set up sliding window for STFT
-        NFFT = window_length
+        if mirror:
+            # Window length has to be even 
+            if window_length % 2 == 0:
+                NFFT = window_length
+            else:
+                NFFT = window_length+1    
+        else:        
+            NFFT = window_length
+            
         if window == None:
-            window = np.hamming(window_length)        
+            window = np.hamming(window_length) 
+                        
         # Calculate spectrogram using STFT    
         Pxx, f, t = specg(rsl, 
                           NFFT=NFFT, 
                           Fs=f_sampling, 
                           noverlap=NFFT-1, 
                           window=window)
+                 
     elif Pxx is not None and f is not None:
         print 'Skipping spectrogram calculation and using supplied Pxx'
         #
@@ -219,10 +232,28 @@ def wet_dry_stft(rsl, window_length, threshold, f_divide,
     # the time series (stemming from the window length) 
     N_diff = len(rsl) - len(Pxx[0])
     N_missing_start = np.floor(N_diff/2.0)
-    N_missing_end = N_diff - N_missing_start
-    Pxx_extended =  np.concatenate((nans([len(Pxx),N_missing_start]),
-                           Pxx,
-                           nans([len(Pxx),N_missing_end])),1)
+    
+    if mirror:
+        for i in range((len(rsl)-1)-(NFFT/2-1),len(rsl)):
+            rsl_mirr = np.concatenate((rsl[i-(NFFT/2-1):i],rsl[i-(NFFT/2-1):i][::-1]))
+            Pxx_mirr, f, t = specg(rsl_mirr, 
+                                   NFFT=NFFT, 
+                                   Fs=f_sampling, 
+                                   noverlap=NFFT-1, 
+                                   window=window)
+                       
+            if i == (len(rsl)-1)-(NFFT/2-1):
+                Pxx_end = Pxx_mirr
+            else:    
+                Pxx_end = np.append(Pxx_end,Pxx_mirr,1)    
+        Pxx_extended =  np.concatenate((nans([len(Pxx),N_missing_start]),
+                                        Pxx,
+                                        Pxx_end),1)                
+    else:    
+        N_missing_end = N_diff - N_missing_start
+        Pxx_extended =  np.concatenate((nans([len(Pxx),N_missing_start]),
+                               Pxx,
+                               nans([len(Pxx),N_missing_end])),1)
     
     # Calculate mean dry spectrum
     P_dry_mean = np.nanmean(Pxx_extended[:, t_dry_start:t_dry_stop], axis=1)

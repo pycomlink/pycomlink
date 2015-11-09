@@ -478,6 +478,7 @@ class Comlink():
                                         dry_window_length=600,
                                         f_divide=1e-3,
                                         reuse_last_Pxx=False,
+                                        mirror=False,
                                         print_info=False):
                                             
         """Perform wet/dry classification for CML time series
@@ -497,10 +498,13 @@ class Comlink():
                  purpose. Only for method stft. (Default is 600)
         f_divide : float
                  Parameter for classification with method Fourier transformation
-                 (Default is 1e-3)          
+                 (Default is 1e-3)    
         reuse_last_Pxx : bool
                  Parameter for classification with method Fourier transformation
                  (Default is false)  
+        mirror : bool
+                 Parameter for classification with method Fourier transformation
+                 (Default is False)
         print_info : bool
                   Print information about executed method (Default is False)
         
@@ -569,7 +573,8 @@ class Comlink():
                                                             threshold,
                                                             f_divide,
                                                             t_dry_start,
-                                                            t_dry_stop)
+                                                            t_dry_stop,
+                                                            mirror)
                 elif reuse_last_Pxx is True:
                     Pxx=self.processing_info['wet_dry_Pxx_' + pair_id]
                     f=self.processing_info['wet_dry_f']
@@ -580,6 +585,7 @@ class Comlink():
                                                             f_divide,
                                                             t_dry_start,
                                                             t_dry_stop,
+                                                            mirror,
                                                             Pxx=Pxx,
                                                             f=f)
                 else:

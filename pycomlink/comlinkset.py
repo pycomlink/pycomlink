@@ -286,7 +286,7 @@ class ComlinkSet():
                     
     def calc_R_from_A(self, a=None, b=None, approx_type='ITU'):
         
-        """Perform calculation of rain rate from attenuation for all CML time series in CMLS
+        """Perform calculation of rain rate from attenuation for all CML time series in CMLS . 
         
         Parameters
         ----------
@@ -300,18 +300,17 @@ class ComlinkSet():
             Approximation type (the default is 'ITU', which implies parameter
             approximation using a table recommanded by ITU) 
             
-               
-        """          
+        Note
+        ----
+        cml without length in metadata and frequency information in processing 
+        info are removed from cmls.set
+        """   
+        
         for cml in self.set:
+            remove=False
+            if not cml.metadata['length_km']:
+                remove=True
             for pair_id in cml.processing_info['tx_rx_pairs']:
-<<<<<<< HEAD
-                if cml.processing_info['tx_rx_pairs'][pair_id]['f_GHz'] is not None: 
-                   cml.calc_R_from_A(a,b,approx_type)     
-                else:
-                   cml.data['R_'+pair_id] = None 
-                
-                                                           
-=======
                 if not cml.processing_info['tx_rx_pairs'][pair_id]['f_GHz']:
                     remove=True
             if remove:
@@ -320,19 +319,13 @@ class ComlinkSet():
         for cml in self.set:
                 cml.calc_R_from_A(a,b,approx_type)     
                                                                     
->>>>>>> 6356332... Revision of plotting and spatial interpolation methods. IDW now with limitation to nn neighbors. Plotting in spat_interpol now optional
                
     def spat_interpol(self, grid_res,
                  int_type,
-                 figsize=(15,10),
+                 figsize=(15,15),
                  time=None,
                  method='mean',
-<<<<<<< HEAD
-                 time_resolution=15,
-                 power=2,smoothing=0,
-=======
                  power=2,smoothing=0,nn=10,
->>>>>>> 6356332... Revision of plotting and spatial interpolation methods. IDW now with limitation to nn neighbors. Plotting in spat_interpol now optional
                  krig_type='ordinary',
                  variogram_model='linear',
                  drift_terms=['regional_linear'],
@@ -362,10 +355,7 @@ class ComlinkSet():
             'mean' average of near-far and far-near
             'max' maximum of near-far and far-near
             'min' minimum of near-far and far-near
-            'nf', 'fn', 'fnp' etc. use direction from tx_rx_pairs               
-        time_resolution : int, optional
-                Resampling time for rain rate calculation. Only used if time
-                is not None (Default is 15)               
+            'nf', 'fn', 'fnp' etc. use direction from tx_rx_pairs                           
         power : flt, optional
                Power of distance decay for IDW interpolation. Only used if 
                int_type is 'IDW' (Default is 2)   
@@ -396,36 +386,6 @@ class ComlinkSet():
                 
         """
 
-<<<<<<< HEAD
-        fig = plt.figure(figsize=figsize)
-        ax = plt.axes(projection=cartopy.crs.PlateCarree())
-        gl = ax.gridlines(crs=cartopy.crs.PlateCarree(), draw_labels=True,
-                  linewidth=2, color='gray', alpha=0.5, linestyle='--')        
-        gl.xlabels_top = False
-        ax.set_extent((self.set_info['area'][0]-.05, self.set_info['area'][1]+.05,
-                       self.set_info['area'][2]-.05, self.set_info['area'][3]+.05),
-                         crs=cartopy.crs.PlateCarree())
-        gg_tiles = img_tiles.OSM()
-
-        ax.add_image(gg_tiles, 11)                 
-        for cml in self.set:
-            if 'site_A' in cml.metadata and 'site_B' in cml.metadata:
-                if 'lat' in cml.metadata['site_A'] and \
-                   'lon' in cml.metadata['site_A'] and \
-                   'lat' in cml.metadata['site_B'] and \
-                   'lon' in cml.metadata['site_B']:
-                       plt.plot([cml.metadata['site_A']['lon'],cml.metadata['site_B']['lon']],
-                         [cml.metadata['site_A']['lat'],cml.metadata['site_B']['lat']],
-                         linewidth=1,color='k',
-                         transform=cartopy.crs.Geodetic()) 
-
-
-        levels_rr = [0.5, 1.0, 1.5,2.0, 2.5, 5.0, 7.5, 10.0,12.5,15.0,20.0]
-        levels_sum = [5.0,10.0,15.0,20.0,25.0,50.0,75.0,100.0,150.0,200.0,250.0]          
-
-        
-=======
->>>>>>> 6356332... Revision of plotting and spatial interpolation methods. IDW now with limitation to nn neighbors. Plotting in spat_interpol now optional
         #Definition of output grid
         gridx = np.linspace(self.set_info['area'][0],self.set_info['area'][1],grid_res)
         gridy = np.linspace(self.set_info['area'][2],self.set_info['area'][3],grid_res)   
@@ -451,136 +411,6 @@ class ComlinkSet():
                        if time is None:                
                            plist = []
                            for pair_id in cml.processing_info['tx_rx_pairs']:
-<<<<<<< HEAD
-                               if 'R_' + pair_id in cml.data.columns:
-                                   cml.processing_info['accR_' + pair_id] = cml.data['R_' + pair_id].resample('H',how='mean').cumsum()[-1]  
-
-        lons_mw=[]
-        lats_mw=[]
-        values_mw=[]        
- 
-        if time is None:
-             for cml in self.set:
-                 plist = []
-                 for pair_id in cml.processing_info['tx_rx_pairs']:
-                     try:
-                         plist.append(cml.processing_info['accR_'+pair_id])
-                     except:
-                         pass       
-                 if method == 'mean':
-                     try:
-                         precip = np.mean(plist)
-                     except ValueError:
-                         pass
-                     except TypeError:
-                         pass                     
-                 elif method == 'max':    
-                     try:
-                         precip = np.max(plist)
-                     except ValueError:
-                         pass
-                     except TypeError:
-                         pass                      
-                 elif method == 'min':
-                     try:
-                         precip = np.min(plist)  
-                     except ValueError:
-                         pass
-                     except TypeError:
-                         pass                      
-                 elif method in cml.processing_info['tx_rx_pairs']:
-                     if 'accR_' + pair_id in cml.processing_info.keys():
-                         precip = cml.processing_info['accR_'+method]
-                     else:
-                         print 'Pair ID '+method+' not available for link '+cml.metadata['link_id']
-                         precip = None                         
-                 else:
-                     print method+' not available for link '+cml.metadata['link_id']
-                     precip = None     
-
-                 if precip >= 0.:                                     
-                     lons_mw.append(cml.metadata['lon_center'])
-                     lats_mw.append(cml.metadata['lat_center'])
-                     values_mw.append(precip)     
-  
-              
-        else:
-             start = pd.Timestamp(time) - pd.Timedelta('30s')
-             stop = pd.Timestamp(time) + pd.Timedelta('30s')
-             for cml in self.set:
-                 plist = []
-                 for pair_id in cml.processing_info['tx_rx_pairs']:
-                     try:
-                         plist.append((cml.data['R_'+pair_id].resample(str(time_resolution)+'Min',how='mean')[start:stop]).values[0])
-                     except:
-                         pass
- 
-                 if method == 'mean':
-                     try:
-                         precip = np.mean(plist)
-                     except ValueError:
-                         pass
-                     except TypeError:
-                         pass                        
-                 elif method == 'max':
-                     try:
-                         precip = np.max(plist)
-                     except ValueError:
-                         pass
-                     except TypeError:
-                         pass                        
-                 elif method == 'min':
-                     try:
-                         precip = np.min(plist)  
-                     except ValueError:
-                         pass
-                     except TypeError:
-                         pass                        
-                 elif method in cml.processing_info['tx_rx_pairs']:
-                     if 'R_' + pair_id in cml.data.keys():
-                         precip = (cml.data['R_'+method].resample(str(time_resolution)+'Min',how='mean')[start:stop]).values[0]
-                     else:
-                         print 'Pair ID '+method+' not available for link '+cml.metadata['link_id']
-                         precip = None
-                 else:
-                     print method+' not available for link '+cml.metadata['link_id']
-                     precip = None
-     
-                 if precip >= 0.:    
-                     lons_mw.append(cml.metadata['lon_center'])
-                     lats_mw.append(cml.metadata['lat_center'])
-                     values_mw.append(precip)                                                                    
-                    
-        if not all(v==0.0 for v in values_mw):                         
-            if int_type == 'IDW':       
-                interpol=mapping.inv_dist(lons_mw,lats_mw,values_mw,
-                                              gridx,gridy,power,smoothing)
-                                  
-            elif int_type == 'Kriging':
-                interpol=mapping.kriging(lons_mw,lats_mw,values_mw,gridx,gridy, 
-                                         krig_type,variogram_model,drift_terms)                                      
-            else:
-                ValueError('Interpolation method not supported')                             
-                                                                            
-        if time is None:    
-            if not all(v==0.0 for v in values_mw):                                                    
-                cs = plt.contourf(gridx,gridy,interpol,levels=levels_sum,cmap=plt.cm.winter_r,transform=cartopy.crs.PlateCarree())
-                cbar = plt.colorbar(cs,orientation='vertical', shrink=0.4)
-                cbar.set_label('mm')
-            plt.title('accumulated rainfall from time period: '+(self.set[0].data.index[0]).strftime('%Y-%m-%d %H:%M')+'UTC - '+
-                        (self.set[0].data.index[-1]).strftime('%Y-%m-%d %H:%M')+'UTC',loc='right')
-
-        else:
-            if not all(v==0.0 for v in values_mw):
-                cs = plt.contourf(gridx,gridy,interpol,levels=levels_rr,cmap=plt.cm.winter_r,alpha=0.6,transform=cartopy.crs.PlateCarree())
-                cbar = plt.colorbar(cs,orientation='vertical', shrink=0.4)
-                cbar.set_label('mm/h')            
-            plt.title((pd.Timestamp(time)).strftime('%Y-%m-%d %H:%M')+'UTC',loc='right')
-
-       
-        if out_file is not None:
-            plt.savefig(out_file,bbox_inches='tight',pad_inches=0)
-=======
                                plist.append(cml.data['R_' + pair_id].resample('H',how='mean').cumsum()[-1])
                            if method == 'mean':
                                precip = np.mean(plist)                  
@@ -755,6 +585,5 @@ class ComlinkSet():
                         
             if out_file is not None:
                 plt.savefig(out_file,bbox_inches='tight',format='png')
->>>>>>> 6356332... Revision of plotting and spatial interpolation methods. IDW now with limitation to nn neighbors. Plotting in spat_interpol now optional
 
                  

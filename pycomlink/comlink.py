@@ -200,7 +200,7 @@ class Comlink():
         print '============================================================='
 
 
-    def info_plot(self):
+    def info_plot(self,out_file=None):
         """Print information about the link and plot it on a low resolution map 
                 
         """
@@ -249,11 +249,14 @@ class Comlink():
                                         self.metadata['site_B']['lat'])
 
                    plt.text(xy[0],xy[1],'A',fontsize=15,transform=cartopy.crs.Geodetic()) 
-                   plt.text(xy[2],xy[3],'B',fontsize=15,transform=cartopy.crs.Geodetic())        
-                   plt.show() 
+                   plt.text(xy[2],xy[3],'B',fontsize=15,transform=cartopy.crs.Geodetic())  
+                   #plt.tight_layout()
+                   #plt.show() 
                    
         print '============================================================='                   
- 
+
+        if out_file is not None:
+            plt.savefig(out_file,format='png',bbox_inches='tight', dpi=300) 
    
     def quality_test(self,rx_range=[-85,-10],tx_range=[-6,35],figsize=(6,4)):
         """Perform quality tests of TX, RX time series and print information

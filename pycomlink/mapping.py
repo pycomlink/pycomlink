@@ -2,6 +2,8 @@
 # Functions to calculate spatial interpolation #
 ################################################
 
+
+import math
 import numpy as np
 from scipy.spatial.distance import cdist
 
@@ -130,4 +132,36 @@ def kriging(sample_points, sample_values, grid,
         
     return z    
                            
-                             
+     
+                          
+    
+def distance(origin, destination):
+    """Simple distance (in km) calculation between two locations    
+    
+    Parameters
+    ----------
+    origin : tuple
+        Coordinates of first location in decimal format.
+        Required format (Latitude,Longitude)
+    destination : tuple
+        Coordinates of second location in decimal format.
+        Required format (Latitude,Longitude)  
+    
+    Returns
+    -------
+    Distance between origin and destination in kilometer
+    
+    """
+    
+    lat1, lon1 = origin
+    lat2, lon2 = destination
+    radius = 6371 # km
+ 
+    dlat = math.radians(lat2-lat1)
+    dlon = math.radians(lon2-lon1)
+    a = math.sin(dlat/2) * math.sin(dlat/2) + math.cos(math.radians(lat1)) \
+        * math.cos(math.radians(lat2)) * math.sin(dlon/2) * math.sin(dlon/2)
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+    d = radius * c
+ 
+    return d                             

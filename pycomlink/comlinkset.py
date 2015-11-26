@@ -17,7 +17,7 @@ import cartopy
 from cartopy.io import img_tiles
 import pandas as pd
 
-import math
+
 import matplotlib
 
 from . import wet_dry
@@ -171,19 +171,19 @@ class ComlinkSet():
             id_list = []
             for cml2 in self.set:
                 if cml.metadata['link_id'] != cml2.metadata['link_id'] and \
-                   distance((cml.metadata['site_A']['lat'],
+                   mapping.distance((cml.metadata['site_A']['lat'],
                              cml.metadata['site_A']['lon']),
                             (cml2.metadata['site_A']['lat'],
                              cml2.metadata['site_A']['lon'])) < crit_dis and \
-                   distance((cml.metadata['site_A']['lat'],
+                   mapping.distance((cml.metadata['site_A']['lat'],
                              cml.metadata['site_A']['lon']),
                             (cml2.metadata['site_B']['lat'],
                              cml2.metadata['site_B']['lon'])) < crit_dis and \
-                   distance((cml.metadata['site_B']['lat'],
+                   mapping.distance((cml.metadata['site_B']['lat'],
                              cml.metadata['site_B']['lon']),
                             (cml2.metadata['site_A']['lat'],
                              cml2.metadata['site_A']['lon'])) < crit_dis and \
-                   distance((cml.metadata['site_B']['lat'],
+                   mapping.distance((cml.metadata['site_B']['lat'],
                              cml.metadata['site_B']['lon']),
                             (cml2.metadata['site_B']['lat'],
                              cml2.metadata['site_B']['lon'])) < crit_dis:
@@ -276,11 +276,11 @@ class ComlinkSet():
                 print 'Temporal resolution is set to 15 Minutes'
                 print 'Links without neighbors are dismissed'
             for cml in self.set:
-            # Needs minimum and maximum power over 15min intervals
+            # Needs minimum power over 15min intervals
                 cml.data_mean = cml.data.resample('15min',how='mean')
                 cml.data_min = pd.DataFrame()
                 for pair_id in cml.processing_info['tx_rx_pairs']:
-                    cml.data_min['txrx_'+pair_id] = cml.data['txrx_nf'].resample('15min',how='min') 
+                    cml.data_min['txrx_'+pair_id] = cml.data['txrx_'+pair_id].resample('15min',how='min') 
             
             cml_list_update = []            
             for cml in self.set:                        
@@ -319,7 +319,8 @@ class ComlinkSet():
                            cml.data_mean['wet_' + pair_id] = cml.data_min['wet_' + pair_id]   
                            
                 cml.data = cml.data_mean                             
-            self =  ComlinkSet(cml_list_update, self.set_info['area'])   
+            self =  ComlinkSet(cml_list_update, self.set_info['area'],
+                               self.set_info['start'],self.set_info['stop'])   
         else:
                 ValueError('Wet/dry classification method not supported')            
                 
@@ -679,40 +680,8 @@ class ComlinkSet():
             plt.savefig(out_file,bbox_inches='tight',pad_inches=0)
 
 
-####################                        
-# Helper functions #
-####################
 
-def distance(origin, destination):
-    """Simple distance (in km) calculation between two locations    
-    
-    Parameters
-    ----------
-    origin : tuple
-        Coordinates of first location in decimal format.
-        Required format (Latitude,Longitude)
-    destination : tuple
-        Coordinates of second location in decimal format.
-        Required format (Latitude,Longitude)  
-    
-    Returns
-    -------
-    Distance between origin and destination in kilometer
-    
-    """
-    
-    lat1, lon1 = origin
-    lat2, lon2 = destination
-    radius = 6371 # km
- 
-    dlat = math.radians(lat2-lat1)
-    dlon = math.radians(lon2-lon1)
-    a = math.sin(dlat/2) * math.sin(dlat/2) + math.cos(math.radians(lat1)) \
-        * math.cos(math.radians(lat2)) * math.sin(dlon/2) * math.sin(dlon/2)
-    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
-    d = radius * c
- 
-    return d
+
 
 
 

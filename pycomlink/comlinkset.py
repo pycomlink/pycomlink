@@ -151,7 +151,7 @@ class ComlinkSet():
             cml.remove_bad_values(bad_value)
 
 
-    def find_neighboring_links(self,crit_dis=10.):
+    def find_neighboring_links(self,crit_dis=10.,min_link_length=0.7):
         """Identify neighboring links for which both ends are within a critical
            distance from either end of a link (computation is done for all links)
         
@@ -174,27 +174,34 @@ class ComlinkSet():
         """
         for cml in self.set:
             id_list = []
-            for cml2 in self.set:
-                if cml.metadata['link_id'] != cml2.metadata['link_id'] and \
-                   mapping.distance((cml.metadata['site_A']['lat'],
-                             cml.metadata['site_A']['lon']),
-                            (cml2.metadata['site_A']['lat'],
-                             cml2.metadata['site_A']['lon'])) < crit_dis and \
-                   mapping.distance((cml.metadata['site_A']['lat'],
-                             cml.metadata['site_A']['lon']),
-                            (cml2.metadata['site_B']['lat'],
-                             cml2.metadata['site_B']['lon'])) < crit_dis and \
-                   mapping.distance((cml.metadata['site_B']['lat'],
-                             cml.metadata['site_B']['lon']),
-                            (cml2.metadata['site_A']['lat'],
-                             cml2.metadata['site_A']['lon'])) < crit_dis and \
-                   mapping.distance((cml.metadata['site_B']['lat'],
-                             cml.metadata['site_B']['lon']),
-                            (cml2.metadata['site_B']['lat'],
-                             cml2.metadata['site_B']['lon'])) < crit_dis:
-                                 id_list.append(cml2.metadata['link_id'])
-                                                
+            cml_list = []    
+            if cml.metadata['length_km'] > min_link_length:
+                id_list.append(cml.metadata['link_id'])
+                cml_list.append(cml)
+                for cml2 in self.set:
+                    if cml.metadata['link_id'] != cml2.metadata['link_id'] and \
+                       mapping.distance((cml.metadata['site_A']['lat'],
+                                 cml.metadata['site_A']['lon']),
+                                (cml2.metadata['site_A']['lat'],
+                                 cml2.metadata['site_A']['lon'])) < crit_dis and \
+                       mapping.distance((cml.metadata['site_A']['lat'],
+                                 cml.metadata['site_A']['lon']),
+                                (cml2.metadata['site_B']['lat'],
+                                 cml2.metadata['site_B']['lon'])) < crit_dis and \
+                       mapping.distance((cml.metadata['site_B']['lat'],
+                                 cml.metadata['site_B']['lon']),
+                                (cml2.metadata['site_A']['lat'],
+                                 cml2.metadata['site_A']['lon'])) < crit_dis and \
+                       mapping.distance((cml.metadata['site_B']['lat'],
+                                 cml.metadata['site_B']['lon']),
+                                (cml2.metadata['site_B']['lat'],
+                                 cml2.metadata['site_B']['lon'])) < crit_dis and \
+                       cml2.metadata['length_km'] > min_link_length: 
+                                     id_list.append(cml2.metadata['link_id'])
+                                     cml_list.append(cml2)
+        
             cml.processing_info['neighbors'] = id_list
+            cml.processing_info['neighbors_cml'] = cml_list
             cml.processing_info['crit_dis'] = crit_dis    
     
     
@@ -280,52 +287,41 @@ class ComlinkSet():
                 print 'Hint:'
                 print 'Temporal resolution is set to 15 Minutes'
                 print 'Links without neighbors are dismissed'
-            for cml in self.set:
-            # Needs minimum power over 15min intervals
-                cml.data_mean = cml.data.resample('15min',how='mean')
-                cml.data_min = pd.DataFrame()
-                for pair_id in cml.processing_info['tx_rx_pairs']:
-                    cml.data_min['txrx_'+pair_id] = cml.data['txrx_'+pair_id].resample('15min',how='min') 
+
             
-            cml_list_update = []            
-            for cml in self.set:                        
-                if len(cml.processing_info['neighbors']) >= number_neighbors and \
-                   cml.metadata['length_km'] > min_link_length: 
-                       cml_list_update.append(cml)
-                       for pair_id in cml.processing_info['tx_rx_pairs']:                           
-                           temp_dp = cml.data_min['txrx_'+pair_id] - \
-                                      pd.rolling_max(cml.data_min['txrx_'+pair_id],96)
-                           dp = temp_dp.to_frame(cml.metadata['link_id'])       
-                           temp_dpl = (cml.data_min['txrx_'+pair_id] - \
-                                       pd.rolling_max(cml.data_min['txrx_'+pair_id],96))/ \
-                                       cml.metadata['length_km']
-                           dpl = temp_dpl.to_frame(cml.metadata['link_id'])  
-                            
-                           for cml2 in self.set:
-                               if cml2.metadata['link_id'] in cml.processing_info['neighbors'] and \
-                                   pair_id in cml2.processing_info['tx_rx_pairs'] and \
-                                   cml2.metadata['length_km'] > min_link_length:    
-                                       dp[cml2.metadata['link_id']] = \
-                                        cml2.data_min['txrx_'+pair_id] - \
-                                        pd.rolling_max(cml2.data_min['txrx_'+pair_id],96)   
-                                       dpl[cml2.metadata['link_id']] = \
-                                        cml2.data_min['txrx_'+pair_id] - \
-                                        pd.rolling_max(cml2.data_min['txrx_'+pair_id],96)/ \
-                                        cml2.metadata['length_km']   
-          
-                           cml.data_min['wet_' + pair_id] = ((dp.median(axis=1) < deltaP) & \
+            cml_list_update = []  
+            for cml in self.set:  
+                                  
+                if len(cml.processing_info['neighbors']) >= number_neighbors: 
+                    data_min = pd.DataFrame()
+                    dp = pd.DataFrame()
+                    dpl = pd.DataFrame()
+                    for pair_id in cml.processing_info['tx_rx_pairs']:
+                        for cml_nb in cml.processing_info['neighbors_cml']:
+                            if pair_id in cml_nb.processing_info['tx_rx_pairs']: 
+                                data_min['txrx_'+pair_id] = cml_nb.data['txrx_'+pair_id].resample('15min',how='min') 
+                                dp[cml_nb.metadata['link_id']] = data_min['txrx_'+pair_id] - \
+                                                                  pd.rolling_max(data_min['txrx_'+pair_id],96)
+                                dpl[cml_nb.metadata['link_id']] = (data_min['txrx_'+pair_id] - \
+                                                                   pd.rolling_max(data_min['txrx_'+pair_id],96))/ \
+                                                                   cml.metadata['length_km']            
+                        
+                        data_min['wet_' + pair_id] = ((dp.median(axis=1) < deltaP) & \
                                                          (dpl.median(axis=1) < deltaPL))
-                           for i in range(2,len(cml.data_min)-1):  
-                               if cml.data_min['wet_' + pair_id][i] and temp_dp[i] < -2.:
-                                    cml.data_min['wet_' + pair_id][i-2] = True
-                                    cml.data_min['wet_' + pair_id][i-1] = True
-                                    cml.data_min['wet_' + pair_id][i+1] = True
-                                    
-                           cml.data_mean['wet_' + pair_id] = cml.data_min['wet_' + pair_id]   
-                           
-                cml.data = cml.data_mean                             
-            self =  ComlinkSet(cml_list_update, self.set_info['area'],
-                               self.set_info['start'],self.set_info['stop'])   
+                                                         
+                        # WIP: Takes too long                                 
+                        #for i in range(2,len(data_min)-1): 
+                        #    if data_min['wet_' + pair_id][i] and dp[cml.metadata['link_id']][i] < -2.:
+                        #            data_min['wet_' + pair_id][i-2] = True
+                        #            data_min['wet_' + pair_id][i-1] = True
+                        #            data_min['wet_' + pair_id][i+1] = True
+                              
+                    cml.data = data_min 
+            
+                    cml_list_update.append(cml) 
+                            
+            self.set = cml_list_update          
+  
         else:
                 ValueError('Wet/dry classification method not supported')            
                 

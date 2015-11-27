@@ -516,7 +516,7 @@ class ComlinkSet():
         
         if start_time is None or stop_time is None:
             times = pd.date_range(self.set_info['start'],self.set_info['stop'],
-                                  freq=resampling_time)
+                                  freq=resampling_time)[0:-1]
         else:
             times = pd.date_range(start_time,stop_time,
                                   freq=resampling_time)                                  

@@ -15,13 +15,193 @@ import scipy.io
 import numpy as np
 import pandas as pd
 
+import h5py
+
 from collections import namedtuple
 
 from comlink import Comlink
 from comlinkset import ComlinkSet
 
+from math import radians, cos, sin, asin, sqrt
 
-def write_hdf5(fn, cml, cml_id=None):
+
+####################################################################
+# Read/Write/Helper functions for HDF5 based CML data format CMLh5 #
+####################################################################
+
+def _get_cml_attrs(cml):
+    attrs = {'id': cml.metadata['link_id'],
+             'site_a_latitude': cml.metadata['site_A']['lat'],
+             'site_a_longitude': cml.metadata['site_A']['lon'],
+             'site_b_latitude': cml.metadata['site_B']['lat'],
+             'site_b_longitude': cml.metadata['site_B']['lon'],
+             'length': _haversine(cml.metadata['site_A']['lon'], cml.metadata['site_A']['lat'],
+                                 cml.metadata['site_B']['lon'], cml.metadata['site_B']['lat']),
+             'system_manufacturer': 'Ericsson',
+             'system_model': 'MINI LINK Traffic Node'}
+    return attrs
+
+
+def _get_cml_channel_ids(cml):
+    return cml.tx_rx_pairs.keys()
+
+
+def _get_cml_channel_attrs(cml, channel_id):
+    ch_metadata = cml.tx_rx_pairs[channel_id]
+    attrs = {'frequency': ch_metadata['f_GHz'],
+             'polarisation': ch_metadata['pol'],
+             'ID': ch_metadata['name'],
+             'ATPC': 'Not sure...',
+             'sampling_type': 'instantaneous',
+             'temporal_resolution': '1min',
+             'TX_quantization': 1.0,
+             'RX_quantization': 0.3}
+    try:
+        attrs['TX_site'] = ch_metadata['tx_site']
+        attrs['RX_site'] = ch_metadata['rx_site']
+    except KeyError:
+        pass
+    return attrs
+
+
+def _get_cml_channel_data(cml, channel_id):
+    # Get UNIX time form pandas.DatetimeIndex (which is UNIX time in ns)
+    t_vec = cml.data.index.astype('int64') / 1e9
+
+    tx_column_name = cml.tx_rx_pairs[channel_id]['tx']
+    rx_column_name = cml.tx_rx_pairs[channel_id]['rx']
+
+    tx_vec = cml.data[tx_column_name].values
+    rx_vec = cml.data[rx_column_name].values
+
+    return t_vec, tx_vec, rx_vec
+
+def _write_cml_attributes(cml_g, cml):
+    '''
+    cml_g : HDF5 group at CML level
+    cml : pycomlink.Comlink object
+
+    '''
+
+    cml_attrs = _get_cml_attrs(cml)
+    for key in cml_attrs.iterkeys():
+        attr = cml_attrs[key]
+        if attr == None:
+            cml_g.attrs[key] = np.nan
+        else:
+            cml_g.attrs[key] = attr
+
+
+def _write_channel_attributes(chan_g, cml, channel_id):
+    chan_attrs = _get_cml_channel_attrs(cml, channel_id)
+    for key in chan_attrs.iterkeys():
+        attr = chan_attrs[key]
+        if attr == None:
+            chan_g.attrs[key] = np.nan
+        else:
+            chan_g.attrs[key] = attr
+
+
+def _write_channel_data(chan_g, cml, channel_id, compression, compression_opts):
+    t_vec, tx_vec, rx_vec = _get_cml_channel_data(cml, channel_id)
+
+    # write variables
+    chan_g.create_dataset('RX', data=rx_vec,
+                          compression=compression,
+                          compression_opts=compression_opts)
+    chan_g['RX'].attrs['units'] = 'dBm'
+    chan_g.create_dataset('TX', data=tx_vec,
+                          compression=compression,
+                          compression_opts=compression_opts)
+    chan_g['TX'].attrs['units'] = 'dBm'
+
+    # write time dimension
+    chan_g.create_dataset('time', data=t_vec,
+                          compression=compression,
+                          compression_opts=compression_opts)
+    chan_g['time'].attrs['units'] = 'POSIX time UTC'
+    chan_g['time'].attrs['calendar'] = 'proleptic_gregorian'
+    chan_g['RX'].dims.create_scale(chan_g['time'], 'time')
+    chan_g['RX'].dims[0].attach_scale(chan_g['time'])
+    chan_g['TX'].dims[0].attach_scale(chan_g['time'])
+
+
+def write_to_cmlh5(cml_list, fn, compression='gzip', compression_opts=4):
+    with h5py.File(fn, mode='w') as h5file:
+        h5file.attrs['cmlH5_version'] = '0.2'
+
+        for i_cml, cml in enumerate(cml_list):
+            # Create CML HDF5 group
+            cml_g = h5file.create_group('cml_%d' % i_cml)
+            # Write CML attributes
+            _write_cml_attributes(cml_g, cml)
+
+            # Get and write CML channels
+            channel_ids = _get_cml_channel_ids(cml)
+            for i_channel, channel_id in enumerate(channel_ids):
+                chan_g = cml_g.create_group('channel_%d' % (i_channel + 1))
+                _write_channel_attributes(chan_g, cml, channel_id)
+                _write_channel_data(chan_g, cml, channel_id, compression, compression_opts)
+
+
+def _read_cml_metadata(cml_g):
+    metadata = {}
+    metadata['link_id'] = cml_g.attrs['id']
+    metadata['length_km'] = cml_g.attrs['length']
+    metadata['site_A'] = {'lat':cml_g.attrs['site_a_latitude'],
+                          'lon': cml_g.attrs['site_a_longitude']}
+    metadata['site_B'] = {'lat':cml_g.attrs['site_b_latitude'],
+                          'lon': cml_g.attrs['site_b_longitude']}
+    return metadata
+
+
+def _read_channels_metadata(cml_g):
+    tx_rx_pairs = {}
+    for chan_g_name, chan_g in cml_g.items():
+        tx_rx_pairs[chan_g_name] = {'name': chan_g_name,
+                                    'tx': 'tx_' + chan_g_name,
+                                    'rx': 'rx_' + chan_g_name,
+                                    'f_GHz': chan_g.attrs['frequency'],
+                                    'pol': chan_g.attrs['polarisation']}
+    return tx_rx_pairs
+
+
+def _read_channels_data(cml_g):
+    data_dict = {}
+    for chan_g_name, chan_g in cml_g.items():
+        data_dict['rx_' + chan_g_name] = chan_g['RX'][:]
+        data_dict['tx_' + chan_g_name] = chan_g['TX'][:]
+    data = pd.DataFrame(data=data_dict, index=pd.DatetimeIndex(chan_g['time'][:] * 1e9, tz='UTC'))
+
+    return data
+
+
+def _read_one_cml(cml_g):
+    metadata = _read_cml_metadata(cml_g)
+    tx_rx_pairs = _read_channels_metadata(cml_g)
+    df_data = _read_channels_data(cml_g)
+    cml = Comlink(data=df_data,
+                  tx_rx_pairs=tx_rx_pairs,
+                  metadata=metadata)
+    return cml
+
+
+def read_from_cmlh5(fn):
+    h5_reader = h5py.File(fn, mode='r')
+    cml_list = []
+    for cml_g_name in h5_reader['/']:
+        cml_g = h5_reader['/' + cml_g_name]
+        cml = _read_one_cml(cml_g)
+        cml_list.append(cml)
+    print '%d CMLs read in' % len(cml_list)
+    return cml_list
+
+
+#########################################
+# Obsolete old HDF5 read/write function #
+#########################################
+
+def _old_write_hdf5(fn, cml, cml_id=None):
     """ Write Comlink or Comlink list to HDF5
     
     Parameters
@@ -65,7 +245,7 @@ def write_hdf5(fn, cml, cml_id=None):
     
     store.close()
     
-def read_hdf5(fn, force_list_return=False):
+def _old_read_hdf5(fn, force_list_return=False):
     """Read Comlink or list of Comlinks from HDF5
     
     Parameters

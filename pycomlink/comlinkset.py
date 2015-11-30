@@ -16,8 +16,8 @@ import matplotlib.pyplot as plt
 import cartopy
 from cartopy.io import img_tiles
 import pandas as pd
+from scipy.io import netcdf
 
-import math
 import matplotlib
 
 from . import wet_dry
@@ -38,7 +38,7 @@ class ComlinkSet():
         
     """  
     
-    def __init__(self, cml_list,area):
+    def __init__(self, cml_list,area,start,stop):
         """Initialisation of commercial microwave link set (CMLS) class 
            
             Parameters
@@ -50,6 +50,10 @@ class ComlinkSet():
                 List that holds the geographic coordinates of the area borders in
                 decimal format. 
                 The order is mandatory.
+            start : str
+                Start Timestamp of requested period
+            stop : str
+                Stop Timestamp of requested period                
                 
                 Example
                 -------
@@ -59,7 +63,7 @@ class ComlinkSet():
         
         
         self.set = cml_list
-        self.set_info = {'area':area}
+        self.set_info = {'area':area, 'start':start,'stop':stop}
         
     def info(self):
         """Print information about associated microwave links 
@@ -146,6 +150,60 @@ class ComlinkSet():
         for cml in self.set:
             cml.remove_bad_values(bad_value)
 
+
+    def find_neighboring_links(self,crit_dis=10.,min_link_length=0.7):
+        """Identify neighboring links for which both ends are within a critical
+           distance from either end of a link (computation is done for all links)
+        
+        Parameters
+        ----------
+        crit_dis : float
+                critical distance
+                
+        Note
+        ----
+        Requires Metadata dictionaries for all involved links with at 
+        least minimum information (see example for key naming)       
+            Example
+            -------            
+            >>> metadata = {'site_A': {'lat': 21.23,
+                                       'lon': 3.24},
+                            'site_B': {'lat': -2.123,
+                                       'lon': -12.31},
+                            'link_id': 'MY1231_2_MY1232_3'}
+        """
+        for cml in self.set:
+            id_list = []
+            cml_list = []    
+            if cml.metadata['length_km'] > min_link_length:
+                id_list.append(cml.metadata['link_id'])
+                cml_list.append(cml)
+                for cml2 in self.set:
+                    if cml.metadata['link_id'] != cml2.metadata['link_id'] and \
+                       mapping.distance((cml.metadata['site_A']['lat'],
+                                 cml.metadata['site_A']['lon']),
+                                (cml2.metadata['site_A']['lat'],
+                                 cml2.metadata['site_A']['lon'])) < crit_dis and \
+                       mapping.distance((cml.metadata['site_A']['lat'],
+                                 cml.metadata['site_A']['lon']),
+                                (cml2.metadata['site_B']['lat'],
+                                 cml2.metadata['site_B']['lon'])) < crit_dis and \
+                       mapping.distance((cml.metadata['site_B']['lat'],
+                                 cml.metadata['site_B']['lon']),
+                                (cml2.metadata['site_A']['lat'],
+                                 cml2.metadata['site_A']['lon'])) < crit_dis and \
+                       mapping.distance((cml.metadata['site_B']['lat'],
+                                 cml.metadata['site_B']['lon']),
+                                (cml2.metadata['site_B']['lat'],
+                                 cml2.metadata['site_B']['lon'])) < crit_dis and \
+                       cml2.metadata['length_km'] > min_link_length: 
+                                     id_list.append(cml2.metadata['link_id'])
+                                     cml_list.append(cml2)
+        
+            cml.processing_info['neighbors'] = id_list
+            cml.processing_info['neighbors_cml'] = cml_list
+            cml.processing_info['crit_dis'] = crit_dis    
+    
     
     def do_wet_dry_classification(self, method='std_dev', 
                                         window_length=128,
@@ -153,6 +211,10 @@ class ComlinkSet():
                                         dry_window_length=600,
                                         f_divide=1e-3,
                                         reuse_last_Pxx=False,
+                                        number_neighbors=2,
+                                        min_link_length=0.7,
+                                        deltaP=-1.4,
+                                        deltaPL=-0.7,
                                         print_info=False):
         """Perform wet/dry classification for all CML time series in CMLS
 
@@ -175,6 +237,16 @@ class ComlinkSet():
         reuse_last_Pxx : bool
                  Parameter for classification with method Fourier transformation
                  (Default is false)  
+        number_neighbors : int, optional
+                 Minimum number of neighboring links for method link approach
+        min_link_length : float, optional
+                 Minimum link length (in km) for method link approach        
+        deltaP : float, optional
+                 Threshold value (in dB) for mutual decrease in minimum RSL
+                 of neighboring links
+        deltaPL : float, optional
+                 Threshold value (in dB/km) for mutual decrease in RSL           
+                 of neighboring links                 
         print_info : bool
                   Print information about executed method (Default is False)
         
@@ -182,21 +254,77 @@ class ComlinkSet():
         ----        
         WIP: Currently two classification methods are supported:
                 - std_dev: Rolling standard deviation method [1]_
-                - stft: Rolling Fourier-transform method [2]_                
-                      
+                - stft: Rolling Fourier-transform method [2]_   
+                - link_appr: Link approach [5]_. 
+                             Temporal resolution is set to 15 Minutes.
+                             Links without neighbors are dismissed.
+                                             
+        References
+        ----------
+        .. [5] Overeem, A. and Leijnse, H. and Uijlenhoet R.: "Measuring urban  
+                rainfall using microwave links from commercial cellular 
+                communication networks", Water Resources Research, 47, 2011                      
         
         """
         
-        for cml in self.set:
-            cml.do_wet_dry_classification(method, 
-                                              window_length,
-                                              threshold,
-                                              dry_window_length,
-                                              f_divide,
-                                              reuse_last_Pxx,
-                                              print_info)
+        
+        if method == 'std_dev' or method == 'stft':
+            for cml in self.set:    
+                cml.do_wet_dry_classification(method, 
+                                                  window_length,
+                                                  threshold,
+                                                  dry_window_length,
+                                                  f_divide,
+                                                  reuse_last_Pxx,
+                                                  print_info)
             
-    
+        elif method == 'link_appr':
+            if print_info:
+                print 'Performing wet/dry classification with link approach'
+                print 'Method = link_appr'
+                print 'Critical distance = ' + str(cml.processing_info['crit_dis'])
+                print '-----------------------------------------'
+                print 'Hint:'
+                print 'Temporal resolution is set to 15 Minutes'
+                print 'Links without neighbors are dismissed'
+
+            
+            cml_list_update = []  
+            for cml in self.set:  
+                                  
+                if len(cml.processing_info['neighbors']) >= number_neighbors: 
+                    data_min = pd.DataFrame()
+                    dp = pd.DataFrame()
+                    dpl = pd.DataFrame()
+                    for pair_id in cml.processing_info['tx_rx_pairs']:
+                        for cml_nb in cml.processing_info['neighbors_cml']:
+                            if pair_id in cml_nb.processing_info['tx_rx_pairs']: 
+                                data_min['txrx_'+pair_id] = cml_nb.data['txrx_'+pair_id].resample('15min',how='min') 
+                                dp[cml_nb.metadata['link_id']] = data_min['txrx_'+pair_id] - \
+                                                                  pd.rolling_max(data_min['txrx_'+pair_id],96)
+                                dpl[cml_nb.metadata['link_id']] = (data_min['txrx_'+pair_id] - \
+                                                                   pd.rolling_max(data_min['txrx_'+pair_id],96))/ \
+                                                                   cml.metadata['length_km']            
+                        
+                        data_min['wet_' + pair_id] = ((dp.median(axis=1) < deltaP) & \
+                                                         (dpl.median(axis=1) < deltaPL))
+                                                         
+                        # WIP: Takes too long                                 
+                        #for i in range(2,len(data_min)-1): 
+                        #    if data_min['wet_' + pair_id][i] and dp[cml.metadata['link_id']][i] < -2.:
+                        #            data_min['wet_' + pair_id][i-2] = True
+                        #            data_min['wet_' + pair_id][i-1] = True
+                        #            data_min['wet_' + pair_id][i+1] = True
+                              
+                    cml.data = data_min 
+            
+                    cml_list_update.append(cml) 
+                            
+            self.set = cml_list_update          
+  
+        else:
+                ValueError('Wet/dry classification method not supported')            
+                
                 
 
     def do_baseline_determination(self, 
@@ -320,35 +448,38 @@ class ComlinkSet():
                 cml.calc_R_from_A(a,b,approx_type)     
                                                                     
                
-    def spat_interpol(self, grid_res,
-                 int_type,
-                 figsize=(15,15),
-                 time=None,
-                 method='mean',
-                 power=2,smoothing=0,nn=10,
-                 krig_type='ordinary',
-                 variogram_model='linear',
-                 drift_terms=['regional_linear'],
-                 plot=True,
-                 out_file=None):
+    def spat_interpol(self,
+                      int_type,
+                      grid_res=None,
+                      longrid=None,
+                      latgrid=None,
+                      figsize=(15,15),
+                      resampling_time='H',
+                      start_time=None,
+                      stop_time=None,
+                      method='mean',
+                      power=2,smoothing=0,nn=10,
+                      **kwargs):
                      
-        """ Perform and plot spatial interpolation of rain rate or rain sum on regular grid
+        """ Perform spatial interpolation of rain rate grid
         
         Parameters
         ----------   
-        grid_res : int
-            Number of bins of output grid in area            
         int_type : str
             interpolation method
             'IDW' Inverse Distance Interpolation
-            'Kriging' Kriging Interpolation with pyKrige            
+            'Kriging' Kriging Interpolation with pyKrige         
+        grid_res : int,optional
+            Number of bins of output grid in area 
+            Default is None
+        longrid : iterable of floats
+            Grid (2D Array) for longitude values. Default is None
+        latgrid : iterable of floats
+            Grid (2D Array) for latitude values. Default is None.            
         figsize : matplotlib parameter, optional 
-            Size of output figure in inches (default is (15,10))      
-        time : str, optional
-            Datetime string of desired timestamp (for example 'yyyy-mm-dd HH:MM')
-            Default is None.
-            If given the rain rate for this timestamp is plotted.
-            If not given the accumulation of the whole time series is plotted.         
+            Size of output figure in inches (default is (15,15))      
+        resampling_time : pandas parameter, optional
+            resampling the raw data of each cml   
         method : str, optional
             Indicates how to claculate rainrate/sum of bidirectional link
             (Default is 'mean')
@@ -363,227 +494,243 @@ class ComlinkSet():
                Power of smoothing factor for IDW interpolation. Only used if 
                int_type is 'IDW' (Default is 0) 
         nn : int,optional
-                Number of neighbors considered for IDW interpolation. Only used
-                if int_type is 'IDW' (Default is 10)
-        krig_type : str, optional
-                Parameters for Kriging interpolation. See pykrige documentation
-                for information. Only used if int_type is 'Kriging' 
-                (Default is 'Ordinary')
-        variogram_model : str, optional
-                Parameters for Kriging interpolation. See pykrige documentation
-                for information. Only used if int_type is 'Kriging' 
-                (Default is 'linear')        
-        drift_terms : str, optional
-                Parameters for Kriging interpolation. See pykrige documentation
-                for information. Only used if int_type is 'Kriging' 
-                (Default is ['regional_linear'])
-        plot : bool, optional
-                Plot the interpolation on low resolution OSM
-                (Default is True)
+                Number of neighbors considered for interpolation. 
+                Default is 10
+       kwargs : kriging parameters, optional
+                See https://github.com/bsmurphy/PyKrige for details          
+                
+        """
+        
+        if longrid is None or latgrid is None:
+            if not grid_res is None:
+                #Definition of output grid
+                gridx = np.linspace(self.set_info['area'][0],self.set_info['area'][1],grid_res)
+                gridy = np.linspace(self.set_info['area'][2],self.set_info['area'][3],grid_res)   
+                longrid,latgrid = np.meshgrid(gridx, gridy)
+            else:
+                ValueError('Either longrid & latgrid or grid_res have to be provided')
+
+        
+        self.set_info['interpol_longrid'] = longrid
+        self.set_info['interpol_latgrid'] = latgrid
+        
+        if start_time is None or stop_time is None:
+            times = pd.date_range(self.set_info['start'],self.set_info['stop'],
+                                  freq=resampling_time)[0:-1]
+        else:
+            times = pd.date_range(start_time,stop_time,
+                                  freq=resampling_time)                                  
+        
+
+        self.set_info['interpol_time_array'] = times
+        self.set_info['interpol'] = {}
+          
+        for time in times:  
+            print "Interpolating for UTC time",time                    
+            lons_mw=[]
+            lats_mw=[]
+            values_mw=[]     
+            for cml in self.set:
+                temp_df = cml.data.resample(resampling_time,how='mean')
+                if 'site_A' in cml.metadata and 'site_B' in cml.metadata:
+                    if 'lat' in cml.metadata['site_A'] and \
+                       'lon' in cml.metadata['site_A'] and \
+                       'lat' in cml.metadata['site_B'] and \
+                       'lon' in cml.metadata['site_B']:
+                             
+                           lat_center = (cml.metadata['site_A']['lat']
+                                           +cml.metadata['site_B']['lat'])/2.
+                           lon_center = (cml.metadata['site_A']['lon']
+                                           +cml.metadata['site_B']['lon'])/2. 
+    
+    
+                           start = pd.Timestamp(time) - pd.Timedelta('10s')
+                           stop = pd.Timestamp(time) + pd.Timedelta('10s')
+                           plist = []
+
+                           for pair_id in cml.processing_info['tx_rx_pairs']:
+                               plist.append((temp_df['R_'+pair_id][start:stop]).values[0])   
+                             
+                           if method == 'mean':
+                               precip = np.mean(plist)                     
+                           elif method == 'max':
+                               precip = np.max(plist)                        
+                           elif method == 'min':
+                               precip = np.min(plist)                          
+                           elif method in cml.processing_info['tx_rx_pairs']:
+                               if 'R_' + pair_id in temp_df.keys():
+                                   precip = (temp_df['R_'+method][start:stop]).values[0]
+                               else:
+                                   print 'Warning: Pair ID '+method+' not available for link '+\
+                                             cml.metadata['link_id'] + ' (link is ignored)'
+                                   precip = None
+                           else:
+                               print 'Error: '+method+' not available for link '+\
+                                         cml.metadata['link_id'] + ' (link is ignored)'
+                               print '      Use "mean","max","min" or pair_id'        
+                               precip = None
+                           
+                          
+                           lons_mw.append(lon_center)
+                           lats_mw.append(lat_center)
+                           if precip >= 0.:
+                               values_mw.append(precip)  
+                           else:
+                               values_mw.append(np.nan)    
+    
+             
+            val_mw=np.ma.compressed(np.ma.masked_where(np.isnan(values_mw),values_mw))
+            lon_mw=np.ma.compressed(np.ma.masked_where(np.isnan(values_mw),lons_mw))
+            lat_mw=np.ma.compressed(np.ma.masked_where(np.isnan(values_mw),lats_mw))
+            
+    
+            meas_points=np.vstack((lon_mw,lat_mw)).T
+            xi, yi = longrid.flatten(), latgrid.flatten()
+            grid = np.vstack((xi, yi)).T   
+                                        
+            if int_type == 'IDW': 
+                interpol = mapping.inv_dist(meas_points,val_mw,grid,
+                                       power,smoothing,nn).reshape(longrid.shape)
+                                      
+            elif int_type == 'Kriging':
+                interpol=mapping.kriging(meas_points,val_mw,grid, 
+                                         nn,**kwargs).reshape(longrid.shape)   
+                                         
+            else:
+                ValueError('Interpolation method not supported')                             
+            
+
+            self.set_info['interpol'][(pd.Timestamp(time)).strftime('%Y-%m-%d %H:%M')] = interpol
+        
+
+    def plot_spat_interpol(self,time,
+                      figsize=(15,15),
+                      OSMtile=False,
+                      out_file=None):
+        """Plot spatial interpolation of rain rate 
+        
+        Parameters
+        ----------
+        time : str, optional
+            Datetime string of desired timestamp (for example 'yyyy-mm-dd HH:MM')
+        figsize : matplotlib parameter, optional 
+            Size of output figure in inches (default is (15,15)) 
+        OSMtile : bool, optional
+                 Use OpenStreetMap tile as background (slows down the plotting)            
         out_file : str, optional
                 file path of output image file
                 (Default is None)
-                
-        """
-
-        #Definition of output grid
-        gridx = np.linspace(self.set_info['area'][0],self.set_info['area'][1],grid_res)
-        gridy = np.linspace(self.set_info['area'][2],self.set_info['area'][3],grid_res)   
-        grid = np.meshgrid(gridx, gridy)
+        """                          
+                          
+        fig = plt.figure(figsize=figsize)
+        ax = plt.axes(projection=cartopy.crs.PlateCarree())
+        gl = ax.gridlines(crs=cartopy.crs.PlateCarree(), draw_labels=True,
+                  linewidth=2, color='gray', alpha=0.5, linestyle='--')        
+        gl.xlabels_top = False
+        ax.set_extent((self.set_info['area'][0]-.05, self.set_info['area'][1]+.05,
+                       self.set_info['area'][2]-.05, self.set_info['area'][3]+.05),
+                         crs=cartopy.crs.PlateCarree())
+        if OSMtile:                 
+            gg_tiles = img_tiles.MapQuestOSM()      
+            ax.add_image(gg_tiles, 11)          
         
-        lons_mw=[]
-        lats_mw=[]
-        values_mw=[]
+         
+        nws_precip_colors = [
+        "#04e9e7",  # 0.01 - 0.10 inches
+        "#019ff4",  # 0.10 - 0.25 inches
+        "#0300f4",  # 0.25 - 0.50 inches
+        "#02fd02",  # 0.50 - 0.75 inches
+        "#01c501",  # 0.75 - 1.00 inches
+        "#008e00",  # 1.00 - 1.50 inches
+        "#fdf802",  # 1.50 - 2.00 inches
+        "#e5bc00",  # 2.00 - 2.50 inches
+        "#fd9500",  # 2.50 - 3.00 inches
+        "#fd0000",  # 3.00 - 4.00 inches
+        "#d40000",  # 4.00 - 5.00 inches
+        "#bc0000",  # 5.00 - 6.00 inches
+        "#f800fd",  # 6.00 - 8.00 inches
+        "#9854c6"  # 10.00+
+        ]
+    
+        precip_colormap = matplotlib.colors.ListedColormap(nws_precip_colors) 
+        levels_rr = [0.01,0.1,0.25,0.5, 1.0, 1.5,2.0, 2.5,3.0, 5.0, 7.5, 10.0,12.5,15.0,20.0] 
         
-        # MW data and metadata      
         for cml in self.set:
             if 'site_A' in cml.metadata and 'site_B' in cml.metadata:
                 if 'lat' in cml.metadata['site_A'] and \
                    'lon' in cml.metadata['site_A'] and \
                    'lat' in cml.metadata['site_B'] and \
                    'lon' in cml.metadata['site_B']:
-                         
-                       lat_center = (cml.metadata['site_A']['lat']
-                                       +cml.metadata['site_B']['lat'])/2.
-                       lon_center = (cml.metadata['site_A']['lon']
-                                       +cml.metadata['site_B']['lon'])/2.                                                           
-                           
-                       if time is None:                
-                           plist = []
-                           for pair_id in cml.processing_info['tx_rx_pairs']:
-                               plist.append(cml.data['R_' + pair_id].resample('H',how='mean').cumsum()[-1])
-                           if method == 'mean':
-                               precip = np.mean(plist)                  
-                           elif method == 'max':    
-                               precip = np.max(plist)                     
-                           elif method == 'min':
-                               precip = np.min(plist)    
-                           elif method in cml.processing_info['tx_rx_pairs']:
-                               if 'R_' + pair_id in cml.data.keys():
-                                   precip = cml.data['R_' + pair_id].resample('H',how='mean').cumsum()[-1]
-                               else:
-                                   print 'Warning: Pair ID '+method+' not available for link '+\
-                                     cml.metadata['link_id'] + ' (link is ignored)'
-                                   precip = None                                 
-                           else: 
-                               print 'Error: '+method+' not available for link '+\
-                                         cml.metadata['link_id'] + ' (link is ignored)'
-                               print '      Use "mean","max","min" or pair_id'            
-                               precip = None
-                                 
-                           lons_mw.append(cml.metadata['lon_center'])
-                           lats_mw.append(cml.metadata['lat_center'])
-                           if precip >= 0.:
-                               values_mw.append(precip)     
-                           else:
-                               values_mw.append(np.nan)
-                               
-                       else:
-                           start = pd.Timestamp(time) - pd.Timedelta('10s')
-                           stop = pd.Timestamp(time) + pd.Timedelta('10s')
-                           plist = []
-                           if start > cml.data.index[0] and stop < cml.data.index[-1]:
-                                   for pair_id in cml.processing_info['tx_rx_pairs']:
-                                       plist.append((cml.data['R_'+pair_id][start:stop]).values[0])   
-                                     
-                                   if method == 'mean':
-                                       precip = np.mean(plist)                     
-                                   elif method == 'max':
-                                       precip = np.max(plist)                        
-                                   elif method == 'min':
-                                       precip = np.min(plist)                          
-                                   elif method in cml.processing_info['tx_rx_pairs']:
-                                       if 'R_' + pair_id in cml.data.keys():
-                                           precip = (cml.data['R_'+method][start:stop]).values[0]
-                                       else:
-                                           print 'Warning: Pair ID '+method+' not available for link '+\
-                                                     cml.metadata['link_id'] + ' (link is ignored)'
-                                           precip = None
-                                   else:
-                                       print 'Error: '+method+' not available for link '+\
-                                                 cml.metadata['link_id'] + ' (link is ignored)'
-                                       print '      Use "mean","max","min" or pair_id'        
-                                       precip = None
-                                   
-                                  
-                                   lons_mw.append(lon_center)
-                                   lats_mw.append(lat_center)
-                                   if precip >= 0.:
-                                       values_mw.append(precip)  
-                                   else:
-                                       values_mw.append(np.nan)    
+                       plt.plot([cml.metadata['site_A']['lon'],cml.metadata['site_B']['lon']],
+                         [cml.metadata['site_A']['lat'],cml.metadata['site_B']['lat']],
+                         linewidth=1,color='k',
+                         transform=cartopy.crs.Geodetic()) 
+                                               
 
-                                
-                           else:
-                                   print 'Warning: Selected time not in data for link '+cml.metadata['link_id'] + \
-                                                ' (link is ignored)'
-                                   print '        Selectable time span:',cml.data.index[0], \
-                                                                             cml.data.index[-1] 
-                                   precip=None                               
-                      
-         
-        val_mw=np.ma.compressed(np.ma.masked_where(np.isnan(values_mw),values_mw))
-        lon_mw=np.ma.compressed(np.ma.masked_where(np.isnan(values_mw),lons_mw))
-        lat_mw=np.ma.compressed(np.ma.masked_where(np.isnan(values_mw),lats_mw))
-        
-
-                                       
-        if int_type == 'IDW':   
-            interpol=mapping.inv_dist(lon_mw,lat_mw,val_mw,
-                                      gridx,gridy,power,smoothing,nn)
-                                  
-        elif int_type == 'Kriging':
-            interpol=mapping.kriging(lon_mw,lat_mw,val_mw,gridx,gridy, 
-                                     krig_type,variogram_model,drift_terms)                                      
-        else:
-            ValueError('Interpolation method not supported')                             
-        
-        self.set_info['interpol'] = interpol
-        self.set_info['interpol_grid'] = grid
-
-        
-        if plot:     
-            fig = plt.figure(figsize=figsize)
-            ax = plt.axes(projection=cartopy.crs.PlateCarree())
-            gl = ax.gridlines(crs=cartopy.crs.PlateCarree(), draw_labels=True,
-                      linewidth=2, color='gray', alpha=0.5, linestyle='--')        
-            gl.xlabels_top = False
-            ax.set_extent((self.set_info['area'][0]-.05, self.set_info['area'][1]+.05,
-                           self.set_info['area'][2]-.05, self.set_info['area'][3]+.05),
-                             crs=cartopy.crs.PlateCarree())
-            gg_tiles = img_tiles.MapQuestOSM()
+        interpolm = np.ma.masked_less(self.set_info['interpol'][(pd.Timestamp(time)).strftime('%Y-%m-%d %H:%M')],0.01)
+        norm = matplotlib.colors.BoundaryNorm(levels_rr, 14)
+        cs = plt.pcolormesh(self.set_info['interpol_longrid'],self.set_info['interpol_latgrid'],
+                            interpolm, norm=norm, cmap=precip_colormap,alpha=0.4)              
+        cbar = plt.colorbar(cs,orientation='vertical', shrink=0.4)
+        cbar.set_label('mm/h')            
+        plt.title((pd.Timestamp(time)).strftime('%Y-%m-%d %H:%M')+'UTC',loc='right')
     
-            ax.add_image(gg_tiles, 11)          
+    
+        plt.plot([self.set_info['area'][0],self.set_info['area'][0]],
+                 [self.set_info['area'][2],self.set_info['area'][3]],linewidth=2,
+                    color='k',alpha=0.6, transform=cartopy.crs.Geodetic())
+        plt.plot([self.set_info['area'][0],self.set_info['area'][1]],
+                 [self.set_info['area'][2],self.set_info['area'][2]],linewidth=2,
+                    color='k',alpha=0.6, transform=cartopy.crs.Geodetic())
+        plt.plot([self.set_info['area'][1],self.set_info['area'][1]],
+                 [self.set_info['area'][2],self.set_info['area'][3]],linewidth=2,
+                    color='k',alpha=0.6, transform=cartopy.crs.Geodetic())                    
+        plt.plot([self.set_info['area'][0],self.set_info['area'][1]],
+                 [self.set_info['area'][3],self.set_info['area'][3]],linewidth=2,
+                    color='k',alpha=0.6, transform=cartopy.crs.Geodetic())
+                    
+        if out_file is not None:
+            plt.savefig(out_file,bbox_inches='tight',format='png')
+
+
+    def write_netcdf_wrf(self,nc_file):
+        """Write spatial interpolated Rainrate to netcdf file (WRF-Hydro readable)
+
+        Parameters
+        ----------
+        nc_file : string
+            Name for output netcdf file
+        """             
+        
+        f = netcdf.netcdf_file(nc_file, 'w')
+        
+        f.createDimension('Time', len(self.set_info['interpol_time_array']))
+        f.createDimension('DateStrLen', 
+                          len(self.set_info['interpol_time_array'][0].strftime('%Y-%m-%d_%H:%M:%S')))
+        f.createDimension('west_east', self.set_info['interpol_longrid'].shape[1])
+        f.createDimension('south_north', self.set_info['interpol_longrid'].shape[0])
+        
+        time_list=[]
+        for time in self.set_info['interpol_time_array']:
+            time_list.append(time.strftime('%Y-%m-%d_%H:%M:%S'))        
+        TIME = f.createVariable('TIME', 'c', ('Time','DateStrLen',))
+        TIME[:] = time_list
+        
+        XLAT_M = f.createVariable('XLAT_M', 'd', ( 'south_north','west_east',))
+        XLAT_M[:] = self.set_info['interpol_latgrid']
+        #XLAT_M[:] = np.stack([self.set_info['interpol_latgrid']]*len(self.set_info['interpol_time_array']))
+        
+        XLON_M = f.createVariable('XLON_M', 'd', ('south_north','west_east',))
+        XLON_M[:] = self.set_info['interpol_longrid']
+        #XLON_M[:] = np.stack([self.set_info['interpol_longrid']]*len(self.set_info['interpol_time_array']))
+        
+        rr_list=[]
+        for time in self.set_info['interpol']:
+            rr_list.append(self.set_info['interpol'][time])     
             
-             
-            nws_precip_colors = [
-            "#04e9e7",  # 0.01 - 0.10 inches
-            "#019ff4",  # 0.10 - 0.25 inches
-            "#0300f4",  # 0.25 - 0.50 inches
-            "#02fd02",  # 0.50 - 0.75 inches
-            "#01c501",  # 0.75 - 1.00 inches
-            "#008e00",  # 1.00 - 1.50 inches
-            "#fdf802",  # 1.50 - 2.00 inches
-            "#e5bc00",  # 2.00 - 2.50 inches
-            "#fd9500",  # 2.50 - 3.00 inches
-            "#fd0000",  # 3.00 - 4.00 inches
-            "#d40000",  # 4.00 - 5.00 inches
-            "#bc0000",  # 5.00 - 6.00 inches
-            "#f800fd",  # 6.00 - 8.00 inches
-            "#9854c6"  # 10.00+
-            ]
-    
-            precip_colormap = matplotlib.colors.ListedColormap(nws_precip_colors) 
-            levels_rr = [0.01,0.1,0.25,0.5, 1.0, 1.5,2.0, 2.5,3.0, 5.0, 7.5, 10.0,12.5,15.0,20.0]
-            levels_sum = [5.0,10.0,15.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0,75.0,100.0,150.0,200.0,250.0] 
-            
-            for cml in self.set:
-                if 'site_A' in cml.metadata and 'site_B' in cml.metadata:
-                    if 'lat' in cml.metadata['site_A'] and \
-                       'lon' in cml.metadata['site_A'] and \
-                       'lat' in cml.metadata['site_B'] and \
-                       'lon' in cml.metadata['site_B']:
-                           plt.plot([cml.metadata['site_A']['lon'],cml.metadata['site_B']['lon']],
-                             [cml.metadata['site_A']['lat'],cml.metadata['site_B']['lat']],
-                             linewidth=1,color='k',
-                             transform=cartopy.crs.Geodetic()) 
-                                                   
-            if time is None:  
-                interpolm = np.ma.masked_less(interpol, 1.)
-                norm = matplotlib.colors.BoundaryNorm(levels_sum, 14)
-                cs = plt.pcolormesh(gridx,gridy,interpolm, norm=norm, cmap=precip_colormap,alpha=0.4)                                                     
-                #cs = plt.contourf(gridx,gridy,interpol,levels=levels_sum,
-                #                  cmap=plt.cm.winter_r,transform=cartopy.crs.PlateCarree())
-                cbar = plt.colorbar(cs,orientation='vertical', shrink=0.4)
-                cbar.set_label('mm')
-                plt.title('accumulated rainfall from time period: '+(self.set[0].data.index[0]).strftime('%Y-%m-%d %H:%M')+'UTC - '+
-                            (self.set[0].data.index[-1]).strftime('%Y-%m-%d %H:%M')+'UTC',loc='right')
-    
-            else:
-               interpolm = np.ma.masked_less(interpol,0.01)
-               norm = matplotlib.colors.BoundaryNorm(levels_rr, 14)
-               cs = plt.pcolormesh(grid[0],grid[1],interpolm, norm=norm, cmap=precip_colormap,alpha=0.4)
-               #cs = plt.contourf(gridx,gridy,interpol,levels=levels_rr,
-                               # cmap=plt.cm.winter_r,alpha=0.6,transform=cartopy.crs.PlateCarree())                
-               cbar = plt.colorbar(cs,orientation='vertical', shrink=0.4)
-               cbar.set_label('mm/h')            
-               plt.title((pd.Timestamp(time)).strftime('%Y-%m-%d %H:%M')+'UTC',loc='right')
-    
-    
-            plt.plot([self.set_info['area'][0],self.set_info['area'][0]],
-                     [self.set_info['area'][2],self.set_info['area'][3]],linewidth=2,
-                        color='k',alpha=0.6, transform=cartopy.crs.Geodetic())
-            plt.plot([self.set_info['area'][0],self.set_info['area'][1]],
-                     [self.set_info['area'][2],self.set_info['area'][2]],linewidth=2,
-                        color='k',alpha=0.6, transform=cartopy.crs.Geodetic())
-            plt.plot([self.set_info['area'][1],self.set_info['area'][1]],
-                     [self.set_info['area'][2],self.set_info['area'][3]],linewidth=2,
-                        color='k',alpha=0.6, transform=cartopy.crs.Geodetic())                    
-            plt.plot([self.set_info['area'][0],self.set_info['area'][1]],
-                     [self.set_info['area'][3],self.set_info['area'][3]],linewidth=2,
-                        color='k',alpha=0.6, transform=cartopy.crs.Geodetic())
-                        
-            if out_file is not None:
-                plt.savefig(out_file,bbox_inches='tight',format='png')
+        RAINRATE = f.createVariable('RAINRATE', 'f', ('Time', 'south_north','west_east',))
+        RAINRATE[:] = np.stack(rr_list)
+        
+        
+        f.close()        
 
-                 

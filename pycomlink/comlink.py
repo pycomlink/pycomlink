@@ -446,17 +446,28 @@ class Comlink():
                                                         [param]
                         else:
                             param_temp = param + '_' + txrx_pair_id
-                            
-                        color = self.processing_info['tx_rx_pairs']\
-                                                    [txrx_pair_id]\
-                                                    ['linecolor']
-                        name = self.processing_info['tx_rx_pairs']\
+
+                        # if there is no name supplied, usde the tx_rx_pair id
+                        try:
+                            name = self.processing_info['tx_rx_pairs']\
                                                    [txrx_pair_id]\
                                                    ['name']
-                        df_temp[param_temp].plot(ax=ax[i][0], 
-                                                 label=name,
-                                                 color=color,
-                                                 **kwargs)
+                        except KeyError:
+                            name = txrx_pair_id
+
+                        # if there is no color supplied, let matplotlib decide
+                        try:
+                            color = self.processing_info['tx_rx_pairs']\
+                                                    [txrx_pair_id]\
+                                                    ['linecolor']
+                            df_temp[param_temp].plot(ax=ax[i][0],
+                                                     label=name,
+                                                     color=color,
+                                                     **kwargs)
+                        except KeyError:
+                            df_temp[param_temp].plot(ax=ax[i][0],
+                                                     label=name,
+                                                     **kwargs)
             elif type(param) is tuple:
                 for param_item in param:
                     df_temp[param_item].plot(ax=ax[i][0], 

@@ -215,6 +215,7 @@ class ComlinkSet():
                                         min_link_length=0.7,
                                         deltaP=-1.4,
                                         deltaPL=-0.7,
+                                        deltaP_max=-2.0, 
                                         print_info=False):
         """Perform wet/dry classification for all CML time series in CMLS
 
@@ -246,7 +247,10 @@ class ComlinkSet():
                  of neighboring links
         deltaPL : float, optional
                  Threshold value (in dB/km) for mutual decrease in RSL           
-                 of neighboring links                 
+                 of neighboring links  
+        deltaP_max : float, optional
+                 Big threshold value (in dB) for mutual decrease in minimum RSL
+                 of neighboring links                                   
         print_info : bool
                   Print information about executed method (Default is False)
         
@@ -292,7 +296,7 @@ class ComlinkSet():
             cml_list_update = []  
             for cml in self.set:  
                                   
-                if len(cml.processing_info['neighbors']) >= number_neighbors: 
+                if len(cml.processing_info['neighbors']) >= number_neighbors+1: 
                     data_min = pd.DataFrame()
                     dp = pd.DataFrame()
                     dpl = pd.DataFrame()
@@ -309,12 +313,19 @@ class ComlinkSet():
                         data_min['wet_' + pair_id] = ((dp.median(axis=1) < deltaP) & \
                                                          (dpl.median(axis=1) < deltaPL))
                                                          
-                        # WIP: Takes too long                                 
-                        #for i in range(2,len(data_min)-1): 
-                        #    if data_min['wet_' + pair_id][i] and dp[cml.metadata['link_id']][i] < -2.:
-                        #            data_min['wet_' + pair_id][i-2] = True
-                        #            data_min['wet_' + pair_id][i-1] = True
-                        #            data_min['wet_' + pair_id][i+1] = True
+                        cond = (data_min['wet_' + pair_id]) & (dp[cml.metadata['link_id']] < deltaP_max)
+                        cond_shifted_plus1 = cond.shift(1)
+                        cond_shifted_minus1= cond.shift(-1)
+                        cond_shifted_minus2= cond.shift(-2)
+        
+                        cond_shifted_plus1[(cond == True) & (cond.shift(1) == False)] = True
+                        cond_shifted_minus1[(cond == True) & (cond.shift(-1) == False)] = True
+                        cond_shifted_minus2[(cond == True) & (cond.shift(-2) == False)] = True
+                        data_min['wet_' + pair_id][(cond_shifted_plus1 == True) | \
+                                                    (cond_shifted_minus1 == True) | \
+                                                    (cond_shifted_minus2 == True)] = True       
+
+
                               
                     cml.data = data_min 
             

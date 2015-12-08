@@ -17,7 +17,7 @@ def read(fname):
 
 setup(
     name = "pycomlink",
-    version = "0.0.5",
+    version = "0.0.6",
     author = "Christian Chwala",
     author_email = "christian.chwala@kit.edu",
     description = ("Python tools for MW link data processing"),
@@ -38,5 +38,7 @@ setup(
         'numpy', 
         'scipy', 
         'pandas', 
-        'matplotlib'],
+        'matplotlib',
+        'cartopy',
+    ]
 )

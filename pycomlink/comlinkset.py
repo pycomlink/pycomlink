@@ -212,7 +212,6 @@ class ComlinkSet():
                                         f_divide=1e-3,
                                         reuse_last_Pxx=False,
                                         number_neighbors=2,
-                                        min_link_length=0.7,
                                         deltaP=-1.4,
                                         deltaPL=-0.7,
                                         deltaP_max=-2.0, 
@@ -239,9 +238,7 @@ class ComlinkSet():
                  Parameter for classification with method Fourier transformation
                  (Default is false)  
         number_neighbors : int, optional
-                 Minimum number of neighboring links for method link approach
-        min_link_length : float, optional
-                 Minimum link length (in km) for method link approach        
+                 Minimum number of neighboring links for method link approach       
         deltaP : float, optional
                  Threshold value (in dB) for mutual decrease in minimum RSL
                  of neighboring links

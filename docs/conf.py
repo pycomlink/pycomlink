@@ -22,7 +22,7 @@ class Mock(MagicMock):
     def __getattr__(cls, name):
         return Mock()
 
-MOCK_MODULES = ['pandas', 'numpy', 'scipy', 'scipy.io','scipy.interpolate','scipy.optimize','scipy.linalg','scipy.spatial.distance', 'matplotlib', 'matplotlib.pyplot', 'matplotlib.mlab', 'cartopy','cartopy.crs','cartopy.io']
+MOCK_MODULES = ['cython','pandas','numpy','scipy', 'scipy.io','scipy.interpolate','scipy.optimize','scipy.linalg','scipy.spatial.distance','matplotlib','matplotlib.pyplot','matplotlib.mlab', 'cartopy','cartopy.crs','cartopy.io']
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 # If extensions (or modules to document with autodoc) are in another directory,

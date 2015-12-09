@@ -1,6 +1,2 @@
-numpy
-scipy
-matplotlib
 pandas
-cartopy
 mock

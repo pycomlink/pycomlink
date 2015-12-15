@@ -1,9 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Wed Nov 25 16:32:11 2015
-
-@author: keis-f
-"""
 
 from __future__ import absolute_import
 from __future__ import division
@@ -12,7 +7,8 @@ from __future__ import unicode_literals
 import numpy as np
 from scipy.optimize import minimize
 import scipy.linalg
-from scipy.spatial.distance import cdist
+import scipy
+#from scipy.spatial.distance import cdist
 import matplotlib.pyplot as plt
 
 
@@ -675,7 +671,7 @@ class OrdinaryKriging:
         """Assembles the kriging matrix."""
 
         xy = np.concatenate((self.X_ADJUSTED[:, np.newaxis], self.Y_ADJUSTED[:, np.newaxis]), axis=1)
-        d = cdist(xy, xy, 'euclidean')
+        d = scipy.spatial.distance.cdist(xy, xy, 'euclidean')
         a = np.zeros((n+1, n+1))
         a[:n, :n] = - self.variogram_function(self.variogram_model_parameters, d)
         np.fill_diagonal(a, 0.)
@@ -914,7 +910,7 @@ class OrdinaryKriging:
             else:
                 raise ValueError('Specified backend {} for a moving window is not supported.'.format(backend))
         else:
-            bd = cdist(xy_points,  xy_data, 'euclidean')
+            bd = scipy.spatial.distance.cdist(xy_points,  xy_data, 'euclidean')
             if backend == 'vectorized':
                 zvalues, sigmasq = self._exec_vector(a, bd, mask)
             elif backend == 'loop':

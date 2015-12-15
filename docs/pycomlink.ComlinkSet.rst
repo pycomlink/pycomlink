@@ -1,5 +1,5 @@
-``pycomlink.ComlinkSet`` Object
-===============================
+``pycomlink.ComlinkSet``
+========================
 
 .. automodule:: pycomlink.comlinkset
    :members:

@@ -5,7 +5,8 @@
 
 import math
 import numpy as np
-from scipy.spatial.distance import cdist
+#from scipy.spatial.distance import cdist
+import scipy
 
 from . import ok
 
@@ -44,7 +45,7 @@ def inv_dist(sample_points, sample_values, grid,power,smoothing, nn):
                 Number of neighbors considered for IDW interpolation
                 
     """
-    dist = np.sqrt(cdist(sample_points, grid)**2. + smoothing**2.)
+    dist = np.sqrt(scipy.spatial.distance.cdist(sample_points, grid)**2. + smoothing**2.)
     dist_trans = dist.T
     
     points_sorted = dist_trans.argsort(axis=1)

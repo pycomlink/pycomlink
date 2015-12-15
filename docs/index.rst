@@ -31,6 +31,7 @@ Main Classes:
 .. toctree::
 
    pycomlink.Comlink
+   pycomlink.ComlinkSet
    
 Submodules:
 -----------

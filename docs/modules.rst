@@ -1,5 +1,5 @@
-pycomlink
-=========
+.
+=
 
 .. toctree::
    :maxdepth: 4

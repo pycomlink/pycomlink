@@ -27,7 +27,7 @@ import shlex
 
 import mock
  
-MOCK_MODULES = ['pandas','numpy','scipy', 'scipy.io','scipy.interpolate','scipy.optimize','scipy.linalg','scipy.spatial.distance','matplotlib','matplotlib.pyplot','matplotlib.mlab', 'cartopy','cartopy.crs','cartopy.io']
+MOCK_MODULES = ['h5py','pandas','numpy','scipy', 'scipy.io','scipy.interpolate','scipy.optimize','scipy.linalg','scipy.spatial.distance','matplotlib','matplotlib.pyplot','matplotlib.mlab', 'cartopy','cartopy.crs','cartopy.io']
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = mock.Mock()
 

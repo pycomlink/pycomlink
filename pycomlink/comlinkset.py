@@ -48,17 +48,15 @@ class ComlinkSet():
                 has to be a Comlink object.
             area : list of floats
                 List that holds the geographic coordinates of the area borders in
-                decimal format. 
-                The order is mandatory.
-            start : str
-                Start Timestamp of requested period
-            stop : str
-                Stop Timestamp of requested period                
+                decimal format. The order is mandatory.
                 
                 Example
                 -------
-                >>> area = [lower_longitude,upper_longitude,lower_latitude, upper_latitude]
-                
+                >>> area = [lower_longitude,upper_longitude,lower_latitude, upper_latitude]                                
+            start : str
+                Start Timestamp of requested period
+            stop : str
+                Stop Timestamp of requested period                      
         """
         
         
@@ -152,25 +150,27 @@ class ComlinkSet():
 
 
     def find_neighboring_links(self,crit_dis=10.,min_link_length=0.7):
-        """Identify neighboring links for which both ends are within a critical
-           distance from either end of a link (computation is done for all links)
+        """Identify neighboring links for which both ends are within a critical distance from either end of a link (computation is done for all links).
         
         Parameters
         ----------
         crit_dis : float
                 critical distance
+        min_link_length : float
+                Only links with a length larger than min_link_length are considered 
                 
         Note
         ----
         Requires Metadata dictionaries for all involved links with at 
-        least minimum information (see example for key naming)       
-            Example
-            -------            
-            >>> metadata = {'site_A': {'lat': 21.23,
+        least minimum information (see example for key naming)     
+        
+        Example
+        -------            
+        >>> metadata = {'site_A': {'lat': 21.23,
                                        'lon': 3.24},
-                            'site_B': {'lat': -2.123,
+                        'site_B': {'lat': -2.123,
                                        'lon': -12.31},
-                            'link_id': 'MY1231_2_MY1232_3'}
+                        'link_id': 'MY1231_2_MY1232_3'}
         """
         for cml in self.set:
             id_list = []
@@ -254,14 +254,20 @@ class ComlinkSet():
         Note
         ----        
         WIP: Currently two classification methods are supported:
-                - std_dev: Rolling standard deviation method [1]_
-                - stft: Rolling Fourier-transform method [2]_   
-                - link_appr: Link approach [5]_. 
-                             Temporal resolution is set to 15 Minutes.
-                             Links without neighbors are dismissed.
+            - std_dev: Rolling standard deviation method [1]_
+            - stft: Rolling Fourier-transform method [2]_   
+            - link_appr: Link approach [5]_. Temporal resolution is set to 15 Minutes. Links without neighbors are dismissed.
                                              
         References
         ----------
+        .. [1] Schleiss, M. and Berne, A.: "Identification of dry and rainy periods 
+                using telecommunication microwave links", IEEE Geoscience and 
+                Remote Sensing, 7, 611-615, 2010
+        .. [2] Chwala, C., Gmeiner, A., Qiu, W., Hipp, S., Nienaber, D., Siart, U.,
+              Eibert, T., Pohl, M., Seltmann, J., Fritz, J. and Kunstmann, H.:
+              "Precipitation observation using microwave backhaul links in the 
+              alpine and pre-alpine region of Southern Germany", Hydrology
+              and Earth System Sciences, 16, 2647-2661, 2012          
         .. [5] Overeem, A. and Leijnse, H. and Uijlenhoet R.: "Measuring urban  
                 rainfall using microwave links from commercial cellular 
                 communication networks", Water Resources Research, 47, 2011                      
@@ -394,7 +400,11 @@ class ComlinkSet():
         ----        
         The wet antenna adjusting is based on a peer-reviewed publication [3]_
         
-  
+        References
+        ----------
+        .. [3] Schleiss, M., Rieckermann, J. and Berne, A.: "Quantification and
+                modeling of wet-antenna attenuation for commercial microwave
+                links", IEEE Geoscience and Remote Sensing Letters, 10, 2013    
         """ 
                                            
         for cml in self.set:    
@@ -504,7 +514,7 @@ class ComlinkSet():
         nn : int,optional
                 Number of neighbors considered for interpolation. 
                 Default is 10
-       kwargs : kriging parameters, optional
+        kwargs : kriging parameters, optional
                 See https://github.com/bsmurphy/PyKrige for details          
                 
         """

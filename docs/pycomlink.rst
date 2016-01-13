@@ -35,13 +35,6 @@ pycomlink.mapping
     :undoc-members:
     :show-inheritance:
 
-pycomlink.ok
-------------
-
-.. automodule:: pycomlink.ok
-    :members:
-    :undoc-members:
-    :show-inheritance:
 
 pycomlink.wet_antenna
 ---------------------

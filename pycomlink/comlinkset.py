@@ -83,11 +83,11 @@ class ComlinkSet():
         print '============================================================='
         
 
-    def info_plot(self,out_file=None):
+    def info_plot(self,out_file=None,figsize=(10,10)):
         """Plot associated links on a map 
                 
         """
-        plt.figure(figsize=(10,10))
+        plt.figure(figsize=figsize)
         ax = plt.axes(projection=cartopy.crs.PlateCarree())
 
         lons=[]
@@ -451,13 +451,15 @@ class ComlinkSet():
         cml without length in metadata and frequency information in processing 
         info are removed from cmls.set
         """   
-        
+
         for cml in self.set:
             remove=False
             if not cml.metadata['length_km']:
                 remove=True
             for pair_id in cml.processing_info['tx_rx_pairs']:
                 if not cml.processing_info['tx_rx_pairs'][pair_id]['f_GHz']:
+                    remove=True
+                elif np.isnan(cml.processing_info['tx_rx_pairs'][pair_id]['f_GHz']):
                     remove=True
             if remove:
                 self.set.remove(cml)        

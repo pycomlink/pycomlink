@@ -17,6 +17,7 @@ import cartopy
 from cartopy.io import img_tiles
 import pandas as pd
 from scipy.io import netcdf
+from collections import OrderedDict
 
 import matplotlib
 
@@ -543,7 +544,7 @@ class ComlinkSet():
         
 
         self.set_info['interpol_time_array'] = times
-        self.set_info['interpol'] = {}
+        self.set_info['interpol'] = OrderedDict()
           
         for time in times:  
             print "Interpolating for UTC time",time                    
@@ -727,28 +728,28 @@ class ComlinkSet():
         f.createDimension('Time', len(self.set_info['interpol_time_array']))
         f.createDimension('DateStrLen', 
                           len(self.set_info['interpol_time_array'][0].strftime('%Y-%m-%d_%H:%M:%S')))
-        f.createDimension('west_east', self.set_info['interpol_longrid'].shape[1])
-        f.createDimension('south_north', self.set_info['interpol_longrid'].shape[0])
+        f.createDimension('west_east', self.set_info['interpol_longrid'].shape[0])
+        f.createDimension('south_north', self.set_info['interpol_longrid'].shape[1])
         
         time_list=[]
         for time in self.set_info['interpol_time_array']:
-            time_list.append(time.strftime('%Y-%m-%d_%H:%M:%S'))        
+            time_list.append(time.strftime('%Y-%m-%d_%H:%M:%S'))     
         TIME = f.createVariable('TIME', 'c', ('Time','DateStrLen',))
         TIME[:] = time_list
         
-        XLAT_M = f.createVariable('XLAT_M', 'd', ( 'south_north','west_east',))
+        XLAT_M = f.createVariable('XLAT_M', 'd', ( 'west_east','south_north',))
         XLAT_M[:] = self.set_info['interpol_latgrid']
         #XLAT_M[:] = np.stack([self.set_info['interpol_latgrid']]*len(self.set_info['interpol_time_array']))
         
-        XLON_M = f.createVariable('XLON_M', 'd', ('south_north','west_east',))
+        XLON_M = f.createVariable('XLON_M', 'd', ('west_east','south_north',))
         XLON_M[:] = self.set_info['interpol_longrid']
         #XLON_M[:] = np.stack([self.set_info['interpol_longrid']]*len(self.set_info['interpol_time_array']))
         
         rr_list=[]
         for time in self.set_info['interpol']:
             rr_list.append(self.set_info['interpol'][time])     
-            
-        RAINRATE = f.createVariable('RAINRATE', 'f', ('Time', 'south_north','west_east',))
+     
+        RAINRATE = f.createVariable('RAINRATE', 'f', ('Time','west_east','south_north',))
         RAINRATE[:] = np.stack(rr_list)
         
         

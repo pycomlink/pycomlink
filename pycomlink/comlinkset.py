@@ -550,6 +550,8 @@ class ComlinkSet():
         for cml in self.set:
             temp_df_list.append(cml.data.resample(resampling_time,how='mean'))
 
+        meas_points_old = np.empty(0)
+
         for i_time, time in enumerate(times):
             print "Interpolating for UTC time",time                    
             lons_mw=[]
@@ -606,14 +608,23 @@ class ComlinkSet():
             val_mw=np.ma.compressed(np.ma.masked_where(np.isnan(values_mw),values_mw))
             lon_mw=np.ma.compressed(np.ma.masked_where(np.isnan(values_mw),lons_mw))
             lat_mw=np.ma.compressed(np.ma.masked_where(np.isnan(values_mw),lats_mw))
-            
-    
+
             meas_points=np.vstack((lon_mw,lat_mw)).T
             xi, yi = longrid.flatten(), latgrid.flatten()
             grid = np.vstack((xi, yi)).T   
                                         
             if int_type == 'IDW':
+                # Check if IDW weights have to be calculated or if
+                # they can be reused
+                must_calc_new_weights = False
                 if i_time == 0:
+                    must_calc_new_weights = True
+                if not np.array_equal(meas_points_old, meas_points):
+                    print 'meas points not equal to meas_points_old'
+                    must_calc_new_weights = True
+                    meas_points_old = meas_points
+
+                if must_calc_new_weights:
                     idw_weights = mapping._get_idw_weights(meas_points,grid,
                                        power,smoothing, nn)
                 interpol = mapping.inv_dist(meas_points,val_mw,grid,

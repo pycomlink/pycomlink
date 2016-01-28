@@ -10,7 +10,7 @@ import scipy
 
 from . import ok
 
-def inv_dist(sample_points, sample_values, grid,power,smoothing, nn):
+def inv_dist(sample_points, sample_values, grid,power,smoothing, nn, weights=None):
     """Calculate Inverse Distance Weighting Interpolation 
     
     Parameters
@@ -43,6 +43,10 @@ def inv_dist(sample_points, sample_values, grid,power,smoothing, nn):
                Power of smoothing factor for IDW interpolation. 
     nn : int 
                 Number of neighbors considered for IDW interpolation
+
+    weights : ???, optional
+                IDW weights. Precalculate them and pass them as arguemtn
+                to speed up the interpolation.
                 
     """
     dist = np.sqrt(scipy.spatial.distance.cdist(sample_points, grid)**2. + smoothing**2.)
@@ -53,14 +57,38 @@ def inv_dist(sample_points, sample_values, grid,power,smoothing, nn):
     points_used_nn = points_sorted.T[:nn].T
     values_points_used_nn = np.array(map(lambda indices: sample_values[indices],
                                          points_used_nn))
+    if weights==None:
+        distances_points_used_nn = np.array(map(np.take, dist_trans, points_used_nn))
+        weights = 1.0 / distances_points_used_nn**power
+        normalize = lambda row: row / row.sum()
+        weights = np.array(map(normalize, weights))
+    weight_products = weights * values_points_used_nn
+    interpolated_values = weight_products.sum(axis=1)
+    return interpolated_values
+
+
+def _get_idw_weights(sample_points, grid,power,smoothing, nn):
+    """ Calculate weights for IDW
+
+    sample_points: C
+    grid:
+    power:
+    smoothing:
+    nn:
+
+    return:
+    """
+    dist = np.sqrt(scipy.spatial.distance.cdist(sample_points, grid)**2. + smoothing**2.)
+    dist_trans = dist.T
+
+    points_sorted = dist_trans.argsort(axis=1)
+
+    points_used_nn = points_sorted.T[:nn].T
     distances_points_used_nn = np.array(map(np.take, dist_trans, points_used_nn))
     weights = 1.0 / distances_points_used_nn**power
     normalize = lambda row: row / row.sum()
     weights = np.array(map(normalize, weights))
-    weight_products = weights * values_points_used_nn
-    interpolated_values = weight_products.sum(axis=1)
-    return interpolated_values
-                          
+    return weights
 
 def label_loc(lon_a,lat_a,lon_b,lat_b):
     """Helper function for method info_plot of class Comlink    

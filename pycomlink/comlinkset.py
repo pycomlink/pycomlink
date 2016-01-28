@@ -545,14 +545,17 @@ class ComlinkSet():
 
         self.set_info['interpol_time_array'] = times
         self.set_info['interpol'] = OrderedDict()
-          
-        for time in times:  
+
+        temp_df_list = []
+        for cml in self.set:
+            temp_df_list.append(cml.data.resample(resampling_time,how='mean'))
+
+        for i_time, time in enumerate(times):
             print "Interpolating for UTC time",time                    
             lons_mw=[]
             lats_mw=[]
             values_mw=[]     
-            for cml in self.set:
-                temp_df = cml.data.resample(resampling_time,how='mean')
+            for cml, temp_df in zip(self.set, temp_df_list):
                 if 'site_A' in cml.metadata and 'site_B' in cml.metadata:
                     if 'lat' in cml.metadata['site_A'] and \
                        'lon' in cml.metadata['site_A'] and \
@@ -598,7 +601,7 @@ class ComlinkSet():
                                values_mw.append(precip)  
                            else:
                                values_mw.append(np.nan)    
-    
+
              
             val_mw=np.ma.compressed(np.ma.masked_where(np.isnan(values_mw),values_mw))
             lon_mw=np.ma.compressed(np.ma.masked_where(np.isnan(values_mw),lons_mw))
@@ -609,9 +612,12 @@ class ComlinkSet():
             xi, yi = longrid.flatten(), latgrid.flatten()
             grid = np.vstack((xi, yi)).T   
                                         
-            if int_type == 'IDW': 
+            if int_type == 'IDW':
+                if i_time == 0:
+                    idw_weights = mapping._get_idw_weights(meas_points,grid,
+                                       power,smoothing, nn)
                 interpol = mapping.inv_dist(meas_points,val_mw,grid,
-                                       power,smoothing,nn).reshape(longrid.shape)
+                                       power,smoothing,nn, idw_weights).reshape(longrid.shape)
                                       
             elif int_type == 'Kriging':
                 interpol=mapping.kriging(meas_points,val_mw,grid, 

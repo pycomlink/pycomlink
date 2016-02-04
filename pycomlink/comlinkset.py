@@ -84,7 +84,7 @@ class ComlinkSet():
         print '============================================================='
         
 
-    def info_plot(self,out_file=None,figsize=(10,10)):
+    def info_plot(self,out_file=None,figsize=(10,10), add_labels=False):
         """Plot associated links on a map 
                 
         """
@@ -112,8 +112,15 @@ class ComlinkSet():
                    plt.plot([cml.metadata['site_A']['lon'],cml.metadata['site_B']['lon']],
                             [cml.metadata['site_A']['lat'],cml.metadata['site_B']['lat']],
                             linewidth=2,color='k',
-                            transform=cartopy.crs.Geodetic())        
-        
+                            transform=cartopy.crs.Geodetic())
+                   if add_labels:
+                        plt.text(cml.metadata['site_A']['lon'] - (cml.metadata['site_A']['lon'] - cml.metadata['site_B']['lon'])/2,
+                             cml.metadata['site_A']['lat'] - (cml.metadata['site_A']['lat'] - cml.metadata['site_B']['lat'])/2,
+                             cml.metadata['link_id'],
+                             transform=cartopy.crs.Geodetic(),
+                             fontsize=15,
+                             color='r')
+
         if out_file is not None:
             plt.savefig(out_file,format='png',bbox_inches='tight', dpi=300) 
 

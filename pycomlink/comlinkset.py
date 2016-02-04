@@ -537,11 +537,10 @@ class ComlinkSet():
         
         if start_time is None or stop_time is None:
             times = pd.date_range(self.set_info['start'],self.set_info['stop'],
-                                  freq=resampling_time)[0:-1]
+                                  freq=resampling_time, normalize=True)[0:-1]
         else:
             times = pd.date_range(start_time,stop_time,
-                                  freq=resampling_time)                                  
-        
+                                  freq=resampling_time, normalize=True)
 
         self.set_info['interpol_time_array'] = times
         self.set_info['interpol'] = OrderedDict()
@@ -575,7 +574,12 @@ class ComlinkSet():
                            plist = []
 
                            for pair_id in cml.processing_info['tx_rx_pairs']:
-                               plist.append((temp_df['R_'+pair_id][start:stop]).values[0])   
+                               # TODO: Get rid of the [0] indexing and the start stop index thing
+                               R_temp = (temp_df['R_'+pair_id][start:stop])
+                               if len(R_temp) > 0:
+                                   plist.append(R_temp.values[0])
+                               else:
+                                   plist.append(np.nan)
                              
                            if method == 'mean':
                                precip = np.mean(plist)                     
@@ -611,8 +615,8 @@ class ComlinkSet():
 
             meas_points=np.vstack((lon_mw,lat_mw)).T
             xi, yi = longrid.flatten(), latgrid.flatten()
-            grid = np.vstack((xi, yi)).T   
-                                        
+            grid = np.vstack((xi, yi)).T
+            
             if int_type == 'IDW':
                 # Check if IDW weights have to be calculated or if
                 # they can be reused

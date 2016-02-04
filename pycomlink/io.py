@@ -126,7 +126,55 @@ def _write_channel_data(chan_g, cml, channel_id, compression, compression_opts):
     chan_g['TX'].dims[0].attach_scale(chan_g['time'])
 
 
-def write_to_cmlh5(cml_list, fn, compression='gzip', compression_opts=4):
+def _write_product(prod_g, cml, product_key, product_name, product_unit, compression, compression_opts):
+    # Get UNIX time form pandas.DatetimeIndex (which is UNIX time in ns)
+    t_vec = cml.data.index.astype('int64') / 1e9
+
+    product_vec = cml.data[product_key].values
+
+    prod_g.create_dataset(product_name, data=product_vec,
+                          compression=compression,
+                          compression_opts=compression_opts)
+    prod_g[product_name].attrs['units'] = product_unit
+
+    # write time dimension
+    prod_g.create_dataset('time', data=t_vec,
+                          compression=compression,
+                          compression_opts=compression_opts)
+    prod_g['time'].attrs['units'] = 'POSIX time UTC'
+    prod_g['time'].attrs['calendar'] = 'proleptic_gregorian'
+    prod_g[product_name].dims.create_scale(prod_g['time'], 'time')
+    prod_g[product_name].dims[0].attach_scale(prod_g['time'])
+
+
+def write_to_cmlh5(cml_list, fn,
+                   product_keys=None, product_names=None, product_units=None,
+                   compression='gzip', compression_opts=4):
+
+    # Check and prepare `product_keys`, `product_names` and `product_units`
+    if product_keys is not None:
+        if type(product_keys) == str:
+            product_keys = [product_keys]
+            strings_are_supplied = True
+        else:
+            strings_are_supplied = False
+
+        if product_names is None:
+            product_names = product_keys
+        else:
+            if type(product_names) == str:
+                if strings_are_supplied == False:
+                    raise AttributeError('`product_keys` was supplied as list, so must be `product_names`')
+                product_names = [product_names]
+
+        if product_units is None:
+            raise AttributeError('Units must be supplied for the products')
+        else:
+            if type(product_units) == str:
+                if strings_are_supplied == False:
+                    raise AttributeError('`product_keys` was supplied as list, so must be `product_units`')
+                product_units = [product_units]
+
     with h5py.File(fn, mode='w') as h5file:
         h5file.attrs['cmlH5_version'] = '0.2'
 
@@ -142,6 +190,14 @@ def write_to_cmlh5(cml_list, fn, compression='gzip', compression_opts=4):
                 chan_g = cml_g.create_group('channel_%d' % (i_channel + 1))
                 _write_channel_attributes(chan_g, cml, channel_id)
                 _write_channel_data(chan_g, cml, channel_id, compression, compression_opts)
+
+            # Write CML derived products like rain rate for each CML
+            if product_keys is not None:
+                for i_prod, (product_key, product_name, product_unit) in enumerate(zip(product_keys,
+                                                                                       product_names,
+                                                                                       product_units)):
+                    prod_g = cml_g.create_group('product_%d' % i_prod)
+                    _write_product(prod_g, cml, product_key, product_name, product_unit, compression, compression_opts)
 
 
 def _read_cml_metadata(cml_g):

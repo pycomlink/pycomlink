@@ -1,1 +1,3 @@
 import comlink_channel
+
+from comlink_channel import ComlinkChannel

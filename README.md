@@ -6,7 +6,7 @@ A python toolbox for MW link data processing and rain rate estimation
 Installation
 ------------
 
-`pycomlink` works with Python 2.7 and depends on `numpy`, `scipy`, `pandas`, `matplotlib` and `cartopy`. You can install it via `pip`, but it is recommended that you install the dependecies first. We recommend the usage of the [Anaconda Python distribution](https://store.continuum.io/cshop/anaconda/) for all scientific python packages. 
+`pycomlink` works with Python 2.7 and depends on `numpy`, `scipy`, `pandas`, `matplotlib`, `cartopy` and `numba`. You can install it via `pip`, but it is recommended that you install the dependecies first. We recommend the usage of the [Anaconda Python distribution](https://store.continuum.io/cshop/anaconda/) for all scientific python packages. 
 
 The `pip` command to install `pycomlink` is the following:
 
@@ -30,5 +30,3 @@ Features
  * Different baseline methods available
  * One wet antenna estimation method available
  * 2D plots using IDW or Kriging interpolation
-
-

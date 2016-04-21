@@ -5,3 +5,7 @@
 docs/_build/
 docs/_static/
 docs/_templates/
+.coverage
+.idea/
+build/
+__pycache__/

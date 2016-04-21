@@ -11,22 +11,13 @@
 # Licence:      The MIT License
 # ----------------------------------------------------------------------------
 
-
+import numpy as np
 import pandas as pd
 import copy
 
 
 class ComlinkChannel(object):
     """A class for holding CML channel data and metadata"""
-
-    #
-    # !!! Many of the subclassing things need pandas >=0.17 !!!
-    #
-
-    # According to the pandas docs this is necessary to have
-    # additional attributes
-    # _metadata = ['f_GHz', 'pol', 'atpc', 'id',
-    #             'sampling_type', 'temporal_resolution',]
 
     def __init__(self, *args, **kwargs):
         """
@@ -123,12 +114,13 @@ class ComlinkChannel(object):
 
     def resample(self, *args, **kwargs):
         inplace = kwargs.pop('inplace', False)
+        how = kwargs.pop('how', np.mean)
 
         if inplace:
-            self._df = self._df.resample(*args, **kwargs)
+            self._df = self._df.resample(*args, **kwargs).apply(how)
         elif not inplace:
             new_cml_ch = copy.copy(self)
-            new_cml_ch._df = self._df.resample(*args, **kwargs)
+            new_cml_ch._df = self._df.resample(*args, **kwargs).apply(how)
             return new_cml_ch
         else:
             raise ValueError('`inplace` must be either True or False')
@@ -157,7 +149,7 @@ class ComlinkChannel(object):
                 return data
 
             else:
-                raise ValueError('`data` must be a pandas.DataFrame')
+                raise ValueError('type of `data` is %s, but must be pandas.DataFrame' % type(data))
 
         else:
             raise ValueError('Could not parse the supplied arguments')

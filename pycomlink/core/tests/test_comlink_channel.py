@@ -29,7 +29,7 @@ class TestComlinkChannelInit(unittest.TestCase):
     def test_with_list_only_rx_data(self):
         """ Test if the column name is set correctly """
         cml_ch = ComlinkChannel(rx=rx_list, t=t_list, f_GHz=f)
-        pd.util.testing.assert_almost_equal(cml_ch.rx, rx_list)
+        np.testing.assert_almost_equal(cml_ch.rx.values, rx_list)
 
     def test_kwargs(self):
         cml_ch = ComlinkChannel(rx=rx_list, t=t_list, f_GHz=f)
@@ -84,7 +84,7 @@ class TestComlinkChannelTypeAfterManipulation(unittest.TestCase):
     def test_resampling(self):
         df = pd.DataFrame(index=t_date_range, data={'rx': rx_list})
         cml_ch_1min = ComlinkChannel(data=df, f_GHz=f)
-        cml_ch_5min = ComlinkChannel(data=df.resample('5min'), f_GHz=f)
+        cml_ch_5min = ComlinkChannel(data=df.resample('5min').apply(np.mean), f_GHz=f)
 
         cml_ch_5min_no_inplace_kwarg = cml_ch_1min.resample('5min')
         assert(type(cml_ch_5min_no_inplace_kwarg) == ComlinkChannel)

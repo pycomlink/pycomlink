@@ -105,8 +105,7 @@ class ComlinkChannel(object):
         return new_cml_ch
 
     def _repr_html_(self):
-        print 'f_GHz: ', self.f_GHz
-        return self._df._repr_html_()
+        return 'f_GHz: ' + str(self.f_GHz) + self._df._repr_html_()
 
     def copy(self):
         return self.__deepcopy__()

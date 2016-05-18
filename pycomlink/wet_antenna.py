@@ -10,53 +10,63 @@
 #----------------------------------------------------------------------------
 
 import numpy as np
+import pandas as pd
+
+from numba.decorators import jit
 
 
 ########################################
 # Functions for wet antenna estimation #
 ########################################
 
-def waa_Schleiss_recursive(A, waa, waa_max, delta_t, tau, wet):
-    
-    """Calculate wet antenna attenuation 
-    
+@jit(nopython=True)
+def _numba_waa_schleiss(rsl, baseline, waa_max, delta_t, tau, wet):
+    """Calculate wet antenna attenuation
+
     Parameters
     ----------
         A : float
               Attenuation value
         waa : float
-              Value of wet antenna attenuation at the preceding timestep        
+              Value of wet antenna attenuation at the preceding timestep
         waa_max : float
-               Maximum value of wet antenna attenuation   
+               Maximum value of wet antenna attenuation
         delta_t : float
-               Parameter for wet antnenna attenation model    
+               Parameter for wet antnenna attenation model
         tau : float
-              Parameter for wet antnenna attenation model         
+              Parameter for wet antnenna attenation model
         wet : int or float
-               Wet/dry classification information. 
-               
+               Wet/dry classification information.
+
     Returns
     -------
        float
            Value of wet antenna attenuation
-               
+
     Note
-    ----        
+    ----
         The wet antenna adjusting is based on a peer-reviewed publication [3]_
-                    
+
     References
     ----------
     .. [3] Schleiss, M., Rieckermann, J. and Berne, A.: "Quantification and
                 modeling of wet-antenna attenuation for commercial microwave
-                links", IEEE Geoscience and Remote Sensing Letters, 10, 2013    
+                links", IEEE Geoscience and Remote Sensing Letters, 10, 2013
     """
-    
-    if wet==True:
-        waa = min(A, waa_max, 
-                  waa + (waa_max-waa)*3*delta_t/tau)
-    else:
-        waa = min(A, waa_max)
+
+    waa = np.zeros_like(rsl, dtype=np.float64)
+    A = rsl - baseline
+
+    for i in range(1,len(rsl)):
+        if wet[i] == True:
+            waa[i] = min(A[i],
+                         waa_max,
+                         waa[i-1] + (waa_max-waa[i-1])*3*delta_t/tau)
+        else:
+            waa[i] = min(A[i],
+                         waa_max)
     return waa
+
 
 def waa_adjust_baseline(rsl, baseline, waa_max, delta_t, tau, wet):
     
@@ -86,16 +96,16 @@ def waa_adjust_baseline(rsl, baseline, waa_max, delta_t, tau, wet):
         
     """     
     
-    waa = np.zeros_like(rsl)
-    A = rsl - baseline
-    # iterate of A timeseries and recursively apply waa_Schleiss
-    for i in range(1,len(rsl)):
-        waa[i] = waa_Schleiss_recursive(A[i], 
-                                        waa[i-1], 
-                                        waa_max=waa_max, 
-                                        delta_t=delta_t, 
-                                        tau=tau,
-                                        wet=wet[i])
-    return baseline + waa, waa
+    if type(rsl) == pd.Series:
+        rsl = rsl.values
+    if type(baseline) == pd.Series:
+        baseline = baseline.values
+    if type(wet) == pd.Series:
+        wet = wet.values
 
+    rsl = rsl.astype(np.float64)
+    baseline = baseline.astype(np.float64)
+    wet = wet.astype(np.float64)
 
+    waa = _numba_waa_schleiss(rsl, baseline, waa_max, delta_t, tau, wet)
+    return  baseline + waa , waa

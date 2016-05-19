@@ -297,7 +297,7 @@ class ComlinkSet():
             if print_info:
                 print 'Performing wet/dry classification with link approach'
                 print 'Method = link_appr'
-                print 'Critical distance = ' + str(cml.processing_info['crit_dis'])
+                print 'Critical distance = ' + str(self.set[0].processing_info['crit_dis'])
                 print '-----------------------------------------'
                 print 'Hint:'
                 print 'Temporal resolution is set to 15 Minutes'

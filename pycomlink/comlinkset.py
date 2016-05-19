@@ -18,7 +18,7 @@ from cartopy.io import img_tiles
 import pandas as pd
 from scipy.io import netcdf
 from collections import OrderedDict
-
+import random
 import matplotlib
 
 from . import wet_dry
@@ -486,7 +486,7 @@ class ComlinkSet():
                       start_time=None,
                       stop_time=None,
                       method='mean',
-                      power=2,smoothing=0,nn=10,
+                      power=2,smoothing=0,nn=None,
                       **kwargs):
                      
         """ Perform spatial interpolation of rain rate grid
@@ -522,8 +522,9 @@ class ComlinkSet():
                Power of smoothing factor for IDW interpolation. Only used if 
                int_type is 'IDW' (Default is 0) 
         nn : int,optional
-                Number of neighbors considered for interpolation. 
-                Default is 10
+                Number of neighbors considered for interpolation. If None all
+                neighbors are used
+                Default is None
         kwargs : kriging parameters, optional
                 See https://github.com/bsmurphy/PyKrige for details          
                 
@@ -544,10 +545,10 @@ class ComlinkSet():
         
         if start_time is None or stop_time is None:
             times = pd.date_range(self.set_info['start'],self.set_info['stop'],
-                                  freq=resampling_time, normalize=True)[0:-1]
+                                  freq=resampling_time)[0:-1]
         else:
             times = pd.date_range(start_time,stop_time,
-                                  freq=resampling_time, normalize=True)
+                                  freq=resampling_time)
 
         self.set_info['interpol_time_array'] = times
         self.set_info['interpol'] = OrderedDict()

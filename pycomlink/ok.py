@@ -681,37 +681,6 @@ class OrdinaryKriging:
 
         return a
 
-    def _exec_vector(self, a, bd, mask):
-        """Solves the kriging system as a vectorized operation. This method
-        can take a lot of memory for large grids and/or large datasets."""
-
-        npt = bd.shape[0]
-        n = self.X_ADJUSTED.shape[0]
-        zero_index = None
-        zero_value = False
-
-        a_inv = scipy.linalg.inv(a)
-
-        if np.any(np.absolute(bd) <= self.eps):
-            zero_value = True
-            zero_index = np.where(np.absolute(bd) <= self.eps)
-
-        b = np.zeros((npt, n+1, 1))
-        b[:, :n, 0] = - self.variogram_function(self.variogram_model_parameters, bd)
-        if zero_value:
-            b[zero_index[0], zero_index[1], 0] = 0.0
-        b[:, n, 0] = 1.0
-
-        if (~mask).any():
-            mask_b = np.repeat(mask[:, np.newaxis, np.newaxis], n+1, axis=1)
-            b = np.ma.array(b, mask=mask_b)
-
-        x = np.dot(a_inv, b.reshape((npt, n+1)).T).reshape((1, n+1, npt)).T
-        zvalues = np.sum(x[:, :n, 0] * self.Z, axis=1)
-        sigmasq = np.sum(x[:, :, 0] * -b[:, :, 0], axis=1)
-
-        return zvalues, sigmasq
-
     def _exec_loop(self, a, bd_all, mask):
         """Solves the kriging system by looping over all specified points.
         Less memory-intensive, but involves a Python-level loop."""
@@ -779,7 +748,7 @@ class OrdinaryKriging:
 
         return zvalues, sigmasq
 
-    def execute(self, style, xpoints, ypoints, mask=None, backend='vectorized', n_closest_points=None):
+    def execute(self, style, xpoints, ypoints, mask=None, n_closest_points=None):
         """
         Parameters
         ----------
@@ -810,15 +779,6 @@ class OrdinaryKriging:
                 will be solved at the point.
                 True indicates that the point should be masked, so the kriging system should
                 will not be solved at the point.
-            backend : string, optional
-                Specifies which approach to use in kriging.
-                Specifying 'vectorized' will solve the entire kriging problem at once in a
-                vectorized operation. This approach is faster but also can consume a
-                significant amount of memory for large grids and/or large datasets.
-                Specifying 'loop' will loop through each point at which the kriging system
-                is to be solved. This approach is slower but also less memory-intensive.
-                Specifying 'C' will utilize a loop in Cython.
-                Default is 'vectorized'.
             n_closest_points : int, optional
                 For kriging with a moving window, specifies the number
                 of nearby points to use in the calculation. This can speed up the calculation for large
@@ -882,44 +842,17 @@ class OrdinaryKriging:
         xy_points = np.concatenate((xpts[:, np.newaxis], ypts[:, np.newaxis]), axis=1)
         xy_data = np.concatenate((self.X_ADJUSTED[:, np.newaxis], self.Y_ADJUSTED[:, np.newaxis]), axis=1)
 
-        c_pars = None
-        if backend == 'C':
-            try:
-                from .lib.cok import _c_exec_loop, _c_exec_loop_moving_window
-            except ImportError:
-                print('Warning: failed to load Cython extensions.\n'\
-                      '   See https://github.com/bsmurphy/PyKrige/issues/8 \n'\
-                      '   Falling back to a pure python backend...')
-                backend = 'loop'
-            except:
-                raise RuntimeError("Unknown error in trying to load Cython extension.")
-
-            c_pars = {key: getattr(self, key) for key in ['Z', 'eps', 'variogram_model_parameters',
-                                                          'variogram_function']}
-
         if n_closest_points is not None:
             from scipy.spatial import cKDTree
             tree = cKDTree(xy_data)
             bd, bd_idx = tree.query(xy_points, k=n_closest_points, eps=0.0)
 
-            if backend == 'loop':
-                zvalues, sigmasq = self._exec_loop_moving_window(a, bd, mask, bd_idx)
-            elif backend == 'C':
-                zvalues, sigmasq = _c_exec_loop_moving_window(a, bd, mask.astype('int8'),
-                                                              bd_idx, self.X_ADJUSTED.shape[0], c_pars)
-            else:
-                raise ValueError('Specified backend {} for a moving window is not supported.'.format(backend))
+            zvalues, sigmasq = self._exec_loop_moving_window(a, bd, mask, bd_idx)
+            
         else:
             bd = scipy.spatial.distance.cdist(xy_points,  xy_data, 'euclidean')
-            if backend == 'vectorized':
-                zvalues, sigmasq = self._exec_vector(a, bd, mask)
-            elif backend == 'loop':
-                zvalues, sigmasq = self._exec_loop(a, bd, mask)
-            elif backend == 'C':
-                zvalues, sigmasq = _c_exec_loop(a, bd, mask.astype('int8'), self.X_ADJUSTED.shape[0],  c_pars)
-            else:
-                raise ValueError('Specified backend {} is not supported for 2D ordinary kriging.'.format(backend))
-
+            zvalues, sigmasq = self._exec_loop(a, bd, mask)
+            
         if style == 'masked':
             zvalues = np.ma.array(zvalues, mask=mask)
             sigmasq = np.ma.array(sigmasq, mask=mask)
@@ -931,4 +864,3 @@ class OrdinaryKriging:
         return zvalues, sigmasq
 
 
-    

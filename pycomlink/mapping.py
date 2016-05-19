@@ -54,6 +54,8 @@ def inv_dist(sample_points, sample_values, grid,power,smoothing, nn, weights=Non
     
     points_sorted = dist_trans.argsort(axis=1)
     
+    if nn == None:
+        nn=-1    
     points_used_nn = points_sorted.T[:nn].T
     values_points_used_nn = np.array(map(lambda indices: sample_values[indices],
                                          points_used_nn))
@@ -82,7 +84,9 @@ def _get_idw_weights(sample_points, grid,power,smoothing, nn):
     dist_trans = dist.T
 
     points_sorted = dist_trans.argsort(axis=1)
-
+    
+    if nn == None:
+        nn=-1 
     points_used_nn = points_sorted.T[:nn].T
     distances_points_used_nn = np.array(map(np.take, dist_trans, points_used_nn))
     weights = 1.0 / distances_points_used_nn**power
@@ -154,10 +158,10 @@ def kriging(sample_points, sample_values, grid,
         OK = ok.OrdinaryKriging(sample_points[:,0], sample_points[:,1], sample_values,
                                 verbose=False, enable_plotting=False,**kwargs)
         z, s_kr = OK.execute(style='points', xpoints=grid[:,0], ypoints=grid[:,1],
-                             backend='loop',n_closest_points=n_closest_points)  
-    except ValueError:
+                             n_closest_points=n_closest_points)  
+    except:
         pass
-        z = np.empty(len(grid))
+        z = np.zeros(len(grid))
         
     return z    
                            

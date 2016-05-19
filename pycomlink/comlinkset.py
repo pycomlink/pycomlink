@@ -487,6 +487,7 @@ class ComlinkSet():
                       stop_time=None,
                       method='mean',
                       power=2,smoothing=0,nn=None,
+                      print_info=False,
                       **kwargs):
                      
         """ Perform spatial interpolation of rain rate grid
@@ -555,12 +556,13 @@ class ComlinkSet():
 
         temp_df_list = []
         for cml in self.set:
-            temp_df_list.append(cml.data.resample(resampling_time,how='mean'))
+            temp_df_list.append(cml.data.resample(resampling_time, label='right').mean())
 
         meas_points_old = np.empty(0)
 
         for i_time, time in enumerate(times):
-            print "Interpolating for UTC time",time                    
+            if print_info:
+                print "Interpolating for UTC time",time
             lons_mw=[]
             lats_mw=[]
             values_mw=[]     
@@ -632,7 +634,8 @@ class ComlinkSet():
                 if i_time == 0:
                     must_calc_new_weights = True
                 if not np.array_equal(meas_points_old, meas_points):
-                    print 'meas points not equal to meas_points_old'
+                    if print_info:
+                        print 'meas_points not equal to meas_points_old at % UTC' % str(time)
                     must_calc_new_weights = True
                     meas_points_old = meas_points
 

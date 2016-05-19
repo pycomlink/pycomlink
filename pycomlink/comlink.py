@@ -729,10 +729,10 @@ class Comlink():
         """           
         
         for pair_id in self.processing_info['tx_rx_pairs']:
-            self.data['A_' + pair_id] = self.data['txrx_' + pair_id] \
-                                      - self.data['baseline_' + pair_id]
+            A = self.data['txrx_' + pair_id] - self.data['baseline_' + pair_id]
             if remove_negative_A:
-                self.data['A_' + pair_id][self.data['A_' + pair_id]<0] = 0
+                A[A < 0] = 0
+            self.data['A_' + pair_id] = A
                 
     def calc_R_from_A(self, a=None, b=None, approx_type='ITU'):
         

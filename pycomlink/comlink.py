@@ -419,7 +419,7 @@ class Comlink():
         """
 
         if resampling_time is not None:
-            df_temp = self.data.resample(resampling_time)
+            df_temp = self.data.resample(resampling_time, label='right').mean()
         else:
             df_temp = self.data
 

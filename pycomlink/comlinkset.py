@@ -314,9 +314,9 @@ class ComlinkSet():
                     for pair_id in cml.processing_info['tx_rx_pairs']:
                         for cml_nb in cml.processing_info['neighbors_cml']:
                             if pair_id in cml_nb.processing_info['tx_rx_pairs']: 
-                                data_min['txrx_'+pair_id] = cml_nb.data['txrx_'+pair_id].resample('15min',how='min') 
+                                data_min['txrx_'+pair_id] = cml_nb.data['txrx_'+pair_id].resample('15min').min()
                                 dp[cml_nb.metadata['link_id']] = data_min['txrx_'+pair_id] - \
-                                                                  pd.rolling_max(data_min['txrx_'+pair_id],96)
+                                                                 pd.rolling_max(data_min['txrx_'+pair_id],96)
                                 dpl[cml_nb.metadata['link_id']] = (data_min['txrx_'+pair_id] - \
                                                                    pd.rolling_max(data_min['txrx_'+pair_id],96))/ \
                                                                    cml.metadata['length_km']            

@@ -582,23 +582,23 @@ class ComlinkSet():
                            start = pd.Timestamp(time) - pd.Timedelta('10s')
                            stop = pd.Timestamp(time) + pd.Timedelta('10s')
                            plist = []
-
-                           for pair_id in cml.processing_info['tx_rx_pairs']:
-                               # TODO: Get rid of the [0] indexing and the start stop index thing
-                               R_temp = (temp_df['R_'+pair_id][start:stop])
-                               if len(R_temp) > 0:
-                                   plist.append(R_temp.values[0])
-                               else:
-                                   plist.append(np.nan)
-                             
-                           if method == 'mean':
-                               precip = np.mean(plist)                     
-                           elif method == 'max':
-                               precip = np.max(plist)                        
-                           elif method == 'min':
-                               precip = np.min(plist)                          
+                           if method in ['mean','max','min']:
+                               for pair_id in cml.processing_info['tx_rx_pairs']:
+                                   # TODO: Get rid of the [0] indexing and the start stop index thing
+                                   R_temp = (temp_df['R_'+pair_id][start:stop])
+                                   if len(R_temp) > 0:
+                                       plist.append(R_temp.values[0])
+                                   else:
+                                       plist.append(np.nan)
+                                 
+                               if method == 'mean':
+                                   precip = np.mean(plist)                     
+                               elif method == 'max':
+                                   precip = np.max(plist)                        
+                               elif method == 'min':
+                                   precip = np.min(plist)                          
                            elif method in cml.processing_info['tx_rx_pairs']:
-                               if 'R_' + pair_id in temp_df.keys():
+                               if 'R_' + method in temp_df.keys():
                                    precip = (temp_df['R_'+method][start:stop]).values[0]
                                else:
                                    print 'Warning: Pair ID '+method+' not available for link '+\
@@ -635,7 +635,7 @@ class ComlinkSet():
                     must_calc_new_weights = True
                 if not np.array_equal(meas_points_old, meas_points):
                     if print_info:
-                        print 'meas_points not equal to meas_points_old at % UTC' % str(time)
+                        print 'meas_points not equal to meas_points_old at %s UTC' % str(time)
                     must_calc_new_weights = True
                     meas_points_old = meas_points
 

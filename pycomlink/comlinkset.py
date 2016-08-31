@@ -84,7 +84,7 @@ class ComlinkSet():
         print '============================================================='
         
 
-    def info_plot(self,out_file=None,figsize=(10,10), add_labels=False):
+    def info_plot(self,out_file=None,figsize=(12,8), add_labels=False):
         """Plot associated links on a map 
                 
         """
@@ -105,7 +105,7 @@ class ComlinkSet():
               max(lats)+.05]           
         
         ax.set_extent((area[0], area[1], area[2], area[3]), crs=cartopy.crs.PlateCarree())
-        gg_tiles=img_tiles.MapQuestOSM()
+        gg_tiles=img_tiles.OSM()
         ax.add_image(gg_tiles, 11)        
         
         for cml in self.set:
@@ -684,7 +684,7 @@ class ComlinkSet():
                        self.set_info['area'][2]-.05, self.set_info['area'][3]+.05),
                          crs=cartopy.crs.PlateCarree())
         if OSMtile:                 
-            gg_tiles = img_tiles.MapQuestOSM()      
+            gg_tiles = img_tiles.OSM()      
             ax.add_image(gg_tiles, 11)          
         
          

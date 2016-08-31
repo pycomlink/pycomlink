@@ -44,7 +44,7 @@ def inv_dist(sample_points, sample_values, grid,power,smoothing, nn, weights=Non
     nn : int 
                 Number of neighbors considered for IDW interpolation
 
-    weights : ???, optional
+    weights : iterable of floats, optional
                 IDW weights. Precalculate them and pass them as arguemtn
                 to speed up the interpolation.
                 
@@ -72,14 +72,25 @@ def inv_dist(sample_points, sample_values, grid,power,smoothing, nn, weights=Non
 def _get_idw_weights(sample_points, grid,power,smoothing, nn):
     """ Calculate weights for IDW
 
-    sample_points: C
-    grid:
-    power:
-    smoothing:
-    nn:
+    Parameters
+    ----------
+    sample_points : iterable of floats
+                   Locations of sample points (Lon/Lat)
+    grid : iterable of floats
+           Gridpoint locations 
+    power : flt
+            Power of distance decay for IDW interpolation. 
+    smoothing : flt
+                Power of smoothing factor for IDW interpolation. 
+    nn : int 
+         Number of neighbors considered for IDW interpolation
 
-    return:
+    Returns
+    -------
+    array of floats
+             Weights for IDW   
     """
+    
     dist = np.sqrt(scipy.spatial.distance.cdist(sample_points, grid)**2. + smoothing**2.)
     dist_trans = dist.T
 

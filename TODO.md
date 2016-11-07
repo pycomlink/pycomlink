@@ -21,3 +21,8 @@ TODO
        its signals (_nf, _fn, _nf_protect, ...)
  * Maybe use decorators to clean up tx_rx_pair loop stuff
  * Is 'mhz_a' in metadata the frequency from near- to far-end or far to near?
+
+New functionality
+-----------------
+
+ * Calculate coverage map, based on a certain radius around link path

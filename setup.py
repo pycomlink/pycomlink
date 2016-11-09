@@ -40,5 +40,5 @@ setup(
         'pandas>=0.18',
         'matplotlib', 
         'cartopy',
-        'numba'],
+        'numba', 'folium'],
 )

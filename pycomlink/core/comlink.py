@@ -13,6 +13,9 @@
 
 import warnings
 
+import matplotlib.pyplot as plt
+import folium
+
 from comlink_channel import ComlinkChannel
 
 
@@ -21,6 +24,8 @@ class Comlink(object):
 
     def __init__(self, *args, **kwargs):
         """
+
+        WIP
 
         Parameters
         ----------
@@ -64,6 +69,12 @@ class Comlink(object):
 
         self._channel_dict = _channels_list_to_dict(channels)
 
+        self.metadata = {'site_a_latitude': kwargs.pop('site_a_latitude'),
+                         'site_a_longitude': kwargs.pop('site_a_longitude'),
+                         'site_b_latitude': kwargs.pop('site_b_latitude'),
+                         'site_b_longitude': kwargs.pop('site_b_longitude'),
+                         'cml_id': kwargs.pop('cml_id')}
+
     def __getattr__(self, item):
         if ((item.split('_')[0] == 'channel') and
                 (type(int(item.split('_')[1])) == int)):
@@ -86,6 +97,28 @@ class Comlink(object):
 
     def __dir__(self):
         return self.__dict__.keys() + self._channel_dict.keys()
+
+    def plot_map(self, tiles='OpenStreetMap'):
+        lon_a = self.metadata['site_a_longitude']
+        lon_b = self.metadata['site_b_longitude']
+        lat_a = self.metadata['site_a_latitude']
+        lat_b = self.metadata['site_b_latitude']
+
+        fol_map = folium.Map(location=[(lat_a + lat_b)/2,
+                                       (lon_a + lon_b)/2],
+                             tiles=tiles,
+                             zoom_start=11)
+        fol_map.add_children(folium.PolyLine([(lat_a, lon_a), (lat_b, lon_b)]))
+        return fol_map
+
+    def plot_line(self, ax=None):
+        if ax is None:
+            fig, ax = plt.subplots()
+        ax.plot([self.metadata['site_a_longitude'],
+                 self.metadata['site_b_longitude']],
+                [self.metadata['site_a_latitude'],
+                 self.metadata['site_b_latitude']])
+        return ax
 
 
 def _channels_list_to_dict(channels):

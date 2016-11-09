@@ -46,7 +46,7 @@ def std_dev_classification(data, window_length, threshold):
 
     if isinstance(data, pycml.Comlink):
         cml = data
-        for channel_name, channel in cml._channel_dict.iteritems():
+        for channel_name, channel in cml.channels.iteritems():
             ts_wet, ts_roll_std_dev = std_dev_classification(
                                                 data=channel,
                                                 window_length=window_length,

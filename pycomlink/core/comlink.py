@@ -67,7 +67,7 @@ class Comlink(object):
                 warnings.warn('All supplied channel metadata (e.g. f_GHz) has no effect, '
                               'since they are already contained in the supplied ComlinkChannel')
 
-        self._channel_dict = _channels_list_to_dict(channels)
+        self.channels = _channels_list_to_dict(channels)
 
         self.metadata = {'site_a_latitude': kwargs.pop('site_a_latitude'),
                          'site_a_longitude': kwargs.pop('site_a_longitude'),
@@ -81,14 +81,14 @@ class Comlink(object):
             channel_n = int(item.split('_')[1])-1
             if channel_n < 0:
                 raise AttributeError('The channel number must be >= 1')
-            return self._channel_dict[item]
+            return self.channels[item]
         else:
             raise AttributeError('`Comlink` has no attribute %s' % item)
 
     def _repr_html_(self):
         html_str = '<table> <tr> '
-        for channel_name in self._channel_dict:
-            cml_ch = self._channel_dict[channel_name]
+        for channel_name in self.channels:
+            cml_ch = self.channels[channel_name]
             html_str = (html_str + '<td> ' +
                         channel_name + '<br/>' +
                         cml_ch._repr_html_() + '</td>')
@@ -96,7 +96,7 @@ class Comlink(object):
         return html_str
 
     def __dir__(self):
-        return self.__dict__.keys() + self._channel_dict.keys()
+        return self.__dict__.keys() + self.channels.keys()
 
     def plot_map(self, tiles='OpenStreetMap'):
         lon_a = self.metadata['site_a_longitude']
@@ -118,6 +118,26 @@ class Comlink(object):
                  self.metadata['site_b_longitude']],
                 [self.metadata['site_a_latitude'],
                  self.metadata['site_b_latitude']])
+        return ax
+
+    def plot_data(self, columns=['rx',], ax=None):
+        if ax is None:
+            fig, ax = plt.subplots(len(columns),
+                                   1,
+                                   figsize=(12, 2*len(columns) + 1),
+                                   sharex=True)
+        try:
+            ax[0].get_alpha()
+        except TypeError:
+            ax = [ax, ]
+
+        for ax_i, column in zip(ax, columns):
+            for name, cml_ch in self.channels.iteritems():
+                ax_i.plot(cml_ch._df[column].index,
+                          cml_ch._df[column].values,
+                          label=name)
+            ax_i.set_ylabel(column)
+
         return ax
 
 

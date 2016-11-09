@@ -99,9 +99,12 @@ class ComlinkChannel(object):
         new_cml_ch.__dict__.update(self.__dict__)
         return new_cml_ch
 
-    def __deepcopy__(self):
+    def __deepcopy__(self, memo=None):
         new_cml_ch = self.__copy__()
-        new_cml_ch._df = copy.deepcopy(self._df)
+        if memo is None:
+            memo = {}
+        memo[id(self)] = new_cml_ch
+        new_cml_ch._df = copy.deepcopy(self._df, memo)
         return new_cml_ch
 
     def _repr_html_(self):

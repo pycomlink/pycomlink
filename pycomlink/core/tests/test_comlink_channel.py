@@ -69,6 +69,30 @@ class TestComlinkChannelCopy(unittest.TestCase):
         assert(cml_ch.f_GHz == 999)
         assert(cml_ch_copy.f_GHz == f)
 
+    def test_deepcopy(self):
+        from copy import deepcopy
+        df = pd.DataFrame(index=t_date_range, data={'rx': rx_list})
+        cml_ch = ComlinkChannel(data=df, f_GHz=18.9)
+
+        cml_ch_copy = deepcopy(cml_ch)
+
+        assert(type(cml_ch_copy) == ComlinkChannel)
+
+        # Test (at least one) metadata attribute
+        assert(cml_ch_copy.f_GHz == cml_ch.f_GHz)
+
+        # Test that DataFrames are equal
+        pd.util.testing.assert_frame_equal(cml_ch_copy._df, cml_ch._df)
+
+        # Test that the new DataFrame is a copy and not a view
+        cml_ch._df.rx[1] = -9999
+        assert(cml_ch.rx[1] != cml_ch_copy.rx[1])
+
+        # Test that the new metadata is not a reference but a copy
+        cml_ch.f_GHz = 999
+        assert(cml_ch.f_GHz == 999)
+        assert(cml_ch_copy.f_GHz == f)
+
 
 class TestComlinkChannelTypeAfterManipulation(unittest.TestCase):
 

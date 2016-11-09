@@ -12,6 +12,7 @@
 # ----------------------------------------------------------------------------
 
 import warnings
+from copy import deepcopy
 
 import matplotlib.pyplot as plt
 import folium
@@ -69,10 +70,11 @@ class Comlink(object):
 
         self.channels = _channels_list_to_dict(channels)
 
-        self.metadata = {'site_a_latitude': kwargs.pop('site_a_latitude'),
-                         'site_a_longitude': kwargs.pop('site_a_longitude'),
-                         'site_b_latitude': kwargs.pop('site_b_latitude'),
-                         'site_b_longitude': kwargs.pop('site_b_longitude'),
+        site_dict = kwargs.pop('site_dict')
+        self.metadata = {'site_a_latitude': site_dict['site_a_latitude'],
+                         'site_a_longitude': site_dict['site_a_longitude'],
+                         'site_b_latitude': site_dict['site_b_latitude'],
+                         'site_b_longitude': site_dict['site_b_longitude'],
                          'cml_id': kwargs.pop('cml_id')}
 
     def __getattr__(self, item):
@@ -97,6 +99,23 @@ class Comlink(object):
 
     def __dir__(self):
         return self.__dict__.keys() + self.channels.keys()
+
+    def __copy__(self):
+        cls = self.__class__
+        new_cml = cls.__new__(cls)
+        new_cml.__dict__.update(self.__dict__)
+        return new_cml
+
+    def __deepcopy__(self, memo=None):
+        new_cml = self.__copy__()
+        if memo is None:
+            memo = {}
+        memo[id(self)] = new_cml
+        #for name, channel in self.channels.iteritems():
+        #    new_cml.channels[name] = deepcopy(channel, memo)
+        new_cml.metadata = deepcopy(self.metadata, memo)
+        new_cml.channels = deepcopy(self.channels, memo)
+        return new_cml
 
     def plot_map(self, tiles='OpenStreetMap'):
         lon_a = self.metadata['site_a_longitude']

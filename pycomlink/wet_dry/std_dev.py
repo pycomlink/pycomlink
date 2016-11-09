@@ -81,7 +81,7 @@ def std_dev_classification(data, window_length, threshold):
     else:
         roll_std_dev = rolling_std_dev(data, window_length)
         wet = roll_std_dev > threshold
-        return wet, roll_std_dev
+        return wet, {'roll_std_dev': roll_std_dev}
 
 
 def rolling_window(a, window):

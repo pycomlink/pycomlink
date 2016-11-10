@@ -3,7 +3,7 @@
 # Functions for A-R power law calculatoins #
 ############################################
 
-def calc_R_from_A(A, a, b, L):
+def calc_R_from_A(A, L, f=None, a=None, b=None, pol='H'):
     """Calculate rain rate from attenuation using the A-R Relationship
     
     Parameters
@@ -29,6 +29,9 @@ def calc_R_from_A(A, a, b, L):
     .. math:: A = aR^{b}    
     
     """
+    if f is not None:
+        a, b = a_b(f, pol=pol)
+
     R = (A/(a*L))**(1/b)
     return R
 

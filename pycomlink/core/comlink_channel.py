@@ -27,7 +27,7 @@ class ComlinkChannel(object):
 
         data: pandas.DataFrame, or everything that DataFrame.__init__() digests
 
-        index: list, np.array, or everything that DataFrame.__init__() digest
+        t: list, np.array, or everything that DataFrame.__init__() digest
 
         rx: list or np.array
 
@@ -137,6 +137,15 @@ class ComlinkChannel(object):
                 raise ValueError('`rx_min` and `rx_max` must not be supplied '
                                  'if `rx` is supplied')
             return pd.DataFrame(index=t, data={'rx': rx})
+
+        elif ((data is None) and
+                (tx is not None) and
+                (rx is not None) and
+                (t is not None)):
+            if (rx_min is not None) or (rx_max is not None):
+                raise ValueError('`rx_min` and `rx_max` must not be supplied '
+                                 'if `rx` is supplied')
+            return pd.DataFrame(index=t, data={'rx': rx, 'tx': tx})
 
         # The case where `data` has been supplied.
         # We check that `data` is a DataFrame below.

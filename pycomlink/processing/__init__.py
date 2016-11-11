@@ -1,10 +1,3 @@
-#----------------------------------------------------------------------------
-# Name:         
-# Purpose:      
-#
-# Authors:      
-#
-# Created:      
-# Copyright:    (c) Christian Chwala 2014
-# Licence:      The MIT License
-#----------------------------------------------------------------------------
+from processor import Processor
+
+import quality_control

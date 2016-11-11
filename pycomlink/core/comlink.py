@@ -23,7 +23,7 @@ from comlink_channel import ComlinkChannel
 class Comlink(object):
     """ A class representing a CML with its channels and metadata"""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, channels=None, metadata=None, **kwargs):
         """
 
         WIP
@@ -37,8 +37,6 @@ class Comlink(object):
 
         """
 
-        channels = kwargs.pop('channels', None)
-
         # If no channels are supplied, there must be at least `t`, `rx` and
         # the necessary channel metadata to automatically build a ComlinkChannel
         if channels is None:
@@ -50,32 +48,36 @@ class Comlink(object):
             channels = [channels]
         elif type(channels) == list:
             for channel in channels:
-                if not type(channel) == ComlinkChannel:
-                    raise ValueError\
-                        ('`channels` must be of type ComlinkChannel')
+                # Duck-type to see if it behaves like a ComlinkChannel
+                try:
+                    channel._df['rx']
+                except Exception as e:
+                    raise e('`channels` must behave like a ComlinkChannel')
         else:
-            raise AttributeError('`channels` is %s must be either a ComlinkChannel or a list of ComlinkChannels' %
+            raise AttributeError('`channels` is %s must be either a '
+                                 'ComlinkChannel or a list of ComlinkChannels' %
                                  type(channels))
 
-        # if channels are supplied, the channel metadata should not be supplied since
-        # it will have no effect, because they are already part of the individual ComlinkChannels
+        # if channels are supplied, the channel metadata should not be
+        # supplied since it will have no effect, because they are already
+        # part of the individual ComlinkChannels
         if channels is not None:
             if ((kwargs.has_key('t')) or
                     (kwargs.has_key('rx')) or
                     (kwargs.has_key('tx')) or
                     (kwargs.has_key('f_GHz')) or
                     (kwargs.has_key('pol'))):
-                warnings.warn('All supplied channel metadata (e.g. f_GHz) has no effect, '
-                              'since they are already contained in the supplied ComlinkChannel')
+                warnings.warn('All supplied channel metadata (e.g. f_GHz) '
+                              'has no effect, since they are already '
+                              'contained in the supplied ComlinkChannel')
 
         self.channels = _channels_list_to_dict(channels)
 
-        site_dict = kwargs.pop('site_dict')
-        self.metadata = {'site_a_latitude': site_dict['site_a_latitude'],
-                         'site_a_longitude': site_dict['site_a_longitude'],
-                         'site_b_latitude': site_dict['site_b_latitude'],
-                         'site_b_longitude': site_dict['site_b_longitude'],
-                         'cml_id': kwargs.pop('cml_id')}
+        self.metadata = {'site_a_latitude': metadata['site_a_latitude'],
+                         'site_a_longitude': metadata['site_a_longitude'],
+                         'site_b_latitude': metadata['site_b_latitude'],
+                         'site_b_longitude': metadata['site_b_longitude'],
+                         'cml_id': metadata['cml_id']}
 
     def __getattr__(self, item):
         if ((item.split('_')[0] == 'channel') and

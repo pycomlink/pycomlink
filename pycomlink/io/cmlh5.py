@@ -53,6 +53,10 @@ cml_ch_data_names_dict = {
 }
 
 
+#########################
+# Functions for writing #
+#########################
+
 def write_to_cmlh5(cml_list, fn,
                    product_keys=None, product_names=None, product_units=None,
                    compression='gzip', compression_opts=4):
@@ -172,7 +176,10 @@ def _write_channel_data(chan_g, cml_ch, compression, compression_opts):
     # write variables
     for name, attrs in cml_ch_data_names_dict.iteritems():
         if name == 'time':
-            t_vec = cml_ch._df.index.astype('int64') / 1e9
+            # Get the time index in UTC
+            ts_t = cml_ch._df.index.tz_convert('UTC')
+            # Transform the pandas (np.datetime64) which is in ns to seconds
+            t_vec = ts_t.astype('int64') / 1e9
             chan_g.create_dataset(name, data=t_vec,
                                   compression=compression,
                                   compression_opts=compression_opts)
@@ -206,109 +213,17 @@ def _missing_attribute(attr_type):
     return fill_value
 
 
-#!!!!!!!!!!!!!!!!!!!!!!#
-# OBSOLETE STUFF BELOW #
-#!!!!!!!!!!!!!!!!!!!!!!#
-
-
-def _get_cml_channel_attrs(cml, channel_id):
-    ch_metadata = cml.tx_rx_pairs[channel_id]
-    attrs = {'frequency': ch_metadata['f_GHz'],
-             'polarisation': ch_metadata['pol'],
-             'ID': ch_metadata['name'],
-             'ATPC': 'Not sure...',
-             'sampling_type': 'instantaneous',
-             'temporal_resolution': '1min',
-             'TX_quantization': 1.0,
-             'RX_quantization': 0.3}
-    try:
-        attrs['TX_site'] = ch_metadata['tx_site']
-        attrs['RX_site'] = ch_metadata['rx_site']
-    except KeyError:
-        pass
-    return attrs
-
-
-def _get_cml_channel_data(cml, channel_id):
-    # Get UNIX time form pandas.DatetimeIndex (which is UNIX time in ns)
-    t_vec = cml.data.index.astype('int64') / 1e9
-
-    tx_column_name = cml.tx_rx_pairs[channel_id]['tx']
-    rx_column_name = cml.tx_rx_pairs[channel_id]['rx']
-
-    tx_vec = cml.data[tx_column_name].values
-    rx_vec = cml.data[rx_column_name].values
-
-    return t_vec, tx_vec, rx_vec
-
-
-def _write_product(prod_g, cml, product_key, product_name, product_unit,
-                   compression, compression_opts):
-    # Get UNIX time form pandas.DatetimeIndex (which is UNIX time in ns)
-    t_vec = cml.data.index.astype('int64') / 1e9
-
-    product_vec = cml.data[product_key].values
-
-    prod_g.create_dataset(product_name, data=product_vec,
-                          compression=compression,
-                          compression_opts=compression_opts)
-    prod_g[product_name].attrs['units'] = product_unit
-
-    # write time dimension
-    prod_g.create_dataset('time', data=t_vec,
-                          compression=compression,
-                          compression_opts=compression_opts)
-    prod_g['time'].attrs['units'] = 'POSIX time UTC'
-    prod_g['time'].attrs['calendar'] = 'proleptic_gregorian'
-    prod_g[product_name].dims.create_scale(prod_g['time'], 'time')
-    prod_g[product_name].dims[0].attach_scale(prod_g['time'])
-
-
-def _read_cml_metadata(cml_g):
-    metadata = {}
-    metadata['link_id'] = cml_g.attrs['id']
-    metadata['length_km'] = cml_g.attrs['length']
-    metadata['site_A'] = {'lat': cml_g.attrs['site_a_latitude'],
-                          'lon': cml_g.attrs['site_a_longitude']}
-    metadata['site_B'] = {'lat': cml_g.attrs['site_b_latitude'],
-                          'lon': cml_g.attrs['site_b_longitude']}
-    return metadata
-
-
-def _read_channels_metadata(cml_g):
-    tx_rx_pairs = {}
-    for chan_g_name, chan_g in cml_g.items():
-        tx_rx_pairs[chan_g_name] = {'name': chan_g_name,
-                                    'tx': 'tx_' + chan_g_name,
-                                    'rx': 'rx_' + chan_g_name,
-                                    'f_GHz': chan_g.attrs['frequency'],
-                                    'pol': chan_g.attrs['polarisation']}
-    return tx_rx_pairs
-
-
-def _read_channels_data(cml_g):
-    data_dict = {}
-    for chan_g_name, chan_g in cml_g.items():
-        data_dict['rx_' + chan_g_name] = chan_g['RX'][:]
-        data_dict['tx_' + chan_g_name] = chan_g['TX'][:]
-    data = pd.DataFrame(data=data_dict,
-                        index=pd.DatetimeIndex(chan_g['time'][:] * 1e9,
-                                               tz='UTC'))
-
-    return data
-
-
-def _read_one_cml(cml_g):
-    metadata = _read_cml_metadata(cml_g)
-    tx_rx_pairs = _read_channels_metadata(cml_g)
-    df_data = _read_channels_data(cml_g)
-    cml = Comlink(data=df_data,
-                  tx_rx_pairs=tx_rx_pairs,
-                  metadata=metadata)
-    return cml
+#########################
+# Functions for reading #
+#########################
 
 
 def read_from_cmlh5(fn):
+    """
+
+    @param fn:
+    @return:
+    """
     h5_reader = h5py.File(fn, mode='r')
     cml_list = []
     for cml_g_name in h5_reader['/']:
@@ -317,3 +232,84 @@ def read_from_cmlh5(fn):
         cml_list.append(cml)
     print '%d CMLs read in' % len(cml_list)
     return cml_list
+
+
+def _read_one_cml(cml_g):
+    """
+
+    @param cml_g:
+    @return:
+    """
+    metadata = _read_cml_metadata(cml_g)
+
+    cml_ch_list = []
+    for cml_ch_name, cml_ch_g in cml_g.items():
+        if 'channel_' in cml_ch_name:
+            cml_ch_list.append(_read_cml_channel(cml_ch_g))
+
+    # TODO: Handle `auxiliary_N` and `product_N` cml_g-subgroups
+
+    return Comlink(channels=cml_ch_list, metadata=metadata)
+
+
+def _read_cml_metadata(cml_g):
+    """
+
+    @param cml_g:
+    @return:
+    """
+
+    metadata = {}
+    for attr_name, attr_options in cml_metadata_dict.iteritems():
+        value = cml_g.attrs[attr_name]
+        # TODO: Handle NaN values
+        metadata[attr_name] = value
+    return metadata
+
+
+def _read_cml_channel_metadata(cml_ch_g):
+    """
+
+    @param cml_ch_g:
+    @return:
+    """
+
+    metadata = {}
+    for attr_name, attr_options in cml_ch_metadata_dict.iteritems():
+        value = cml_ch_g.attrs[attr_name]
+        # TODO: Handle NaN values
+        metadata[attr_name] = value
+    return metadata
+
+
+def _read_cml_channel_data(cml_ch_g):
+    """
+
+    @param cml_ch_g:
+    @return:
+
+    """
+
+    data_dict = {}
+    for name, attrs in cml_ch_data_names_dict.iteritems():
+        data_dict[name] = cml_ch_g[name]
+    t = pd.to_datetime(data_dict.pop('time')[:] * 1e9)
+
+    # Time must always be saved as UTC in cmlH5
+    t = t.tz_localize('UTC')
+    return pd.DataFrame(index=t, data=data_dict)
+
+
+def _read_cml_channel(cml_ch_g):
+    """
+
+    @param cml_ch_g:
+    @return:
+    """
+    metadata = _read_cml_channel_metadata(cml_ch_g)
+    df = _read_cml_channel_data(cml_ch_g)
+    return ComlinkChannel(data=df, metadata=metadata)
+
+
+
+

@@ -161,7 +161,7 @@ class ComlinkChannel(object):
             if (rx_min is not None) or (rx_max is not None):
                 raise ValueError('`rx_min` and `rx_max` must not be supplied '
                                  'if `rx` is supplied')
-            return pd.DataFrame(index=t, data={'rx': rx})
+            df = pd.DataFrame(index=t, data={'rx': rx})
 
         elif ((data is None) and
                 (tx is not None) and
@@ -170,7 +170,7 @@ class ComlinkChannel(object):
             if (rx_min is not None) or (rx_max is not None):
                 raise ValueError('`rx_min` and `rx_max` must not be supplied '
                                  'if `rx` is supplied')
-            return pd.DataFrame(index=t, data={'rx': rx, 'tx': tx})
+            df = pd.DataFrame(index=t, data={'rx': rx, 'tx': tx})
 
         # The case where `data` has been supplied.
         # We check that `data` is a DataFrame below.
@@ -182,10 +182,12 @@ class ComlinkChannel(object):
                                  'must not be supplied if `data` is supplied')
             if isinstance(data, pd.DataFrame):
                 # `data` is what we want, so return it
-                return data
-
+                df = data
             else:
                 raise ValueError('type of `data` is %s, but must be pandas.DataFrame' % type(data))
 
         else:
             raise ValueError('Could not parse the supplied arguments')
+
+        df.index.name = 'time'
+        return df

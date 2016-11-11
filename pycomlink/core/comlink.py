@@ -119,18 +119,20 @@ class Comlink(object):
         new_cml.channels = deepcopy(self.channels, memo)
         return new_cml
 
-    def plot_map(self, tiles='OpenStreetMap'):
+    def plot_map(self, tiles='OpenStreetMap', fol_map=None):
         lon_a = self.metadata['site_a_longitude']
         lon_b = self.metadata['site_b_longitude']
         lat_a = self.metadata['site_a_latitude']
         lat_b = self.metadata['site_b_latitude']
 
-        fol_map = folium.Map(location=[(lat_a + lat_b)/2,
-                                       (lon_a + lon_b)/2],
-                             tiles=tiles,
-                             zoom_start=11)
+        if fol_map is None:
+            fol_map = folium.Map(location=[(lat_a + lat_b)/2,
+                                           (lon_a + lon_b)/2],
+                                 tiles=tiles,
+                                 zoom_start=11)
         fol_map.add_children(folium.PolyLine([(lat_a, lon_a), (lat_b, lon_b)]))
         return fol_map
+
 
     def plot_line(self, ax=None):
         if ax is None:

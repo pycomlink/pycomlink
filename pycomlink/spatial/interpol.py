@@ -64,9 +64,11 @@ class Interpolator(object):
                 lats.append(cml.get_center_lon_lat()[1])
                 sample_values.append(df_row[cml.metadata['cml_id']])
 
-            interp_values = idw(sample_values,
-                                lons,
-                                lats,
+            not_nan = ~np.isnan(np.array(sample_values))
+
+            interp_values = idw(np.array(sample_values)[not_nan],
+                                np.array(lons)[not_nan],
+                                np.array(lats)[not_nan],
                                 self.xgrid,
                                 self.ygrid,
                                 p=power)

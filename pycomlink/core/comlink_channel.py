@@ -41,12 +41,19 @@ class ComlinkChannel(object):
 
         pol: str {'h', 'v', 'H', 'V'}
 
-        atpc: boolean
+        atpc: str {'on', 'off'}
+
+        channel_id: str
+
+        metadata: dict
+            Default is None.
 
         """
         f_GHz = kwargs.pop('f_GHz', None)
         pol = kwargs.pop('pol', None)
         atpc = kwargs.pop('atpc', None)
+        channel_id = kwargs.pop('channel_id', None)
+        metadata = kwargs.pop('metadata', None)
 
         data = kwargs.pop('data', None)
 
@@ -69,7 +76,18 @@ class ComlinkChannel(object):
         self._df = kwargs.pop('data')
 
         # TODO: Sanely parse metadata
-        self.f_GHz = f_GHz
+        if metadata is not None:
+            self.metadata = metadata
+        else:
+            self.metadata = {
+                'frequency': f_GHz * 1e9,
+                'polarization': pol,
+                'channel_id': channel_id,
+                'atpc': atpc}
+
+        # TODO: Remove this
+        # Keeping this for now for backwards compatibility
+        self.f_GHz = self.metadata['frequency'] / 1e9
 
     def __eq__(self):
         pass
@@ -90,8 +108,9 @@ class ComlinkChannel(object):
         try:
             return self._df.__getattr__(item)
         except:
-            raise AttributeError('Neither \'ComlinkChannel\' nor its \'DataFrame\', '
-                                 'has the attribute \'%s\'' % item)
+            raise AttributeError('Neither \'ComlinkChannel\' nor its '
+                                 '\'DataFrame\' bhave the attribute \'%s\''
+                                 % item)
 
     def __copy__(self):
         cls = self.__class__
@@ -108,7 +127,13 @@ class ComlinkChannel(object):
         return new_cml_ch
 
     def _repr_html_(self):
-        return 'f_GHz: ' + str(self.f_GHz) + self._df._repr_html_()
+        metadata_str = ''
+        for key, value in self.metadata.iteritems():
+            if key == 'frequency':
+                metadata_str += (str(key) + ': ' + str(value/1e9) + ' GHz<br/>')
+            else:
+                metadata_str += (str(key) + ': ' + str(value) + '<br/>')
+        return metadata_str + self._df._repr_html_()
 
     def copy(self):
         return self.__deepcopy__()

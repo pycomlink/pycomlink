@@ -92,7 +92,7 @@ class Comlink(object):
         for channel_name in self.channels:
             cml_ch = self.channels[channel_name]
             html_str = (html_str + '<td> ' +
-                        channel_name + '<br/>' +
+                        '<b>' + channel_name + '</b><br/>' +
                         cml_ch._repr_html_() + '</td>')
         html_str = html_str + '</tr>' + '</table>'
         return html_str

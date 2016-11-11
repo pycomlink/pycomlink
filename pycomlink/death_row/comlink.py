@@ -22,7 +22,7 @@ from pycomlink import wet_dry
 from pycomlink.processing.baseline import baseline
 from pycomlink.processing.A_R_relation import A_R_relation
 from pycomlink.processing.wet_antenna import wet_antenna
-from pycomlink.spatial import mapping
+from pycomlink.death_row import mapping
 
 
 class Comlink():

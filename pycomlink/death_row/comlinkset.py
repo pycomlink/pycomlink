@@ -21,7 +21,7 @@ import pandas as pd
 from scipy.io import netcdf
 import matplotlib
 
-from pycomlink.spatial import mapping
+from pycomlink.death_row import mapping
 
 
 class ComlinkSet():

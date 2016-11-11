@@ -1,4 +1,14 @@
-# -*- coding: utf-8 -*-
+#----------------------------------------------------------------------------
+# Name:
+# Purpose:
+#
+# Authors: Felix Keis, Christian Chwala
+#
+# Created:
+# Copyright:    (c) Christian Chwala 2016
+# Licence:      The MIT License
+#----------------------------------------------------------------------------
+
 
 from __future__ import absolute_import
 from __future__ import division
@@ -6,10 +16,61 @@ from __future__ import unicode_literals
 
 import numpy as np
 from scipy.optimize import minimize
-import scipy.linalg
 import scipy
-#from scipy.spatial.distance import cdist
+
 import matplotlib.pyplot as plt
+
+
+def kriging(sample_points, sample_values, grid,
+            n_closest_points,**kwargs):
+    """Calculate Ordinary Kriging interpolation
+
+    Parameters
+    ----------
+    sample_points : iterable of floats
+                    Locations of sample points (Lon/Lat)
+
+                    Example
+                    -------
+                    >>> x = np.random.rand(number_of_points)
+                        y = np.random.rand(number_of_points)
+                        sample_points = np.vstack((x,y)).T
+
+    sample_values : iterable of floats
+                    Values at sample_points
+    grid : iterable of floats
+            Gridpoint locations
+
+                    Example
+                    -------
+                    >>> xcoords = np.arange(xstart, xstop, dx)
+                        ycoords = np.arange(ystart, ystop, dy)
+                        xgrid, ygrid = np.meshgrid(xcoords, ycoords)
+                        xi, yi = xgrid.flatten(), ygrid.flatten()
+                        grid = np.vstack((xi, yi)).T
+    n_closest_points : int
+                Parameters for Kriging interpolation. See OrdinaryKriging
+                documentation for information.
+    kwargs : kriging parameters, optional
+                See https://github.com/bsmurphy/PyKrige for details
+
+    Returns
+    -------
+    array of floats
+        Interpolated values at grid points
+
+    """
+
+    try:
+        OK = OrdinaryKriging(sample_points[:,0], sample_points[:,1], sample_values,
+                                verbose=False, enable_plotting=False,**kwargs)
+        z, s_kr = OK.execute(style='points', xpoints=grid[:,0], ypoints=grid[:,1],
+                             backend='loop',n_closest_points=n_closest_points)
+    except ValueError:
+        pass
+        z = np.empty(len(grid))
+
+    return z
 
 
 def adjust_for_anisotropy(x, y, xcenter, ycenter, scaling, angle):

@@ -11,18 +11,15 @@
 #----------------------------------------------------------------------------
 
 import os
+from collections import namedtuple
+
 import scipy.io
 import numpy as np
 import pandas as pd
-
 import h5py
 
-from collections import namedtuple
-
-from comlink import Comlink
-from comlinkset import ComlinkSet
-
-from math import radians, cos, sin, asin, sqrt
+from pycomlink.death_row.comlink import Comlink
+from pycomlink.death_row.comlinkset import ComlinkSet
 
 
 ####################################################################

@@ -12,9 +12,10 @@
 from functools import wraps
 from copy import deepcopy
 
-from pycomlink.wet_dry import std_dev
-from pycomlink.baseline import baseline_linear, baseline_constant
-from pycomlink.A_R_relation import calc_R_from_A
+from pycomlink.processing.wet_dry import std_dev
+from pycomlink.processing.baseline.baseline import baseline_linear, baseline_constant
+from pycomlink.processing.A_R_relation.A_R_relation import calc_R_from_A
+
 
 class Processor(object):
     def __init__(self, cml):

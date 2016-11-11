@@ -4,11 +4,14 @@
 
 
 import math
+
 import numpy as np
+
 #from scipy.spatial.distance import cdist
 import scipy
 
-from . import ok
+from pycomlink.spatial import ok
+
 
 def inv_dist(sample_points, sample_values, grid,power,smoothing, nn, weights=None):
     """Calculate Inverse Distance Weighting Interpolation 

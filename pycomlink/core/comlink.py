@@ -133,14 +133,14 @@ class Comlink(object):
         fol_map.add_children(folium.PolyLine([(lat_a, lon_a), (lat_b, lon_b)]))
         return fol_map
 
-
-    def plot_line(self, ax=None):
+    def plot_line(self, ax=None, *args, **kwargs):
         if ax is None:
             fig, ax = plt.subplots()
         ax.plot([self.metadata['site_a_longitude'],
                  self.metadata['site_b_longitude']],
                 [self.metadata['site_a_latitude'],
-                 self.metadata['site_b_latitude']])
+                 self.metadata['site_b_latitude']],
+                *args, **kwargs)
         return ax
 
     def plot_data(self, columns=['rx',], ax=None):
@@ -162,6 +162,13 @@ class Comlink(object):
             ax_i.set_ylabel(column)
 
         return ax
+
+    def get_center_lon_lat(self):
+        center_lon = (self.metadata['site_a_longitude'] +
+                      self.metadata['site_b_longitude']) / 2
+        center_lat = (self.metadata['site_a_latitude'] +
+                      self.metadata['site_b_latitude']) / 2
+        return center_lon, center_lat
 
 
 def _channels_list_to_dict(channels):

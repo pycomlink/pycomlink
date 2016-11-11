@@ -8,3 +8,5 @@
 # Copyright:    (c) Christian Chwala 2014
 # Licence:      The MIT License
 #----------------------------------------------------------------------------
+
+import interpol

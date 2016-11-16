@@ -33,7 +33,7 @@ class Comlink(object):
 
         channels : ComlinkChannel or list of those
 
-        site_metadata : dict
+        metadata : dict
 
         """
 

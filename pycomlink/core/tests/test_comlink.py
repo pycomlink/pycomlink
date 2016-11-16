@@ -64,11 +64,11 @@ def generate_standard_cml():
     cml = Comlink(channels=deepcopy(cml_ch),
                   f_GHz=f,
                   pol='V',
-                  cml_id='foo_bar_123',
-                  site_dict={'site_a_latitude': 44.1,
-                             'site_a_longitude': 11.1,
-                             'site_b_latitude': 44.2,
-                             'site_b_longitude': 11.2})
+                  metadata={'site_a_latitude': 44.1,
+                            'site_a_longitude': 11.1,
+                            'site_b_latitude': 44.2,
+                            'site_b_longitude': 11.2,
+                            'cml_id': 'foo_bar_123'})
     return cml
 
 

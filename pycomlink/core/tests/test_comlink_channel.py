@@ -24,7 +24,10 @@ class TestComlinkChannelInit(unittest.TestCase):
         # Test content of rx column
         np.testing.assert_almost_equal(cml_ch.rx.values, rx_list)
         # Test index
-        pd.util.testing.assert_almost_equal(cml_ch.index, pd.DatetimeIndex(t_date_range))
+        pd.util.testing.assert_almost_equal(cml_ch.index,
+                                            pd.DatetimeIndex(
+                                                t_date_range,
+                                                name='time'))
 
     def test_with_list_only_rx_data(self):
         """ Test if the column name is set correctly """
@@ -40,7 +43,7 @@ class TestComlinkChannelAttributes(unittest.TestCase):
 
     def test_len(self):
         df = pd.DataFrame(index=t_date_range, data={'rx': rx_list})
-        cml_ch = ComlinkChannel(data=df)
+        cml_ch = ComlinkChannel(data=df, f_GHz=18.9)
         assert (len(cml_ch) == len(df))
 
 
@@ -98,7 +101,7 @@ class TestComlinkChannelTypeAfterManipulation(unittest.TestCase):
 
     def test_index_slicing(self):
         df = pd.DataFrame(index=t_date_range, data={'rx': rx_list})
-        cml_ch = ComlinkChannel(data=df)
+        cml_ch = ComlinkChannel(data=df, f_GHz=18.9)
         cml_ch_sliced = cml_ch[1:4]
         assert(type(cml_ch_sliced) == ComlinkChannel)
         pd.util.testing.assert_frame_equal(cml_ch_sliced._df, df[1:4])

@@ -13,6 +13,7 @@
 
 import warnings
 from copy import deepcopy
+from collections import namedtuple
 
 import matplotlib.pyplot as plt
 import folium
@@ -119,27 +120,32 @@ class Comlink(object):
         new_cml.channels = deepcopy(self.channels, memo)
         return new_cml
 
+    def get_coordinates(self):
+        Coords = namedtuple('coords', ['lon_a', 'lon_b', 'lat_a', 'lat_b'])
+        coords = Coords(lon_a=self.metadata['site_a_longitude'],
+                        lon_b=self.metadata['site_b_longitude'],
+                        lat_a=self.metadata['site_a_latitude'],
+                        lat_b=self.metadata['site_b_latitude'])
+        return coords
+
     def plot_map(self, tiles='OpenStreetMap', fol_map=None):
-        lon_a = self.metadata['site_a_longitude']
-        lon_b = self.metadata['site_b_longitude']
-        lat_a = self.metadata['site_a_latitude']
-        lat_b = self.metadata['site_b_latitude']
+        coords = self.get_coordinates()
 
         if fol_map is None:
-            fol_map = folium.Map(location=[(lat_a + lat_b)/2,
-                                           (lon_a + lon_b)/2],
+            fol_map = folium.Map(location=[(coords.lat_a + coords.lat_b)/2,
+                                           (coords.lon_a + coords.lon_b)/2],
                                  tiles=tiles,
                                  zoom_start=11)
-        fol_map.add_children(folium.PolyLine([(lat_a, lon_a), (lat_b, lon_b)]))
+        fol_map.add_children(folium.PolyLine([(coords.lat_a, coords.lon_a),
+                                              (coords.lat_b, coords.lon_b)]))
         return fol_map
 
     def plot_line(self, ax=None, *args, **kwargs):
         if ax is None:
             fig, ax = plt.subplots()
-        ax.plot([self.metadata['site_a_longitude'],
-                 self.metadata['site_b_longitude']],
-                [self.metadata['site_a_latitude'],
-                 self.metadata['site_b_latitude']],
+        coords = self.get_coordinates()
+        ax.plot([coords.lon_a, coords.lon_b],
+                [coords.lat_a, coords.lat_b],
                 *args, **kwargs)
         return ax
 
@@ -164,10 +170,9 @@ class Comlink(object):
         return ax
 
     def get_center_lon_lat(self):
-        center_lon = (self.metadata['site_a_longitude'] +
-                      self.metadata['site_b_longitude']) / 2
-        center_lat = (self.metadata['site_a_latitude'] +
-                      self.metadata['site_b_latitude']) / 2
+        coords = self.get_coordinates()
+        center_lon = (coords.lon_a + coords.lon_b) / 2.0
+        center_lat = (coords.lat_a + coords.lat_b) / 2.0
         return center_lon, center_lat
 
 

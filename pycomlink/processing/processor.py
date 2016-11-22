@@ -12,8 +12,9 @@
 from functools import wraps
 from copy import deepcopy
 
-from pycomlink.processing.wet_dry import std_dev
-from pycomlink.processing.baseline.baseline import baseline_linear, baseline_constant
+from pycomlink.processing.wet_dry import std_dev, stft
+from pycomlink.processing.baseline.baseline import \
+    baseline_linear, baseline_constant
 from pycomlink.processing.A_R_relation.A_R_relation import calc_R_from_A
 
 
@@ -35,6 +36,12 @@ class WetDry(object):
                                    'rx',
                                    'wet',
                                    returns_temp_results=True)
+
+        self.stft = cml_wrapper(cml,
+                                stft.stft_classification,
+                                'rx',
+                                'wet',
+                                returns_temp_results=True)
 
 
 class Baseline(object):

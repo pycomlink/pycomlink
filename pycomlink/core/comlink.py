@@ -161,10 +161,20 @@ class Comlink(object):
             ax = [ax, ]
 
         for ax_i, column in zip(ax, columns):
-            for name, cml_ch in self.channels.iteritems():
-                ax_i.plot(cml_ch._df[column].index,
-                          cml_ch._df[column].values,
-                          label=name)
+            for i, (name, cml_ch) in enumerate(self.channels.iteritems()):
+                if column == 'wet':
+                    ax_i.fill_between(
+                        cml_ch._df[column].index,
+                        i,
+                        i + cml_ch._df[column].values,
+                        alpha=0.9,
+                        linewidth=0.0,
+                        label=name)
+                else:
+                    ax_i.plot(
+                        cml_ch._df[column].index,
+                        cml_ch._df[column].values,
+                        label=name)
             ax_i.set_ylabel(column)
 
         return ax

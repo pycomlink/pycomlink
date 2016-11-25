@@ -19,6 +19,7 @@ import matplotlib.pyplot as plt
 import folium
 
 from comlink_channel import ComlinkChannel
+from ..spatial.helper import distance
 
 
 class Comlink(object):
@@ -80,6 +81,18 @@ class Comlink(object):
                          'site_b_longitude': metadata['site_b_longitude'],
                          'cml_id': metadata['cml_id']}
 
+        calculated_length = self.calc_length()
+
+        if 'length' in metadata.keys():
+            length_diff = calculated_length - self.metadata['length']
+            if abs(length_diff) > 0.5:
+                warnings.warn('Calculated length = %2.2f and supplied length '
+                              '= %2.2f differ more than 0.5 km' %
+                              (calculated_length, self.metadata['length']))
+
+        if kwargs.pop('calculate_length', True):
+            self.metadata['length'] = calculated_length
+
     def __getattr__(self, item):
         if ((item.split('_')[0] == 'channel') and
                 (type(int(item.split('_')[1])) == int)):
@@ -127,6 +140,15 @@ class Comlink(object):
                         lat_a=self.metadata['site_a_latitude'],
                         lat_b=self.metadata['site_b_latitude'])
         return coords
+
+    def calc_length(self):
+        coords = self.get_coordinates()
+        d_km = distance((coords.lat_a, coords.lon_a),
+                        (coords.lat_b, coords.lon_b))
+        return d_km
+
+    def get_length(self):
+        return self.metadata['length']
 
     def plot_map(self, tiles='OpenStreetMap', fol_map=None):
         coords = self.get_coordinates()

@@ -66,12 +66,13 @@ class Baseline(object):
 
 class A_R(object):
     def __init__(self, cml):
+        # TODO: Make it possible to use individual f_GHz from each channel
         self.calc_R = cml_wrapper(cml,
                                   calc_R_from_A,
                                   ['A'],
                                   'R',
-                                  L=4.6,
-                                  f=18.9) # TODO: Add metadata for length and frequency to Comlink
+                                  L=cml.get_length,
+                                  f_GHz=cml.channel_1.metadata['frequency'])
 
 
 def cml_wrapper(cml, func, vars_in, var_out, returns_temp_results=False, **additional_kwargs):

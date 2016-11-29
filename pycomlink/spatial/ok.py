@@ -21,12 +21,14 @@ import scipy
 import matplotlib.pyplot as plt
 
 
-def kriging(sample_points, sample_values, grid,
-            n_closest_points,**kwargs):
+def kriging(x, y, z, xgrid, ygrid, n_closest_points, **kwargs):
     """Calculate Ordinary Kriging interpolation
 
     Parameters
     ----------
+
+    TODO: THIS DOC IS OUTDATED!!!!!!!!!!!!!!!!
+
     sample_points : iterable of floats
                     Locations of sample points (Lon/Lat)
 
@@ -62,13 +64,19 @@ def kriging(sample_points, sample_values, grid,
     """
 
     try:
-        OK = OrdinaryKriging(sample_points[:,0], sample_points[:,1], sample_values,
-                                verbose=False, enable_plotting=False,**kwargs)
-        z, s_kr = OK.execute(style='points', xpoints=grid[:,0], ypoints=grid[:,1],
-                             backend='loop',n_closest_points=n_closest_points)
+        OK = OrdinaryKriging(x, y, z,
+                             verbose=False, enable_plotting=False,
+                             **kwargs)
+
+        z, s_kr = OK.execute(xpoints=xgrid.flatten(),
+                             ypoints=ygrid.flatten(),
+                             style='points',
+                             backend='loop',
+                             n_closest_points=n_closest_points)
+        z = np.reshape(z, xgrid.shape)
     except ValueError:
         pass
-        z = np.empty(len(grid))
+        z = np.zeros_like(xgrid)
 
     return z
 

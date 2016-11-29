@@ -90,7 +90,7 @@ def a_b(f_GHz, pol, approx_type='ITU'):
         a = f_a(f_GHz)
         b = f_b(f_GHz)
     else:
-        ValueError('Frequency must be between 1 Ghz and 100 GHz.');
+        raise ValueError('Frequency must be between 1 Ghz and 100 GHz.');
     return a, b
 
 

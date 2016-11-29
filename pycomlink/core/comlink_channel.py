@@ -14,6 +14,7 @@
 import numpy as np
 import pandas as pd
 import copy
+import warnings
 
 
 class ComlinkChannel(object):
@@ -31,11 +32,9 @@ class ComlinkChannel(object):
 
         rx: list or np.array
 
-        tx: list or np.array
-
-        rx_min: list or np.array
-
-        rx_max: list or np.array
+        tx: list, np.array, float or int
+            TX power. If only a scalar value is supplied, it is interpreted
+            as the constant TX power.
 
         f_GHz: float
 
@@ -60,8 +59,6 @@ class ComlinkChannel(object):
         t = kwargs.pop('t', None)
         rx = kwargs.pop('rx', None)
         tx = kwargs.pop('tx', None)
-        rx_min = kwargs.pop('rx_min', None)
-        rx_max = kwargs.pop('rx_max', None)
 
         # TODO: If this is not supplied we should maybe derive it somehow
         self.sampling_type = None
@@ -69,8 +66,8 @@ class ComlinkChannel(object):
         # Parse the different data relevant kwargs to a DataFrame
         # and add it back to the kwargs so that we can pass this
         # then on to the pandas.DataFrame.__init__() below
-        kwargs['data'] = self._parse_kwargs_to_dataframe(
-            data=data, t=t, rx=rx, tx=tx, rx_min=rx_min, rx_max=rx_max)
+        kwargs['data'] = _parse_kwargs_to_dataframe(
+            data=data, t=t, rx=rx, tx=tx)
 
         # super(ComlinkChannel, self).__init__(*args, **kwargs)
         self._df = kwargs.pop('data')
@@ -152,42 +149,26 @@ class ComlinkChannel(object):
         else:
             raise ValueError('`inplace` must be either True or False')
 
-    def _parse_kwargs_to_dataframe(self, data, t, rx, tx, rx_min, rx_max):
-        # The case where only `t` and `rx` are supplied
-        if ((data is None) and
-                (tx is None) and
-                (rx is not None) and
-                (t is not None)):
-            if (rx_min is not None) or (rx_max is not None):
-                raise ValueError('`rx_min` and `rx_max` must not be supplied '
-                                 'if `rx` is supplied')
-            df = pd.DataFrame(index=t, data={'rx': rx})
 
-        elif ((data is None) and
-                (tx is not None) and
-                (rx is not None) and
-                (t is not None)):
-            if (rx_min is not None) or (rx_max is not None):
-                raise ValueError('`rx_min` and `rx_max` must not be supplied '
-                                 'if `rx` is supplied')
-            df = pd.DataFrame(index=t, data={'rx': rx, 'tx': tx})
+def _parse_kwargs_to_dataframe(data, t, rx, tx):
+    # The case where only `t`, `rx` and `tx` are supplied
+    if data is None:
+        df = pd.DataFrame(index=t, data={'rx': rx})
+        df['tx'] = tx
 
-        # The case where `data` has been supplied.
-        # We check that `data` is a DataFrame below.
-        elif data is not None:
-            if ((tx is not None) or (rx is not None) or
-                    (rx_min is not None) or (rx_max is not None) or
-                    (t is not None)):
-                raise ValueError('`rx`, `tx`, `rx_min`, `rx_max`  and  `t` '
-                                 'must not be supplied if `data` is supplied')
-            if isinstance(data, pd.DataFrame):
-                # `data` is what we want, so return it
-                df = data
-            else:
-                raise ValueError('type of `data` is %s, but must be pandas.DataFrame' % type(data))
-
+    # The case where `data` has been supplied.
+    # We check that `data` is a DataFrame below.
+    elif data is not None:
+        if isinstance(data, pd.DataFrame):
+            # `data` is what we want, so return it
+            df = data
         else:
-            raise ValueError('Could not parse the supplied arguments')
+            raise ValueError('type of `data` is %s, '
+                             'but must be pandas.DataFrame' % type(data))
 
-        df.index.name = 'time'
-        return df
+    else:
+        raise ValueError('Could not parse the supplied arguments')
+
+    df['txrx'] = df.tx - df.rx
+    df.index.name = 'time'
+    return df

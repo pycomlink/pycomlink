@@ -33,13 +33,13 @@ class WetDry(object):
     def __init__(self, cml):
         self.std_dev = cml_wrapper(cml,
                                    std_dev.std_dev_classification,
-                                   'rx',
+                                   'txrx',
                                    'wet',
                                    returns_temp_results=True)
 
         self.stft = cml_wrapper(cml,
                                 stft.stft_classification,
-                                'rx',
+                                'txrx',
                                 'wet',
                                 returns_temp_results=True)
 
@@ -50,18 +50,18 @@ class Baseline(object):
 
         self.linear = cml_wrapper(cml,
                                   baseline_linear,
-                                  ['rx', 'wet'],
+                                  ['txrx', 'wet'],
                                   'baseline')
         self.constant = cml_wrapper(cml,
                                     baseline_constant,
-                                    ['rx', 'wet'],
+                                    ['txrx', 'wet'],
                                     'baseline')
 
     # TODO: Integarte this somewhere else, since this
     #       sould be carried out after every baseline determination
     def calc_A(self):
         for ch_name, cml_ch in self.cml.channels.iteritems():
-            cml_ch._df['A'] = cml_ch._df['baseline'] - cml_ch._df['rx']
+            cml_ch._df['A'] = cml_ch._df['txrx'] - cml_ch._df['baseline']
 
 
 class A_R(object):
@@ -71,11 +71,14 @@ class A_R(object):
                                   calc_R_from_A,
                                   ['A'],
                                   'R',
-                                  L=cml.get_length,
-                                  f_GHz=cml.channel_1.metadata['frequency'])
+                                  L=cml.get_length(),
+                                  f_GHz=cml.channel_1.f_GHz)
 
 
-def cml_wrapper(cml, func, vars_in, var_out, returns_temp_results=False, **additional_kwargs):
+def cml_wrapper(cml, func,
+                vars_in, var_out,
+                returns_temp_results=False,
+                **additional_kwargs):
     @wraps(func)
     def func_wrapper(*args, **kwargs):
         # Make sure that we have a list of vars_in

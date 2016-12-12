@@ -11,3 +11,4 @@
 
 
 import interactive_maps
+import maps

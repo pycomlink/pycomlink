@@ -19,6 +19,11 @@ import cartopy
 from cartopy.io import img_tiles
 import pandas as pd
 from scipy.io import netcdf
+<<<<<<< HEAD:pycomlink/death_row/comlinkset.py
+=======
+from collections import OrderedDict
+import random
+>>>>>>> master:pycomlink/comlinkset.py
 import matplotlib
 
 from pycomlink.death_row import mapping
@@ -80,7 +85,7 @@ class ComlinkSet():
         print '============================================================='
         
 
-    def info_plot(self,out_file=None,figsize=(10,10), add_labels=False):
+    def info_plot(self,out_file=None,figsize=(12,8), add_labels=False):
         """Plot associated links on a map 
                 
         """
@@ -101,7 +106,7 @@ class ComlinkSet():
               max(lats)+.05]           
         
         ax.set_extent((area[0], area[1], area[2], area[3]), crs=cartopy.crs.PlateCarree())
-        gg_tiles=img_tiles.MapQuestOSM()
+        gg_tiles=img_tiles.OSM()
         ax.add_image(gg_tiles, 11)        
         
         for cml in self.set:
@@ -293,7 +298,7 @@ class ComlinkSet():
             if print_info:
                 print 'Performing wet/dry classification with link approach'
                 print 'Method = link_appr'
-                print 'Critical distance = ' + str(cml.processing_info['crit_dis'])
+                print 'Critical distance = ' + str(self.set[0].processing_info['crit_dis'])
                 print '-----------------------------------------'
                 print 'Hint:'
                 print 'Temporal resolution is set to 15 Minutes'
@@ -310,9 +315,9 @@ class ComlinkSet():
                     for pair_id in cml.processing_info['tx_rx_pairs']:
                         for cml_nb in cml.processing_info['neighbors_cml']:
                             if pair_id in cml_nb.processing_info['tx_rx_pairs']: 
-                                data_min['txrx_'+pair_id] = cml_nb.data['txrx_'+pair_id].resample('15min',how='min') 
+                                data_min['txrx_'+pair_id] = cml_nb.data['txrx_'+pair_id].resample('15min').min()
                                 dp[cml_nb.metadata['link_id']] = data_min['txrx_'+pair_id] - \
-                                                                  pd.rolling_max(data_min['txrx_'+pair_id],96)
+                                                                 pd.rolling_max(data_min['txrx_'+pair_id],96)
                                 dpl[cml_nb.metadata['link_id']] = (data_min['txrx_'+pair_id] - \
                                                                    pd.rolling_max(data_min['txrx_'+pair_id],96))/ \
                                                                    cml.metadata['length_km']            
@@ -482,7 +487,8 @@ class ComlinkSet():
                       start_time=None,
                       stop_time=None,
                       method='mean',
-                      power=2,smoothing=0,nn=10,
+                      power=2,smoothing=0,nn=None,
+                      print_info=False,
                       **kwargs):
                      
         """ Perform spatial interpolation of rain rate grid
@@ -518,8 +524,9 @@ class ComlinkSet():
                Power of smoothing factor for IDW interpolation. Only used if 
                int_type is 'IDW' (Default is 0) 
         nn : int,optional
-                Number of neighbors considered for interpolation. 
-                Default is 10
+                Number of neighbors considered for interpolation. If None all
+                neighbors are used
+                Default is None
         kwargs : kriging parameters, optional
                 See https://github.com/bsmurphy/PyKrige for details          
                 
@@ -540,22 +547,23 @@ class ComlinkSet():
         
         if start_time is None or stop_time is None:
             times = pd.date_range(self.set_info['start'],self.set_info['stop'],
-                                  freq=resampling_time, normalize=True)[0:-1]
+                                  freq=resampling_time)[0:-1]
         else:
             times = pd.date_range(start_time,stop_time,
-                                  freq=resampling_time, normalize=True)
+                                  freq=resampling_time)
 
         self.set_info['interpol_time_array'] = times
         self.set_info['interpol'] = OrderedDict()
 
         temp_df_list = []
         for cml in self.set:
-            temp_df_list.append(cml.data.resample(resampling_time,how='mean'))
+            temp_df_list.append(cml.data.resample(resampling_time, label='right').mean())
 
         meas_points_old = np.empty(0)
 
         for i_time, time in enumerate(times):
-            print "Interpolating for UTC time",time                    
+            if print_info:
+                print "Interpolating for UTC time",time
             lons_mw=[]
             lats_mw=[]
             values_mw=[]     
@@ -575,23 +583,23 @@ class ComlinkSet():
                            start = pd.Timestamp(time) - pd.Timedelta('10s')
                            stop = pd.Timestamp(time) + pd.Timedelta('10s')
                            plist = []
-
-                           for pair_id in cml.processing_info['tx_rx_pairs']:
-                               # TODO: Get rid of the [0] indexing and the start stop index thing
-                               R_temp = (temp_df['R_'+pair_id][start:stop])
-                               if len(R_temp) > 0:
-                                   plist.append(R_temp.values[0])
-                               else:
-                                   plist.append(np.nan)
-                             
-                           if method == 'mean':
-                               precip = np.mean(plist)                     
-                           elif method == 'max':
-                               precip = np.max(plist)                        
-                           elif method == 'min':
-                               precip = np.min(plist)                          
+                           if method in ['mean','max','min']:
+                               for pair_id in cml.processing_info['tx_rx_pairs']:
+                                   # TODO: Get rid of the [0] indexing and the start stop index thing
+                                   R_temp = (temp_df['R_'+pair_id][start:stop])
+                                   if len(R_temp) > 0:
+                                       plist.append(R_temp.values[0])
+                                   else:
+                                       plist.append(np.nan)
+                                 
+                               if method == 'mean':
+                                   precip = np.mean(plist)                     
+                               elif method == 'max':
+                                   precip = np.max(plist)                        
+                               elif method == 'min':
+                                   precip = np.min(plist)                          
                            elif method in cml.processing_info['tx_rx_pairs']:
-                               if 'R_' + pair_id in temp_df.keys():
+                               if 'R_' + method in temp_df.keys():
                                    precip = (temp_df['R_'+method][start:stop]).values[0]
                                else:
                                    print 'Warning: Pair ID '+method+' not available for link '+\
@@ -627,7 +635,8 @@ class ComlinkSet():
                 if i_time == 0:
                     must_calc_new_weights = True
                 if not np.array_equal(meas_points_old, meas_points):
-                    print 'meas points not equal to meas_points_old'
+                    if print_info:
+                        print 'meas_points not equal to meas_points_old at %s UTC' % str(time)
                     must_calc_new_weights = True
                     meas_points_old = meas_points
 
@@ -676,7 +685,7 @@ class ComlinkSet():
                        self.set_info['area'][2]-.05, self.set_info['area'][3]+.05),
                          crs=cartopy.crs.PlateCarree())
         if OSMtile:                 
-            gg_tiles = img_tiles.MapQuestOSM()      
+            gg_tiles = img_tiles.OSM()      
             ax.add_image(gg_tiles, 11)          
         
          

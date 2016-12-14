@@ -234,10 +234,10 @@ class Comlink():
                          min(self.metadata['site_A']['lat'],self.metadata['site_B']['lat'])-.1,
                          max(self.metadata['site_A']['lat'],self.metadata['site_B']['lat'])+.1]
                          
-                   plt.figure(figsize=(7, 9))
+                   plt.figure(figsize=(12, 8))
                    ax = plt.axes(projection=cartopy.crs.PlateCarree())
                    ax.set_extent((area[0], area[1], area[2], area[3]), crs=cartopy.crs.PlateCarree())
-                   gg_tiles=img_tiles.MapQuestOSM()
+                   gg_tiles=img_tiles.OSM(style='satellite')
                    ax.add_image(gg_tiles, 11)
 
                    plt.plot([self.metadata['site_A']['lon'],self.metadata['site_B']['lon']],
@@ -420,7 +420,7 @@ class Comlink():
         """
 
         if resampling_time is not None:
-            df_temp = self.data.resample(resampling_time)
+            df_temp = self.data.resample(resampling_time, label='right').mean()
         else:
             df_temp = self.data
 
@@ -490,7 +490,6 @@ class Comlink():
                                         dry_window_length=600,
                                         f_divide=1e-3,
                                         reuse_last_Pxx=False,
-                                        mirror=False,
                                         print_info=False):
                                             
         """Perform wet/dry classification for CML time series
@@ -514,9 +513,6 @@ class Comlink():
         reuse_last_Pxx : bool
                  Parameter for classification with method Fourier transformation
                  (Default is false)  
-        mirror : bool
-                 Parameter for classification with method Fourier transformation
-                 (Default is False)
         print_info : bool
                   Print information about executed method (Default is False)
         
@@ -585,8 +581,7 @@ class Comlink():
                                                             threshold,
                                                             f_divide,
                                                             t_dry_start,
-                                                            t_dry_stop,
-                                                            mirror)
+                                                            t_dry_stop)
                 elif reuse_last_Pxx is True:
                     Pxx=self.processing_info['wet_dry_Pxx_' + pair_id]
                     f=self.processing_info['wet_dry_f']
@@ -597,7 +592,6 @@ class Comlink():
                                                             f_divide,
                                                             t_dry_start,
                                                             t_dry_stop,
-                                                            mirror,
                                                             Pxx=Pxx,
                                                             f=f)
                 else:
@@ -730,10 +724,10 @@ class Comlink():
         """           
         
         for pair_id in self.processing_info['tx_rx_pairs']:
-            self.data['A_' + pair_id] = self.data['txrx_' + pair_id] \
-                                      - self.data['baseline_' + pair_id]
+            A = self.data['txrx_' + pair_id] - self.data['baseline_' + pair_id]
             if remove_negative_A:
-                self.data['A_' + pair_id][self.data['A_' + pair_id]<0] = 0
+                A[A < 0] = 0
+            self.data['A_' + pair_id] = A
                 
     def calc_R_from_A(self, a=None, b=None, approx_type='ITU'):
         

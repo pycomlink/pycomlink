@@ -211,7 +211,9 @@ def _read_cml_metadata(cml_g):
 def _read_channels_metadata(cml_g):
     tx_rx_pairs = {}
     for chan_g_name, chan_g in cml_g.items():
-        tx_rx_pairs[chan_g_name] = {'name': chan_g_name,
+        #Provisorium
+        if not 'product' in chan_g_name:
+            tx_rx_pairs[chan_g_name] = {'name': chan_g_name,
                                     'tx': 'tx_' + chan_g_name,
                                     'rx': 'rx_' + chan_g_name,
                                     'f_GHz': chan_g.attrs['frequency'],
@@ -222,8 +224,10 @@ def _read_channels_metadata(cml_g):
 def _read_channels_data(cml_g):
     data_dict = {}
     for chan_g_name, chan_g in cml_g.items():
-        data_dict['rx_' + chan_g_name] = chan_g['RX'][:]
-        data_dict['tx_' + chan_g_name] = chan_g['TX'][:]
+        #Provisorium
+        if not 'product' in chan_g_name:
+            data_dict['rx_' + chan_g_name] = chan_g['RX'][:]
+            data_dict['tx_' + chan_g_name] = chan_g['TX'][:]
     data = pd.DataFrame(data=data_dict, index=pd.DatetimeIndex(chan_g['time'][:] * 1e9, tz='UTC'))
 
     return data

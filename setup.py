@@ -40,5 +40,8 @@ setup(
         'pandas>=0.18',
         'matplotlib', 
         'cartopy',
-        'numba', 'folium', 'h5py'],
+        'numba',
+        'folium',
+        'h5py',
+        'xarray'],
 )

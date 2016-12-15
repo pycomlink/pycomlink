@@ -30,6 +30,7 @@ class GridValidator(Validator):
             xr_ds = xr.Dataset()
 
         self.xr_ds = xr_ds
+        self.intersect_weights = None
 
         pass
 
@@ -42,14 +43,14 @@ class GridValidator(Validator):
         return self.intersect_weights
 
     def get_time_series(self, cml, values):
-        intersect = self._get_cml_pair_indices(cml)
+        intersect_weights = self._get_cml_pair_indices(cml)
 
         grid_sum = np.zeros([len(self.xr_ds.time)])
-        for i in range(len(intersect)):
-            for j in range(len(intersect)):
-                if intersect[i][j] != 0:
+        for i in range(len(intersect_weights)):
+            for j in range(len(intersect_weights)):
+                if intersect_weights[i][j] != 0:
                     grid_sum = grid_sum + (
-                        intersect[i][j] * self.xr_ds[values][:, i, j])
+                        intersect_weights[i][j] * self.xr_ds[values][:, i, j])
 
         return grid_sum
 
@@ -71,13 +72,11 @@ def calc_intersect_weights(cml, xr_ds, offset=None):
     grid = np.stack([xr_ds.longitudes.values, xr_ds.latitudes.values], axis=2)
 
     # Get link coordinates for easy access
-    lonA = cml.metadata['site_A']['lon']
-    lonB = cml.metadata['site_B']['lon']
-    latA = cml.metadata['site_A']['lat']
-    latB = cml.metadata['site_B']['lat']
+    cml_coords = cml.get_coordinates()
 
     # Convert CML to shapely line
-    link = LineString([(lonA, latA), (lonB, latB)])
+    link = LineString([(cml_coords.lon_a, cml_coords.lat_a),
+                       (cml_coords.lon_b, cml_coords.lat_b)])
 
     # Derive grid cell width to set bounding box offset
     ll_cell = grid[0, 1, 0] - grid[0, 0, 0]
@@ -92,10 +91,10 @@ def calc_intersect_weights(cml, xr_ds, offset=None):
         offset = offset_calc
 
     # Set bounding box
-    lon_max = max([lonA, lonB])
-    lon_min = min([lonA, lonB])
-    lat_max = max([latA, latB])
-    lat_min = min([latA, latB])
+    lon_max = max([cml_coords.lon_a, cml_coords.lon_b])
+    lon_min = min([cml_coords.lon_a, cml_coords.lon_b])
+    lat_max = max([cml_coords.lat_a, cml_coords.lat_b])
+    lat_min = min([cml_coords.lat_a, cml_coords.lat_b])
     lon_grid = grid[:, :, 0]
     lat_grid = grid[:, :, 1]
     bounding_box = (

@@ -157,11 +157,20 @@ def _parse_kwargs_to_dataframe(data, t, rx, tx):
         df['tx'] = tx
 
     # The case where `data` has been supplied.
-    # We check that `data` is a DataFrame below.
+    # We check that `data` is a DataFrame and that the DataFrame has the
+    # columns `tx` and `rx`.
     elif data is not None:
         if isinstance(data, pd.DataFrame):
             # `data` is what we want, so return it
             df = data
+            try:
+                df.tx
+            except AttributeError:
+                raise AttributeError('DataFrame `data` must have a column `tx`')
+            try:
+                df.rx
+            except AttributeError:
+                raise AttributeError('DataFrame `data` must have a column `tx`')
         else:
             raise ValueError('type of `data` is %s, '
                              'but must be pandas.DataFrame' % type(data))

@@ -114,7 +114,10 @@ class Comlink(object):
         return html_str
 
     def __dir__(self):
-        return self.__dict__.keys() + self.channels.keys()
+        attr_list = (Comlink.__dict__.keys() +
+                     self.__dict__.keys() +
+                     self.channels.keys())
+        return attr_list
 
     def __copy__(self):
         cls = self.__class__

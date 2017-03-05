@@ -39,7 +39,6 @@ setup(
         'scipy', 
         'pandas>=0.18',
         'matplotlib', 
-        'cartopy',
         'numba',
         'folium',
         'h5py',

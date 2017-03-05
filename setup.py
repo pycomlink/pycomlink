@@ -37,8 +37,11 @@ setup(
     install_requires=[
         'numpy', 
         'scipy', 
-        'pandas', 
+        'pandas>=0.18',
         'matplotlib', 
         'cartopy',
-        'numba'],
+        'numba',
+        'folium',
+        'h5py',
+        'xarray'],
 )

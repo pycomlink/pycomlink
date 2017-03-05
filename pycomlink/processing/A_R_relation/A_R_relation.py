@@ -1,15 +1,21 @@
+import numpy as np
+
 
 ############################################
 # Functions for A-R power law calculatoins #
 ############################################
 
-def calc_R_from_A(A, a, b, L):
+def calc_R_from_A(A, L, f_GHz=None, a=None, b=None, pol='H'):
     """Calculate rain rate from attenuation using the A-R Relationship
     
     Parameters
     ----------
     A : float or iterable of float
         Attenuation of microwave signal
+    f_GHz : float, optional
+        Frequency in GHz
+    pol : string
+        Polarization, default is 'H'
     a : float, optional
         Parameter of A-R relationship
     b : float, optional
@@ -29,8 +35,12 @@ def calc_R_from_A(A, a, b, L):
     .. math:: A = aR^{b}    
     
     """
+    if f_GHz is not None:
+        a, b = a_b(f_GHz, pol=pol)
+
     R = (A/(a*L))**(1/b)
     return R
+
 
 def a_b(f_GHz, pol, approx_type='ITU'):
     """Approximation of parameters for A-R relationship
@@ -80,10 +90,10 @@ def a_b(f_GHz, pol, approx_type='ITU'):
         a = f_a(f_GHz)
         b = f_b(f_GHz)
     else:
-        ValueError('Frequency must be between 1 Ghz and 100 GHz.');
+        raise ValueError('Frequency must be between 1 Ghz and 100 GHz.');
     return a, b
 
-import numpy as np
+
 ITU_table = np.array([
   [1.000e+0, 2.000e+0, 4.000e+0, 6.000e+0, 7.000e+0, 8.000e+0, 1.000e+1, 
    1.200e+1, 1.500e+1, 2.000e+1, 2.500e+1, 3.000e+1, 3.500e+1, 4.000e+1, 

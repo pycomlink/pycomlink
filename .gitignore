@@ -9,3 +9,4 @@ docs/_templates/
 .idea/
 build/
 __pycache__/
+*.py~

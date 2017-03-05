@@ -1,4 +1,14 @@
-# -*- coding: utf-8 -*-
+#----------------------------------------------------------------------------
+# Name:
+# Purpose:
+#
+# Authors: Felix Keis, Christian Chwala
+#
+# Created:
+# Copyright:    (c) Christian Chwala 2016
+# Licence:      The MIT License
+#----------------------------------------------------------------------------
+
 
 from __future__ import absolute_import
 from __future__ import division
@@ -6,10 +16,69 @@ from __future__ import unicode_literals
 
 import numpy as np
 from scipy.optimize import minimize
-import scipy.linalg
 import scipy
-#from scipy.spatial.distance import cdist
+
 import matplotlib.pyplot as plt
+
+
+def kriging(x, y, z, xgrid, ygrid, n_closest_points, **kwargs):
+    """Calculate Ordinary Kriging interpolation
+
+    Parameters
+    ----------
+
+    TODO: THIS DOC IS OUTDATED!!!!!!!!!!!!!!!!
+
+    sample_points : iterable of floats
+                    Locations of sample points (Lon/Lat)
+
+                    Example
+                    -------
+                    >>> x = np.random.rand(number_of_points)
+                        y = np.random.rand(number_of_points)
+                        sample_points = np.vstack((x,y)).T
+
+    sample_values : iterable of floats
+                    Values at sample_points
+    grid : iterable of floats
+            Gridpoint locations
+
+                    Example
+                    -------
+                    >>> xcoords = np.arange(xstart, xstop, dx)
+                        ycoords = np.arange(ystart, ystop, dy)
+                        xgrid, ygrid = np.meshgrid(xcoords, ycoords)
+                        xi, yi = xgrid.flatten(), ygrid.flatten()
+                        grid = np.vstack((xi, yi)).T
+    n_closest_points : int
+                Parameters for Kriging interpolation. See OrdinaryKriging
+                documentation for information.
+    kwargs : kriging parameters, optional
+                See https://github.com/bsmurphy/PyKrige for details
+
+    Returns
+    -------
+    array of floats
+        Interpolated values at grid points
+
+    """
+
+    try:
+        OK = OrdinaryKriging(x, y, z,
+                             verbose=False, enable_plotting=False,
+                             **kwargs)
+
+        z, s_kr = OK.execute(xpoints=xgrid.flatten(),
+                             ypoints=ygrid.flatten(),
+                             style='points',
+                             backend='loop',
+                             n_closest_points=n_closest_points)
+        z = np.reshape(z, xgrid.shape)
+    except ValueError:
+        pass
+        z = np.zeros_like(xgrid)
+
+    return z
 
 
 def adjust_for_anisotropy(x, y, xcenter, ycenter, scaling, angle):

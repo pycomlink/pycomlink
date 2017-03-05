@@ -11,21 +11,22 @@
 #----------------------------------------------------------------------------
 
 from __future__ import division
+from collections import OrderedDict
+
 import numpy as np
 import matplotlib.pyplot as plt
 import cartopy
 from cartopy.io import img_tiles
 import pandas as pd
 from scipy.io import netcdf
+<<<<<<< HEAD:pycomlink/death_row/comlinkset.py
+=======
 from collections import OrderedDict
 import random
+>>>>>>> master:pycomlink/comlinkset.py
 import matplotlib
 
-from . import wet_dry
-from . import baseline
-from . import A_R_relation
-from . import wet_antenna
-from . import mapping
+from pycomlink.death_row import mapping
 
 
 class ComlinkSet():
@@ -646,7 +647,7 @@ class ComlinkSet():
                                        power,smoothing,nn, idw_weights).reshape(longrid.shape)
                                       
             elif int_type == 'Kriging':
-                interpol=mapping.kriging(meas_points,val_mw,grid, 
+                interpol= mapping.kriging(meas_points,val_mw,grid,
                                          nn,**kwargs).reshape(longrid.shape)   
                                          
             else:

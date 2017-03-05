@@ -18,11 +18,12 @@ import matplotlib.pyplot as plt
 import cartopy
 from cartopy.io import img_tiles
 
-from . import wet_dry
-from . import baseline
-from . import A_R_relation
-from . import wet_antenna
-from . import mapping
+from pycomlink import wet_dry
+from pycomlink.processing.baseline import baseline
+from pycomlink.processing.A_R_relation import A_R_relation
+from pycomlink.processing.wet_antenna import wet_antenna
+from pycomlink.death_row import mapping
+
 
 class Comlink():
     """Commercial microwave link (CML) class for all data processing 
@@ -243,7 +244,7 @@ class Comlink():
                             [self.metadata['site_A']['lat'],self.metadata['site_B']['lat']],
                             linewidth=3,color='k',
                             transform=cartopy.crs.Geodetic())
-                   xy=mapping.label_loc(self.metadata['site_A']['lon'],
+                   xy= mapping.label_loc(self.metadata['site_A']['lon'],
                                         self.metadata['site_A']['lat'],
                                         self.metadata['site_B']['lon'],
                                         self.metadata['site_B']['lat'])

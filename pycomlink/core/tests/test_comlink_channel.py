@@ -69,10 +69,10 @@ class TestComlinkChannelCopy(unittest.TestCase):
         assert(cml_ch_copy.f_GHz == cml_ch.f_GHz)
 
         # Test that DataFrames are equal
-        pd.util.testing.assert_frame_equal(cml_ch_copy._df, cml_ch._df)
+        pd.util.testing.assert_frame_equal(cml_ch_copy._df, cml_ch.data)
 
         # Test that the new DataFrame is a copy and not a view
-        cml_ch._df.rx[1] = -9999
+        cml_ch.data.rx[1] = -9999
         assert(cml_ch.rx[1] != cml_ch_copy.rx[1])
 
         # Test that the new metadata is not a reference but a copy
@@ -95,10 +95,10 @@ class TestComlinkChannelCopy(unittest.TestCase):
         assert(cml_ch_copy.f_GHz == cml_ch.f_GHz)
 
         # Test that DataFrames are equal
-        pd.util.testing.assert_frame_equal(cml_ch_copy._df, cml_ch._df)
+        pd.util.testing.assert_frame_equal(cml_ch_copy._df, cml_ch.data)
 
         # Test that the new DataFrame is a copy and not a view
-        cml_ch._df.rx[1] = -9999
+        cml_ch.data.rx[1] = -9999
         assert(cml_ch.rx[1] != cml_ch_copy.rx[1])
 
         # Test that the new metadata is not a reference but a copy
@@ -116,7 +116,7 @@ class TestComlinkChannelTypeAfterManipulation(unittest.TestCase):
         cml_ch = ComlinkChannel(data=df, f_GHz=18.9)
         cml_ch_sliced = cml_ch[1:4]
         assert(type(cml_ch_sliced) == ComlinkChannel)
-        pd.util.testing.assert_frame_equal(cml_ch_sliced._df, df[1:4])
+        pd.util.testing.assert_frame_equal(cml_ch_sliced.data, df[1:4])
         for key in cml_ch._metadata:
             assert(cml_ch_sliced[key] == cml_ch[key])
 
@@ -151,7 +151,7 @@ def assert_comlink_channel_equal(cml_ch_1, cml_ch_2):
     assert(cml_ch_2.f_GHz == f)
 
     for key in cml_ch_1.__dict__:
-        if key == '_df':
+        if key == 'data':
             pd.util.testing.assert_frame_equal(cml_ch_1._df,
                                                cml_ch_2._df)
         else:

@@ -70,7 +70,7 @@ class ComlinkChannel(object):
             data=data, t=t, rx=rx, tx=tx)
 
         # super(ComlinkChannel, self).__init__(*args, **kwargs)
-        self._df = kwargs.pop('data')
+        self.data = kwargs.pop('data')
 
         # TODO: Sanely parse metadata
         if metadata is not None:
@@ -91,22 +91,22 @@ class ComlinkChannel(object):
 
     def __getitem__(self, key):
         new_cml_ch = self.__copy__()
-        new_cml_ch._df = self._df.__getitem__(key)
+        new_cml_ch.data = self.data.__getitem__(key)
         return new_cml_ch
 
     def __len__(self):
-        return len(self._df)
+        return len(self.data)
 
     def __str__(self, *args, **kwargs):
         print 'f_GHz: ', self.f_GHz
-        print self._df.__str__()
+        print self.data.__str__()
 
     def __getattr__(self, item):
         try:
-            return self._df.__getattr__(item)
+            return self.data.__getattr__(item)
         except:
             raise AttributeError('Neither \'ComlinkChannel\' nor its '
-                                 '\'DataFrame\' bhave the attribute \'%s\''
+                                 '\'DataFrame\' have the attribute \'%s\''
                                  % item)
 
     def __copy__(self):
@@ -120,7 +120,7 @@ class ComlinkChannel(object):
         if memo is None:
             memo = {}
         memo[id(self)] = new_cml_ch
-        new_cml_ch._df = copy.deepcopy(self._df, memo)
+        new_cml_ch.data = copy.deepcopy(self.data, memo)
         return new_cml_ch
 
     def _repr_html_(self):
@@ -130,7 +130,7 @@ class ComlinkChannel(object):
                 metadata_str += (str(key) + ': ' + str(value/1e9) + ' GHz<br/>')
             else:
                 metadata_str += (str(key) + ': ' + str(value) + '<br/>')
-        return metadata_str + self._df._repr_html_()
+        return metadata_str + self.data._repr_html_()
 
     def copy(self):
         return self.__deepcopy__()
@@ -141,10 +141,10 @@ class ComlinkChannel(object):
         how = kwargs.pop('how', np.mean)
 
         if inplace:
-            self._df = self._df.resample(*args, **kwargs).apply(how)
+            self.data = self.data.resample(*args, **kwargs).apply(how)
         elif not inplace:
             new_cml_ch = copy.copy(self)
-            new_cml_ch._df = self._df.resample(*args, **kwargs).apply(how)
+            new_cml_ch._df = self.data.resample(*args, **kwargs).apply(how)
             return new_cml_ch
         else:
             raise ValueError('`inplace` must be either True or False')

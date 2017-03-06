@@ -38,7 +38,15 @@ def calc_R_from_A(A, L, f_GHz=None, a=None, b=None, pol='H'):
     if f_GHz is not None:
         a, b = a_b(f_GHz, pol=pol)
 
-    R = (A/(a*L))**(1/b)
+    R = np.zeros_like(A)
+
+    nan_index = np.isnan(A)
+    R[nan_index] = np.nan
+
+    # This ignores the numpy warning stemming from A >=0 where A contains NaNs
+    with np.errstate(invalid='ignore'):
+        R[~nan_index & (A >= 0)] = (A[~nan_index & (A >= 0)]/(a*L))**(1/b)
+
     return R
 
 

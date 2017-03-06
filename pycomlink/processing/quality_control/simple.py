@@ -23,6 +23,7 @@ def set_to_nan_if(cml, ts_name, expression, value):
         raise ValueError('expresison `%s` not supported' % expression)
 
     for ch_name, ch in cml.channels.iteritems():
-        index = func(ch._df[ts_name], value)
-        ch._df[ts_name][index] = np.nan
+        index = func(ch.data[ts_name], value)
+        ch.data.loc[index, ts_name] = np.nan
+        ch.data['txrx'] = ch.data['tx'] - ch.data['rx']
     return cml

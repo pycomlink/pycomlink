@@ -173,7 +173,10 @@ def stft_classification(rsl, window_length, threshold, f_divide,
     P_norm_high = np.mean(P_norm[i_f_divide_high], axis=0)
     P_sum_diff = P_norm_low/N_f_divide_low - P_norm_high/N_f_divide_high
 
-    wet = P_sum_diff > threshold
+    nan_index = np.isnan(P_sum_diff)
+    wet = np.zeros_like(P_sum_diff, dtype=np.bool)
+    wet[~nan_index] = P_sum_diff[~nan_index] > threshold
+
     info = {'P_norm': P_norm, 'P_sum_diff': P_sum_diff,
             'Pxx': Pxx_extended, 'P_dry_mean': P_dry_mean, 'f': f}
 

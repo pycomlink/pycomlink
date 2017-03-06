@@ -177,14 +177,14 @@ def _write_channel_data(chan_g, cml_ch, compression, compression_opts):
     for name, attrs in cml_ch_data_names_dict.iteritems():
         if name == 'time':
             # Get the time index in UTC
-            ts_t = cml_ch._df.index.tz_convert('UTC')
+            ts_t = cml_ch.data.index.tz_convert('UTC')
             # Transform the pandas (np.datetime64) which is in ns to seconds
             t_vec = ts_t.astype('int64') / 1e9
             chan_g.create_dataset(name, data=t_vec,
                                   compression=compression,
                                   compression_opts=compression_opts)
         else:
-            chan_g.create_dataset(name, data=cml_ch._df[name].values,
+            chan_g.create_dataset(name, data=cml_ch.data[name].values,
                                   compression=compression,
                                   compression_opts=compression_opts)
 

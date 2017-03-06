@@ -16,9 +16,11 @@ from copy import deepcopy
 from collections import namedtuple
 
 import matplotlib.pyplot as plt
+import pandas as pd
 import folium
 
 from comlink_channel import ComlinkChannel
+from ..processing import Processor
 from ..spatial.helper import distance
 
 
@@ -52,9 +54,10 @@ class Comlink(object):
             for channel in channels:
                 # Duck-type to see if it behaves like a ComlinkChannel
                 try:
-                    channel._df['rx']
-                except Exception as e:
-                    raise e('`channels` must behave like a ComlinkChannel')
+                    channel.data
+                except Exception:
+                    raise AttributeError('`channels` must behave like a '
+                                         'ComlinkChannel object')
         else:
             raise AttributeError('`channels` is %s must be either a '
                                  'ComlinkChannel or a list of ComlinkChannels' %
@@ -92,6 +95,8 @@ class Comlink(object):
 
         if kwargs.pop('calculate_length', True):
             self.metadata['length'] = calculated_length
+
+        self.process = Processor(self)
 
     def __getattr__(self, item):
         if ((item.split('_')[0] == 'channel') and
@@ -178,7 +183,7 @@ class Comlink(object):
         if ax is None:
             fig, ax = plt.subplots(len(columns),
                                    1,
-                                   figsize=(12, 2*len(columns) + 1),
+                                   figsize=(10, 1.5*len(columns) + 1),
                                    sharex=True)
         try:
             ax[0].get_alpha()
@@ -189,16 +194,16 @@ class Comlink(object):
             for i, (name, cml_ch) in enumerate(self.channels.iteritems()):
                 if column == 'wet':
                     ax_i.fill_between(
-                        cml_ch._df[column].index,
+                        cml_ch.data[column].index,
                         i,
-                        i + cml_ch._df[column].values,
+                        i + cml_ch.data[column].values,
                         alpha=0.9,
                         linewidth=0.0,
                         label=name)
                 else:
                     ax_i.plot(
-                        cml_ch._df[column].index,
-                        cml_ch._df[column].values,
+                        cml_ch.data[column].index,
+                        cml_ch.data[column].values,
                         label=name)
             ax_i.set_ylabel(column)
 

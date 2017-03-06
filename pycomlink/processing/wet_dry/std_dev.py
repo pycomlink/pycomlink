@@ -9,9 +9,7 @@
 # Licence:      The MIT License
 #----------------------------------------------------------------------------
 
-import pandas as pd
-
-import pycomlink as pycml
+import numpy as np
 
 
 def std_dev_classification(data, window_length, threshold):
@@ -20,7 +18,7 @@ def std_dev_classification(data, window_length, threshold):
 
     Parameters
     ----------
-    data : iterable of float, Comlink or ComlinkChannel
+    data : iterable of float
          Time series of received signal level
     window_length : int
          Length of the sliding window
@@ -44,44 +42,13 @@ def std_dev_classification(data, window_length, threshold):
 
     """
 
-    if isinstance(data, pycml.Comlink):
-        cml = data
-        for channel_name, channel in cml.channels.iteritems():
-            ts_wet, ts_roll_std_dev = std_dev_classification(
-                                                data=channel,
-                                                window_length=window_length,
-                                                threshold=threshold)
-            channel._df['wet'] = ts_wet
+    roll_std_dev = rolling_std_dev(data, window_length)
+    nan_index = np.isnan(roll_std_dev)
 
-            # TODO: What to do with intermediate data, here roll_std_dev time series
+    wet = np.zeros_like(roll_std_dev, dtype=np.bool)
+    wet[~nan_index] = roll_std_dev[~nan_index] > threshold
 
-            # TODO: Write to something like a processing_info dict for each channel
-
-        return cml
-
-    if isinstance(data, pycml.ComlinkChannel):
-        cmlch = data
-        # TODO: Maybe better resolve the request of 'trsl' in ComlinkChannel
-        try:
-            trsl = cmlch.trsl
-        except:
-            print 'Could not find TRSL in channel. Using TX-RX or only RX.'
-            try:
-                trsl = cmlch.tx - cmlch.rx
-            except:
-                trsl = cmlch.rx
-
-        wet, roll_std_dev = std_dev_classification(trsl.values,
-                                                   window_length=window_length,
-                                                   threshold=threshold)
-        ts_wet = pd.Series(data=wet, index=cmlch._df.index)
-        ts_roll_std_dev = pd.Series(data=roll_std_dev, index=cmlch._df.index)
-        return ts_wet, ts_roll_std_dev
-
-    else:
-        roll_std_dev = rolling_std_dev(data, window_length)
-        wet = roll_std_dev > threshold
-        return wet, {'roll_std_dev': roll_std_dev}
+    return wet, {'roll_std_dev': roll_std_dev}
 
 
 def rolling_window(a, window):
@@ -96,10 +63,10 @@ def rolling_window(a, window):
          Length of the sliding window
     """
 
-    import numpy as np
     shape = a.shape[:-1] + (a.shape[-1] - window + 1, window)
     strides = a.strides + (a.strides[-1],)
     return np.lib.stride_tricks.as_strided(a, shape=shape, strides=strides)
+
 
 def rolling_std_dev(x, window_length, pad_only_left=False):
 

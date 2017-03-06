@@ -16,17 +16,26 @@ from pycomlink.processing.wet_dry import std_dev, stft
 from pycomlink.processing.baseline.baseline import \
     baseline_linear, baseline_constant
 from pycomlink.processing.A_R_relation.A_R_relation import calc_R_from_A
+from pycomlink.processing.quality_control.simple import set_to_nan_if
 
 
 class Processor(object):
     def __init__(self, cml):
-        self.cml = deepcopy(cml)
+        #self.cml = deepcopy(cml)
+        self.cml = cml
+
+        self.quality_control = QualityControl(self.cml)
 
         self.wet_dry = WetDry(self.cml)
 
         self.baseline = Baseline(self.cml)
 
         self.A_R = A_R(self.cml)
+
+
+class QualityControl(object):
+    def __init__(self, cml):
+        self.set_to_nan_if = pass_cml_wrapper(cml, set_to_nan_if)
 
 
 class WetDry(object):
@@ -46,7 +55,7 @@ class WetDry(object):
 
 class Baseline(object):
     def __init__(self, cml):
-        self.cml = cml
+        self._cml = cml
 
         self.linear = cml_wrapper(cml,
                                   baseline_linear,
@@ -60,8 +69,9 @@ class Baseline(object):
     # TODO: Integarte this somewhere else, since this
     #       sould be carried out after every baseline determination
     def calc_A(self):
-        for ch_name, cml_ch in self.cml.channels.iteritems():
-            cml_ch._df['A'] = cml_ch._df['txrx'] - cml_ch._df['baseline']
+        for ch_name, cml_ch in self._cml.channels.iteritems():
+            cml_ch.data['A'] = cml_ch.data['txrx'] - cml_ch.data['baseline']
+        return self._cml
 
 
 class A_R(object):
@@ -86,16 +96,16 @@ def cml_wrapper(cml, func,
             vars_in_list = [vars_in, ]
         else:
             vars_in_list = vars_in
-        # Reverse list to have the correct order when appending to args
-        vars_in_list.reverse()
 
         # Iterate over channels
         args_initial = deepcopy(args)
         for name, cml_ch in cml.channels.iteritems():
             # Add var_in variables to args-list
             args = list(deepcopy(args_initial))
-            for var_in in vars_in_list:
-                args.insert(0, cml_ch._df[var_in].values)
+
+            # Go through list in reverse to have the correct order
+            for var_in in reversed(vars_in_list):
+                args.insert(0, cml_ch.data[var_in].values)
 
             # Add additional kwargs
             for k, v in additional_kwargs.iteritems():
@@ -115,7 +125,15 @@ def cml_wrapper(cml, func,
                     cml_ch.intermediate_results[key] = value
             else:
                 ts = temp
-            cml_ch._df[var_out] = ts
+            cml_ch.data[var_out] = ts
 
-        return None
+        return cml
+    return func_wrapper
+
+
+def pass_cml_wrapper(cml, func):
+    @wraps(func)
+    def func_wrapper(*args, **kwargs):
+        func(cml, *args, **kwargs)
+        return cml
     return func_wrapper

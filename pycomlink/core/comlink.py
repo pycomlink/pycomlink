@@ -139,6 +139,7 @@ class Comlink(object):
         #    new_cml.channels[name] = deepcopy(channel, memo)
         new_cml.metadata = deepcopy(self.metadata, memo)
         new_cml.channels = deepcopy(self.channels, memo)
+        new_cml.process = deepcopy(self.process, memo)
         return new_cml
 
     def get_coordinates(self):

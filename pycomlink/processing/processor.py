@@ -32,6 +32,31 @@ class Processor(object):
 
         self.A_R = A_R(self.cml)
 
+    def __copy__(self):
+        cls = self.__class__
+        new_proc = cls.__new__(cls)
+        new_proc.__dict__.update(self.__dict__)
+        return new_proc
+
+    def __deepcopy__(self, memo=None):
+        # TODO: Check the logic of this function. It seems to work, but why?
+
+        if memo is None:
+            memo = {}
+
+        cml_from_last_copy = memo.get(self, False)
+
+        copy_again = True
+        if cml_from_last_copy:
+            copy_again = False
+
+        if not copy_again:
+            #print '### NOT COPYING'
+            return self
+        else:
+            #print '### COPYING'
+            return Processor(deepcopy(self.cml, memo=memo))
+
 
 class QualityControl(object):
     def __init__(self, cml):
@@ -56,7 +81,6 @@ class WetDry(object):
 class Baseline(object):
     def __init__(self, cml):
         self._cml = cml
-
         self.linear = cml_wrapper(cml,
                                   baseline_linear,
                                   ['txrx', 'wet'],

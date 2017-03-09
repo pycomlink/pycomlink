@@ -69,7 +69,7 @@ class TestComlinkChannelCopy(unittest.TestCase):
         assert(cml_ch_copy.f_GHz == cml_ch.f_GHz)
 
         # Test that DataFrames are equal
-        pd.util.testing.assert_frame_equal(cml_ch_copy._df, cml_ch.data)
+        pd.util.testing.assert_frame_equal(cml_ch_copy.data, cml_ch.data)
 
         # Test that the new DataFrame is a copy and not a view
         cml_ch.data.rx[1] = -9999
@@ -95,7 +95,7 @@ class TestComlinkChannelCopy(unittest.TestCase):
         assert(cml_ch_copy.f_GHz == cml_ch.f_GHz)
 
         # Test that DataFrames are equal
-        pd.util.testing.assert_frame_equal(cml_ch_copy._df, cml_ch.data)
+        pd.util.testing.assert_frame_equal(cml_ch_copy.data, cml_ch.data)
 
         # Test that the new DataFrame is a copy and not a view
         cml_ch.data.rx[1] = -9999
@@ -125,7 +125,8 @@ class TestComlinkChannelTypeAfterManipulation(unittest.TestCase):
                           data={'rx': rx_list,
                                 'tx': tx_list})
         cml_ch_1min = ComlinkChannel(data=df, f_GHz=f)
-        cml_ch_5min = ComlinkChannel(data=df.resample('5min').apply(np.mean), f_GHz=f)
+        cml_ch_5min = ComlinkChannel(data=df.resample('5min').apply(np.mean),
+                                     f_GHz=f)
 
         cml_ch_5min_no_inplace_kwarg = cml_ch_1min.resample('5min')
         assert(type(cml_ch_5min_no_inplace_kwarg) == ComlinkChannel)
@@ -152,8 +153,8 @@ def assert_comlink_channel_equal(cml_ch_1, cml_ch_2):
 
     for key in cml_ch_1.__dict__:
         if key == 'data':
-            pd.util.testing.assert_frame_equal(cml_ch_1._df,
-                                               cml_ch_2._df)
+            pd.util.testing.assert_frame_equal(cml_ch_1.data,
+                                               cml_ch_2.data)
         else:
             assert(cml_ch_1.__dict__[key] ==
                    cml_ch_2.__dict__[key])

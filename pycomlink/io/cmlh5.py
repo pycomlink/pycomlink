@@ -200,6 +200,47 @@ def _write_channel_data(chan_g, cml_ch, compression, compression_opts):
             chan_g[name].dims[0].attach_scale(chan_g['time'])
 
 
+def _write_product(prod_g, cml,
+                   product_key, product_name, product_unit,
+                   compression, compression_opts):
+    """
+
+    @param prod_g:
+    @param cml:
+    @param product_key:
+    @param product_name:
+    @param product_unit:
+    @param compression:
+    @param compression_opts:
+    @return:
+    """
+
+    # TODO: Make it possible to save product from different channels
+    # Choose the first channel (since there is no other solution now for how
+    # to deal with the "products" for each channel of one CML
+    cml_ch = cml.channel_1
+
+    ts_t = cml_ch.data.index.tz_convert('UTC')
+    # Transform the pandas (np.datetime64) which is in ns to seconds
+    t_vec = ts_t.astype('int64') / 1e9
+    prod_g.create_dataset('time',
+                          data=t_vec,
+                          compression=compression,
+                          compression_opts=compression_opts)
+
+    prod_g.create_dataset(product_name,
+                          data=cml_ch.data[product_key].values,
+                          compression=compression,
+                          compression_opts=compression_opts)
+
+    prod_g['time'].attrs['units'] = 'seconds since 1970-01-01 00:00:00'
+    prod_g['time'].attrs['calendar'] = 'proleptic_gregorian'
+    prod_g['time'].attrs['quantity'] = 'Timestamp'
+
+    prod_g[product_name].attrs['units'] = product_unit
+    prod_g[product_name].attrs['quantity'] = product_name
+
+
 def _missing_attribute(attr_type):
     if attr_type == float:
         fill_value = np.nan

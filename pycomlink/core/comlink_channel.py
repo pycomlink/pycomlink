@@ -144,7 +144,7 @@ class ComlinkChannel(object):
             self.data = self.data.resample(*args, **kwargs).apply(how)
         elif not inplace:
             new_cml_ch = copy.copy(self)
-            new_cml_ch._df = self.data.resample(*args, **kwargs).apply(how)
+            new_cml_ch.data = self.data.resample(*args, **kwargs).apply(how)
             return new_cml_ch
         else:
             raise ValueError('`inplace` must be either True or False')

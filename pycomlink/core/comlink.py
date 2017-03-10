@@ -139,6 +139,7 @@ class Comlink(object):
         #    new_cml.channels[name] = deepcopy(channel, memo)
         new_cml.metadata = deepcopy(self.metadata, memo)
         new_cml.channels = deepcopy(self.channels, memo)
+        new_cml.process = deepcopy(self.process, memo)
         return new_cml
 
     def get_coordinates(self):
@@ -179,7 +180,7 @@ class Comlink(object):
                 *args, **kwargs)
         return ax
 
-    def plot_data(self, columns=['rx',], ax=None):
+    def plot_data(self, columns=['rx', ], channels=None, ax=None):
         if ax is None:
             fig, ax = plt.subplots(len(columns),
                                    1,
@@ -190,8 +191,14 @@ class Comlink(object):
         except TypeError:
             ax = [ax, ]
 
+        if channels is None:
+            channels_to_plot = self.channels
+        else:
+            channels_to_plot = {ch_key: self.channels[ch_key]
+                                for ch_key in channels}
+
         for ax_i, column in zip(ax, columns):
-            for i, (name, cml_ch) in enumerate(self.channels.iteritems()):
+            for i, (name, cml_ch) in enumerate(channels_to_plot.iteritems()):
                 if column == 'wet':
                     ax_i.fill_between(
                         cml_ch.data[column].index,

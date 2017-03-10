@@ -62,7 +62,7 @@ class QualityControl(object):
     def __init__(self, cml):
         self.set_to_nan_if = pass_cml_wrapper(cml, set_to_nan_if)
 
-
+        
 class WetDry(object):
     def __init__(self, cml):
         self.std_dev = cml_wrapper(cml,
@@ -150,7 +150,7 @@ def cml_wrapper(cml, func,
             else:
                 ts = temp
             cml_ch.data[var_out] = ts
-
+        
         return cml
     return func_wrapper
 

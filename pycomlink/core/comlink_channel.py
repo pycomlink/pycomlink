@@ -74,8 +74,8 @@ class ComlinkChannel(object):
 
         # Handle the different arguments and build a DataFrame from them
         # if it has not been supplied as `data`
-        self.data = _parse_kwargs_to_dataframe(
-            data=data, t=t, rx=rx, tx=tx)
+        self.data = copy.deepcopy(
+            _parse_kwargs_to_dataframe(data=data, t=t, rx=rx, tx=tx))
 
         # TODO: Sanely parse metadata
         if metadata is not None:

@@ -29,8 +29,12 @@ class Comlink(object):
 
     def __init__(self, channels=None, metadata=None, **kwargs):
         """
+        Comlink object representing one physical (commercial) microwave link,
+        abbreviated as CML. One CML can contain several CommlinkChannels,
+        typically two, for both directions of communication.
 
-        WIP
+        The preferred way to initialize a Comlink object is to initialize the
+        CommlinkChannels first and pass them as argument here.
 
         Parameters
         ----------
@@ -38,6 +42,13 @@ class Comlink(object):
         channels : ComlinkChannel or list of those
 
         metadata : dict
+            Dictionary with basic CML metadata of the form
+                {'site_a_latitude': 12.34,
+                'site_a_longitude': 12.34,
+                'site_b_latitude': 56.78,
+                'site_b_longitude': 56.78,
+                'cml_id': 'XY1234'}
+
 
         """
 
@@ -63,9 +74,10 @@ class Comlink(object):
                                  'ComlinkChannel or a list of ComlinkChannels' %
                                  type(channels))
 
-        # if channels are supplied, the channel metadata should not be
-        # supplied since it will have no effect, because they are already
-        # part of the individual ComlinkChannels
+        # if channels are supplied, channel metadata or separate data for
+        # `t`, `tx` or `rx` should not be supplied since they will have no
+        # effect, because they are already part of the individual
+        # ComlinkChannels
         if channels is not None:
             if ((kwargs.has_key('t')) or
                     (kwargs.has_key('rx')) or
@@ -99,6 +111,7 @@ class Comlink(object):
         self.process = Processor(self)
 
     def __getattr__(self, item):
+        """ Makes channels available via, e.g. `comlink.channel_1` """
         if ((item.split('_')[0] == 'channel') and
                 (type(int(item.split('_')[1])) == int)):
             channel_n = int(item.split('_')[1])-1
@@ -143,6 +156,16 @@ class Comlink(object):
         return new_cml
 
     def get_coordinates(self):
+        """ Return the coordinates of site_a and site_b
+
+        Returns
+        -------
+
+        coords : namedtuple
+            Named tuple of coordinates with the names 'lon_a', 'lon_b',
+            'lat_a', 'lat_b'.
+
+        """
         Coords = namedtuple('coords', ['lon_a', 'lon_b', 'lat_a', 'lat_b'])
         coords = Coords(lon_a=self.metadata['site_a_longitude'],
                         lon_b=self.metadata['site_b_longitude'],
@@ -151,15 +174,35 @@ class Comlink(object):
         return coords
 
     def calc_length(self):
+        """ Calculate and return length of CML km """
+
         coords = self.get_coordinates()
         d_km = distance((coords.lat_a, coords.lon_a),
                         (coords.lat_b, coords.lon_b))
         return d_km
 
     def get_length(self):
+        """ Return length of CML in km """
         return self.metadata['length']
 
     def plot_map(self, tiles='OpenStreetMap', fol_map=None):
+        """ Plot a dynamic map in Jupyter notebook using folium
+
+        Parameters
+        ----------
+
+        tiles: str
+            Name of tile to be used by folium, default is 'OpenStreetMap'
+        fol_map: folium map instance
+            An existing folium map instance can be passed here
+
+        Returns
+        -------
+
+        fol_map : folium map object
+
+        """
+
         coords = self.get_coordinates()
 
         if fol_map is None:
@@ -172,6 +215,24 @@ class Comlink(object):
         return fol_map
 
     def plot_line(self, ax=None, *args, **kwargs):
+        """ Plot the CML path using matplotlib
+
+        `args` and `kwargs` will be passed to `matplotlib.pyplot.plot`
+
+        Parameters
+        ----------
+
+        ax : matplotlib.axes
+            Matplotlib axes handle, defaults to None. A figure is created in
+            the default case
+
+        Returns
+        -------
+
+        ax : matplotib.axes
+
+        """
+
         if ax is None:
             fig, ax = plt.subplots()
         coords = self.get_coordinates()
@@ -181,6 +242,32 @@ class Comlink(object):
         return ax
 
     def plot_data(self, columns=['rx', ], channels=None, ax=None):
+        """ Plot time series of data from the different channels
+
+        Linked subplots will be created for the different specified columns
+        of the DataFrames of the different channels.
+
+        Parameters
+        ----------
+
+        columns : list, optional
+            List of DataFrame columns to plot for each channel.
+            Defaults to ['rx', ]
+
+        channels : list, optional
+            List of channel names, i.e. the keys of the Comlink.channels
+            dictionary, to specify which channel to plot. Defaults to None,
+            which plots for all channels
+
+        ax : matplotlib.axes, optional
+            Axes handle, defaults to None, which plots into a new figure
+
+        Returns
+        -------
+
+        ax : matplotlib.axes
+
+        """
         if ax is None:
             fig, ax = plt.subplots(len(columns),
                                    1,
@@ -217,6 +304,14 @@ class Comlink(object):
         return ax
 
     def get_center_lon_lat(self):
+        """ Calculate and return longitude and latitude of the CML path center
+
+        Returns
+        -------
+
+        (center_lon, center_lat)
+
+        """
         coords = self.get_coordinates()
         center_lon = (coords.lon_a + coords.lon_b) / 2.0
         center_lat = (coords.lat_a + coords.lat_b) / 2.0
@@ -224,6 +319,24 @@ class Comlink(object):
 
 
 def _channels_list_to_dict(channels):
+    """ Helper function to parse a list of channels to a dict of channels
+
+    The keys will be `channel_(i+1)`, where i is the index of the list of
+    channels. These keys will be used to make the different channels
+    available in the Comlink object via e.g. `comlink.channel_1`.
+
+    Parameters
+    ----------
+
+    channels : list
+        List of ComlinkChannel objects
+
+    Returns
+    -------
+
+    channel_dict : dict
+
+    """
     channel_dict = {}
     for i, channel in enumerate(channels):
         channel_dict['channel_' + str(i+1)] = channel

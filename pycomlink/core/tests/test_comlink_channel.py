@@ -14,7 +14,8 @@ tx_list = list(np.cos(np.linspace(0, 10, len(t_list))))
 rx2_list = list(2*np.sin(np.linspace(0, 10, len(t_list))))
 tx2_list = list(2*np.cos(np.linspace(0, 10, len(t_list))))
 
-f = 18.9
+f = 18.9 * 1e9
+
 
 class TestComlinkChannelInit(unittest.TestCase):
 
@@ -22,7 +23,7 @@ class TestComlinkChannelInit(unittest.TestCase):
         df = pd.DataFrame(index=t_date_range,
                           data={'rx': rx_list,
                                 'tx': tx_list})
-        cml_ch = ComlinkChannel(data=df, f_GHz=f)
+        cml_ch = ComlinkChannel(data=df, frequency=f)
         # Test content of columns
         np.testing.assert_almost_equal(cml_ch.rx.values, rx_list)
         np.testing.assert_almost_equal(cml_ch.tx.values, tx_list)
@@ -35,13 +36,13 @@ class TestComlinkChannelInit(unittest.TestCase):
 
     def test_with_list_rx_tx_data(self):
         """ Test if the column name is set correctly """
-        cml_ch = ComlinkChannel(rx=rx_list, tx=tx_list, t=t_list, f_GHz=f)
+        cml_ch = ComlinkChannel(rx=rx_list, tx=tx_list, t=t_list, frequency=f)
         np.testing.assert_almost_equal(cml_ch.rx.values, rx_list)
         np.testing.assert_almost_equal(cml_ch.tx.values, tx_list)
 
     def test_kwargs(self):
-        cml_ch = ComlinkChannel(rx=rx_list, tx=tx_list, t=t_list, f_GHz=f)
-        assert(cml_ch.f_GHz == f)
+        cml_ch = ComlinkChannel(rx=rx_list, tx=tx_list, t=t_list, frequency=f)
+        assert(cml_ch.f_GHz == f/1e9)
 
 
 class TestComlinkChannelAttributes(unittest.TestCase):
@@ -50,7 +51,7 @@ class TestComlinkChannelAttributes(unittest.TestCase):
         df = pd.DataFrame(index=t_date_range,
                           data={'rx': rx_list,
                                 'tx': tx_list})
-        cml_ch = ComlinkChannel(data=df, f_GHz=18.9)
+        cml_ch = ComlinkChannel(data=df, frequency=f)
         assert (len(cml_ch) == len(df))
 
 
@@ -60,7 +61,7 @@ class TestComlinkChannelCopy(unittest.TestCase):
         df = pd.DataFrame(index=t_date_range,
                           data={'rx': rx_list,
                                 'tx': tx_list})
-        cml_ch = ComlinkChannel(data=df, f_GHz=18.9)
+        cml_ch = ComlinkChannel(data=df, frequency=f)
         cml_ch_copy = cml_ch.copy()
 
         assert(type(cml_ch_copy) == ComlinkChannel)
@@ -78,14 +79,14 @@ class TestComlinkChannelCopy(unittest.TestCase):
         # Test that the new metadata is not a reference but a copy
         cml_ch.f_GHz = 999
         assert(cml_ch.f_GHz == 999)
-        assert(cml_ch_copy.f_GHz == f)
+        assert(cml_ch_copy.f_GHz == f/1e9)
 
     def test_deepcopy(self):
         from copy import deepcopy
         df = pd.DataFrame(index=t_date_range,
                           data={'rx': rx_list,
                                 'tx': tx_list})
-        cml_ch = ComlinkChannel(data=df, f_GHz=18.9)
+        cml_ch = ComlinkChannel(data=df, frequency=f)
 
         cml_ch_copy = deepcopy(cml_ch)
 
@@ -104,7 +105,7 @@ class TestComlinkChannelCopy(unittest.TestCase):
         # Test that the new metadata is not a reference but a copy
         cml_ch.f_GHz = 999
         assert(cml_ch.f_GHz == 999)
-        assert(cml_ch_copy.f_GHz == f)
+        assert(cml_ch_copy.f_GHz == f/1e9)
 
 
 class TestComlinkChannelTypeAfterManipulation(unittest.TestCase):
@@ -113,7 +114,7 @@ class TestComlinkChannelTypeAfterManipulation(unittest.TestCase):
         df = pd.DataFrame(index=t_date_range,
                           data={'rx': rx_list,
                                 'tx': tx_list})
-        cml_ch = ComlinkChannel(data=df, f_GHz=18.9)
+        cml_ch = ComlinkChannel(data=df, frequency=f)
         cml_ch_sliced = cml_ch[1:4]
         assert(type(cml_ch_sliced) == ComlinkChannel)
         pd.util.testing.assert_frame_equal(cml_ch_sliced.data, df[1:4])
@@ -124,9 +125,9 @@ class TestComlinkChannelTypeAfterManipulation(unittest.TestCase):
         df = pd.DataFrame(index=t_date_range,
                           data={'rx': rx_list,
                                 'tx': tx_list})
-        cml_ch_1min = ComlinkChannel(data=df, f_GHz=f)
+        cml_ch_1min = ComlinkChannel(data=df, frequency=f)
         cml_ch_5min = ComlinkChannel(data=df.resample('5min').apply(np.mean),
-                                     f_GHz=f)
+                                     frequency=f)
 
         cml_ch_5min_no_inplace_kwarg = cml_ch_1min.resample('5min')
         assert(type(cml_ch_5min_no_inplace_kwarg) == ComlinkChannel)
@@ -147,9 +148,9 @@ class TestComlinkChannelTypeAfterManipulation(unittest.TestCase):
 
 def assert_comlink_channel_equal(cml_ch_1, cml_ch_2):
 
-    assert(cml_ch_1.f_GHz == f)
+    assert(cml_ch_1.f_GHz == f/1e9)
 
-    assert(cml_ch_2.f_GHz == f)
+    assert(cml_ch_2.f_GHz == f/1e9)
 
     for key in cml_ch_1.__dict__:
         if key == 'data':

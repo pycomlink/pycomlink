@@ -12,11 +12,11 @@ t_list = [str(date) for date in t_date_range]
 rx_list = list(np.sin(np.linspace(0, 10, len(t_list))))
 tx_list = list(np.cos(np.linspace(0, 10, len(t_list))))
 
-f = 18.9
+f = 18.9 * 1e9
 
 df = pd.DataFrame(index=t_date_range, data={'rx': rx_list, 'tx': tx_list})
-cml_ch = ComlinkChannel(data=df, f_GHz=f)
-cml_ch2 = ComlinkChannel(data=df*2, f_GHz=f*2)
+cml_ch = ComlinkChannel(data=df, frequency=f)
+cml_ch2 = ComlinkChannel(data=df*2, frequency=f*2)
 
 
 class TestComlinkInit(unittest.TestCase):
@@ -24,7 +24,7 @@ class TestComlinkInit(unittest.TestCase):
     def testWithOneComlinkChannel(self):
         cml = generate_standard_cml()
         np.testing.assert_almost_equal(cml.channel_1.rx, rx_list)
-        assert(cml.channel_1.f_GHz == f)
+        assert(cml.channel_1.f_GHz == f/1e9)
 
 
 class TestComlinkCopy(unittest.TestCase):

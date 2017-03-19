@@ -17,13 +17,13 @@ def read(fname):
 
 setup(
     name = "pycomlink",
-    version = "0.0.6.999",
+    version = "0.1.0",
     author = "Christian Chwala",
     author_email = "christian.chwala@kit.edu",
     description = ("Python tools for MW link data processing"),
     license = "BSD",
     keywords = "microwave links precipitation radar",
-    url = "https://bitbucket.org/cchwala/pycomlink",
+    url = "https://github.com/pycomlink/pycomlink",
     packages=['pycomlink'],
     long_description=read('README.md'),
     classifiers=[
@@ -42,5 +42,6 @@ setup(
         'numba',
         'folium',
         'h5py',
-        'xarray'],
+        'xarray',
+        'shapely'],
 )

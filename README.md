@@ -1,32 +1,33 @@
 pycomlink
 =========
 
-A python toolbox for MW link data processing and rain rate estimation
+A python toolbox for deriving rainfall information from commerical microwave link (CML) data.
 
 Installation
 ------------
 
-`pycomlink` works with Python 2.7 and depends on `numpy`, `scipy`, `pandas`, `matplotlib`, `cartopy` and `numba`. You can install it via `pip`, but it is recommended that you install the dependecies first. We recommend the usage of the [Anaconda Python distribution](https://store.continuum.io/cshop/anaconda/) for all scientific python packages. 
+`pycomlink` works with Python 2.7 and can be installed via `pip`. However, since one of its dependencies, `numba` is easiest to install via the [Anaconda Python distribution](https://store.continuum.io/cshop/anaconda/), we recommend to install Anaconda Python first and then do
 
-The `pip` command to install `pycomlink` is the following:
-
+    $ conda install numba
     $ pip install pycomlink
+
+To run the example notebooks you will also need the [Jupyter Notebook](https://jupyter.org/) and `ipython`, both also available via `conda` or `pip`.
 
 Usage
 -----
 
- * IPython notebook showing the [basic workflow](http://nbviewer.ipython.org/urls/bitbucket.org/cchwala/pycomlink/raw/566962d7c0a16c484d56aec7a0a34b84cc68a27d/notebooks/example_workflow.ipynb)
- * IPython notebook on [how to use your MW link CSV data](http://nbviewer.ipython.org/urls/bitbucket.org/cchwala/pycomlink/raw/28f359b359d750434c896d288900844c9b6ef500/notebooks/How%20to%20use%20your%20MW%20link%20data%20from%20a%20CSV%20file.ipynb)
- * Have a look at the [documentation](http://pycomlink.readthedocs.org)
-
-Status
-------
-The basic functionality is already working. However, `pycomlink` is currently in ongoing development. Hence, there may be changes to the interface in the future.
+ * Jupyter notebook on [how to get started with CML data from a CSV file](http://nbviewer.jupyter.org/github/pycomlink/pycomlink/blob/master/notebooks/Use%20CML%20data%20from%20CSV%20file.ipynb)
+ * More examples to come...
 
 Features
 --------
- * Easily parse your MW link data and use and object oriented approach to do all the processing
- * Two wet/dry classification methods available
- * Different baseline methods available
- * One wet antenna estimation method available
- * 2D plots using IDW or Kriging interpolation
+ * Read and write the [common data format `cmlh5` for CML data](https://github.com/cmlh5/cmlh5)
+ * Quickly visualize the CML network on a dynamic map
+ * Perform all required CML data processing steps to derive rainfall information from raw signal levels:
+    * data sanity checks
+    * wet/dry classification
+    * baseline calculation
+    * wet antenna correction
+    * transformation from attenuation to rain rate
+ * Generate rainfall maps from the data of a CML network
+ * Validate you results against gridded rainfall data or rain gauges networks

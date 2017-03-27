@@ -233,6 +233,9 @@ def _write_product(prod_g, cml,
                           compression=compression,
                           compression_opts=compression_opts)
 
+    # Create time scale
+    prod_g['time'].dims.create_scale(prod_g['time'], 'time')
+    
     prod_g['time'].attrs['units'] = 'seconds since 1970-01-01 00:00:00'
     prod_g['time'].attrs['calendar'] = 'proleptic_gregorian'
     prod_g['time'].attrs['quantity'] = 'Timestamp'
@@ -240,6 +243,9 @@ def _write_product(prod_g, cml,
     prod_g[product_name].attrs['units'] = product_unit
     prod_g[product_name].attrs['quantity'] = product_name
 
+    # Link all other datasets to the time scale
+    if not product_name == 'time':
+            prod_g[product_name].dims[0].attach_scale(prod_g['time'])
 
 def _missing_attribute(attr_type):
     if attr_type == float:

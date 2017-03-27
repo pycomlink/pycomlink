@@ -13,6 +13,7 @@ import numpy as np
 import pandas as pd
 import h5py
 
+from copy import deepcopy
 from warnings import warn
 
 from pycomlink import Comlink, ComlinkChannel
@@ -58,6 +59,7 @@ cml_ch_data_names_dict = {
 #########################
 
 def write_to_cmlh5(cml_list, fn,
+                   write_all_data=False,
                    product_keys=None, product_names=None, product_units=None,
                    compression='gzip', compression_opts=4):
     """
@@ -117,10 +119,11 @@ def write_to_cmlh5(cml_list, fn,
                 cml_ch = cml.channels[channel_id]
                 chan_g = cml_g.create_group('channel_%d' % (i_channel + 1))
                 _write_channel_attributes(chan_g, cml_ch)
-                _write_channel_data(chan_g,
-                                    cml_ch,
-                                    compression,
-                                    compression_opts)
+                _write_channel_data(chan_g=chan_g,
+                                    cml_ch=cml_ch,
+                                    compression=compression,
+                                    compression_opts=compression_opts,
+                                    write_all_data=write_all_data)
 
             # Write CML derived products like rain rate for each CML
             if product_keys is not None:
@@ -163,18 +166,37 @@ def _write_channel_attributes(chan_g, cml_ch):
             chan_g.attrs[attr_name] = attr_value
 
 
-def _write_channel_data(chan_g, cml_ch, compression, compression_opts):
+def _write_channel_data(chan_g,
+                        cml_ch,
+                        compression,
+                        compression_opts,
+                        write_all_data=False):
     """
 
     @param chan_g:
     @param cml_ch:
     @param compression:
     @param compression_opts:
+    @param write_all_data:
     @return:
     """
 
+    if write_all_data:
+        # If all channel data shall be written, build a dict with the
+        # columns names and additional metadata. Start with the dict
+        # with the default channel data definition
+        _cml_ch_data_names_dict = deepcopy(cml_ch_data_names_dict)
+        # Attach all other column names of the channel's DataFrame
+        for column_name in cml_ch.data.columns:
+            if not column_name in _cml_ch_data_names_dict.keys():
+                _cml_ch_data_names_dict[column_name] = {}
+    else:
+        # If only standard data shall be written use the dict defined on top
+        # of this file
+        _cml_ch_data_names_dict = cml_ch_data_names_dict
+
     # write variables
-    for name, attrs in cml_ch_data_names_dict.iteritems():
+    for name, attrs in _cml_ch_data_names_dict.iteritems():
         if name == 'time':
             # Get the time index in UTC
             ts_t = cml_ch.data.index.tz_convert('UTC')
@@ -195,7 +217,7 @@ def _write_channel_data(chan_g, cml_ch, compression, compression_opts):
     chan_g['time'].dims.create_scale(chan_g['time'], 'time')
 
     # Link all other datasets to the time scale
-    for name in cml_ch_data_names_dict.keys():
+    for name in _cml_ch_data_names_dict.keys():
         if not name == 'time':
             chan_g[name].dims[0].attach_scale(chan_g['time'])
 

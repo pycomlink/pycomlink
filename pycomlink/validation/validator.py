@@ -128,15 +128,17 @@ def calc_intersect_weights(cml, xr_ds, offset=None):
 
     # Find intersection
     intersect = np.zeros([grid.shape[0], grid.shape[1]])
-    for i in range(0, grid.shape[0] - 1):
-        for j in range(0, grid.shape[1] - 1):
-            if bounding_box[i, j] == True:
-                poly = [(grid[i, j]), (grid[i + 1, j]),
-                        (grid[i + 1, j + 1]), (grid[i, j + 1])]
-                pixel = Polygon(poly)
-                c = link.intersection(pixel)
-                if not c.is_empty:
-                    intersect[i][j] = (c.length / link.length)
+
+    # Iterate only over the indices within the bounding box and
+    # calculate the intersect weigh for each pixel
+    ix_in_bbox = np.where(bounding_box == True)
+    for i, j in zip(ix_in_bbox[0], ix_in_bbox[1]):
+        poly = [(grid[i, j]), (grid[i + 1, j]),
+                (grid[i + 1, j + 1]), (grid[i, j + 1])]
+        pixel = Polygon(poly)
+        c = link.intersection(pixel)
+        if not c.is_empty:
+            intersect[i][j] = (c.length / link.length)
     return intersect
 
 

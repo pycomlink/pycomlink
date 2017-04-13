@@ -52,16 +52,10 @@ class GridValidator(Validator):
 
         t_ix = (self.xr_ds.time > t_start) & (self.xr_ds.time < t_stop)
 
-        grid_sum = np.zeros([len(self.xr_ds.time[t_ix])])
-        for i in range(len(intersect_weights)):
-            for j in range(len(intersect_weights)):
-                if intersect_weights[i][j] != 0:
-                    grid_sum = grid_sum + (
-                        intersect_weights[i][j] *
-                        self.xr_ds[values][t_ix, i,j].values)
+        self.weighted_grid_sum = (self.xr_ds[values][t_ix, :, :] *
+                                  intersect_weights
+                                  ).sum(dim=['x', 'y']).to_dataframe()
 
-        self.weighted_grid_sum = pd.DataFrame(index=self.xr_ds.time[t_ix],
-                                              data=grid_sum)
         return self.weighted_grid_sum
 
     def resample_to_grid_time_series(self,

@@ -31,6 +31,7 @@ class GridValidator(Validator):
 
         self.xr_ds = xr_ds
         self.intersect_weights = None
+        self.weighted_grid_sum = None
 
         pass
 
@@ -45,14 +46,44 @@ class GridValidator(Validator):
     def get_time_series(self, cml, values):
         intersect_weights = self._get_cml_pair_indices(cml)
 
-        grid_sum = np.zeros([len(self.xr_ds.time)])
+        # Get start and end time of CML data set to constrain lookup in `xr_ds`
+        t_start = cml.channel_1.data.index.values[0]
+        t_stop = cml.channel_2.data.index.values[-1]
+
+        t_ix = (self.xr_ds.time > t_start) & (self.xr_ds.time < t_stop)
+
+        grid_sum = np.zeros([len(self.xr_ds.time[t_ix])])
         for i in range(len(intersect_weights)):
             for j in range(len(intersect_weights)):
                 if intersect_weights[i][j] != 0:
                     grid_sum = grid_sum + (
-                        intersect_weights[i][j] * self.xr_ds[values][:, i, j])
+                        intersect_weights[i][j] *
+                        self.xr_ds[values][t_ix, i,j].values)
 
-        return grid_sum
+        self.weighted_grid_sum = pd.DataFrame(index=self.xr_ds.time[t_ix],
+                                              data=grid_sum)
+        return self.weighted_grid_sum
+
+    def resample_to_grid_time_series(self,
+                                     df,
+                                     grid_time_index_label,
+                                     grid_time_zone=None):
+        df_temp = df.copy()
+        df_truth_t = pd.DataFrame(self.weighted_grid_sum.index,
+                                  self.weighted_grid_sum.index)
+        if grid_time_zone is not None:
+            df_truth_t.index = df_truth_t.index.tz_localize(grid_time_zone)
+        if grid_time_index_label == 'right':
+            method = 'bfill'
+        elif grid_time_index_label == 'left':
+            method = 'ffill'
+        else:
+            raise NotImplementedError('Only `left` and `right` are allowed up '
+                                      'to now for `grid_time_index_label.')
+        df_truth_t = df_truth_t.reindex(df.index, method=method)
+        df_temp['truth_time_ix'] = df_truth_t.time
+
+        return df_temp.groupby('truth_time_ix').mean()
 
 
 class PointValidator(Validator):
@@ -113,3 +144,11 @@ def calc_intersect_weights(cml, xr_ds, offset=None):
                 if not c.is_empty:
                     intersect[i][j] = (c.length / link.length)
     return intersect
+
+
+def calc_wet_dry_error(df_wet_truth, df_wet):
+    dry_error = ((df_wet_truth == False) &
+                 (df_wet == True)).sum() / float((df_wet_truth == False).sum())
+    wet_error = ((df_wet_truth == True) &
+                 (df_wet == False)).sum() / float((df_wet_truth == True).sum())
+    return wet_error, dry_error

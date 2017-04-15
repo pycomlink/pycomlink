@@ -50,10 +50,20 @@ class GridValidator(Validator):
         t_start = cml.channel_1.data.index.values[0]
         t_stop = cml.channel_2.data.index.values[-1]
 
-        t_ix = (self.xr_ds.time > t_start) & (self.xr_ds.time < t_stop)
+        t_mask = (self.xr_ds.time > t_start) & (self.xr_ds.time < t_stop)
 
-        self.weighted_grid_sum = (self.xr_ds[values][t_ix, :, :] *
-                                  intersect_weights
+        # Get bounding box where CML intersects with grid to constrain
+        # lookup in `xr_ds`
+        w_mask = intersect_weights > 0
+        # Since we cannot use a 2D mask in xarray, build the slices of
+        # indices for the x- and y-axis
+        w_ix_x = np.unique(np.where(w_mask)[0])
+        w_ix_y = np.unique(np.where(w_mask)[1])
+        slice_x = slice(w_ix_x.min(), w_ix_x.max()+1)
+        slice_y = slice(w_ix_y.min(), w_ix_y.max()+1)
+
+        self.weighted_grid_sum = (self.xr_ds[values][t_mask, slice_x, slice_y] *
+                                  intersect_weights[slice_x, slice_y]
                                   ).sum(dim=['x', 'y']).to_dataframe()
 
         return self.weighted_grid_sum

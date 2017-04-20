@@ -21,7 +21,8 @@ from ok import kriging
 class Interpolator(object):
     def __init__(self,
                  cml_list,
-                 grid=None,
+                 xgrid=None,
+                 ygrid=None,
                  resolution=None,
                  resample_time='H',
                  resample_func='mean',
@@ -32,7 +33,7 @@ class Interpolator(object):
 
         self.gridded_data = None
 
-        if grid is None:
+        if (xgrid is None or ygrid is None):
             lats = ([cml.metadata['site_a_latitude'] for cml in cml_list] +
                     [cml.metadata['site_b_latitude'] for cml in cml_list])
             lons = ([cml.metadata['site_a_longitude'] for cml in cml_list] +
@@ -50,11 +51,12 @@ class Interpolator(object):
             xgrid, ygrid = np.meshgrid(xcoords, ycoords)
             xi, yi = xgrid.flatten(), ygrid.flatten()
 
-            self.grid = np.vstack((xi, yi)).T
+            #self.grid = np.vstack((xi, yi)).T
             self.xgrid = xgrid
             self.ygrid = ygrid
         else:
-            self.grid = grid
+            self.xgrid = xgrid
+            self.ygrid = ygrid
 
         # Resample time series of each CML
         self.df_cmls_R = pd.DataFrame()

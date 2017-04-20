@@ -114,6 +114,12 @@ class ComlinkChannel(object):
                                  '\'DataFrame\' have the attribute \'%s\''
                                  % item)
 
+    def __getstate__(self):
+        return self.__dict__
+
+    def __setstate__(self, d):
+        self.__dict__.update(d)
+
     def __copy__(self):
         cls = self.__class__
         new_cml_ch = cls.__new__(cls)

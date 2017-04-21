@@ -362,11 +362,17 @@ def _read_cml_channel_data(cml_ch_g):
     data_dict = {}
     for name, attrs in cml_ch_data_names_dict.iteritems():
         data_dict[name] = cml_ch_g[name]
-    t = pd.to_datetime(data_dict.pop('time')[:] * 1e9)
+
+    # Time is stored in seconds since epoch and is represented in pandas by
+    # np.datetime64 in nanoseconds
+    t = (data_dict.pop('time')[:] * 1e9).astype('datetime64[ns]')
+
+    df = pd.DataFrame(index=t, data=data_dict)
 
     # Time must always be saved as UTC in cmlH5
-    t = t.tz_localize('UTC')
-    return pd.DataFrame(index=t, data=data_dict)
+    df.index = df.index.tz_localize('UTC')
+
+    return df
 
 
 def _read_cml_channel(cml_ch_g):

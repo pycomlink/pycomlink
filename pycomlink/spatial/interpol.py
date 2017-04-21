@@ -164,7 +164,7 @@ class Interpolator(object):
         self.gridded_data = self._fields_to_dataset(fields)
         return self.gridded_data
 
-    def idw_kdtree(self, nnear=10, eps=0.1, progress_bar=False):
+    def idw_kdtree(self, nnear=10, p=2, eps=0.1, progress_bar=False):
         fields = []
 
         if progress_bar:
@@ -180,7 +180,8 @@ class Interpolator(object):
                                    leafsize=nnear+2)
             interp_values = idw_tree(np.array([self.xgrid.flatten(),
                                                self.ygrid.flatten()]).T,
-                                     nnear=6,
+                                     nnear=nnear,
+                                     p=p,
                                      eps=eps)
             interp_values = np.reshape(interp_values, self.xgrid.shape)
             fields.append(interp_values)

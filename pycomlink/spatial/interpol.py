@@ -32,6 +32,7 @@ class Interpolator(object):
                  resample_time='H',
                  resample_func='mean',
                  resample_label='right',
+                 apply_factor=1,
                  variable='R'):
         self.cml_list = cml_list
         self.variable = variable
@@ -72,6 +73,7 @@ class Interpolator(object):
                 cml.channels[channel_name].data[self.variable]
                 .resample(resample_time, label=resample_label)
                 .apply(resample_func))
+        self.df_cmls_R *= apply_factor
 
         # Extract lats and lons
         self.lons = np.array(

@@ -43,5 +43,6 @@ setup(
         'folium',
         'h5py',
         'xarray',
-        'shapely'],
+        'shapely',
+        'geopandas'],
 )

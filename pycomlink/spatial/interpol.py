@@ -233,7 +233,9 @@ class Interpolator(object):
                                                              0, -1))},
                         coords={'lon': (['x', 'y'], self.xgrid),
                                 'lat': (['x', 'y'], self.ygrid),
-                                'time': self.df_cmls_R[t_start:t_stop].index})
+                                'time': (self.df_cmls_R[t_start:t_stop]
+                                         .index.values
+                                         .astype(np.datetime64))})
         return ds
 
 

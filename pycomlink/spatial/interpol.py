@@ -166,13 +166,19 @@ class Interpolator(object):
         self.gridded_data = self._fields_to_dataset(fields)
         return self.gridded_data
 
-    def idw_kdtree(self, nnear=10, p=2, eps=0.1, progress_bar=False):
+    def idw_kdtree(self, nnear=10, p=2, eps=0.1, progress_bar=False,
+                   t_start=None, t_stop=None):
         fields = []
 
-        if progress_bar:
-            pbar = tqdm(total=len(self.df_cmls_R.index))
+        if t_start is None:
+            t_start = self.df_cmls_R.index[0]
+        if t_stop is None:
+            t_stop = self.df_cmls_R.index[-1]
 
-        for t, row in self.df_cmls_R.iterrows():
+        if progress_bar:
+            pbar = tqdm(total=len(self.df_cmls_R[t_start:t_stop].index))
+
+        for t, row in self.df_cmls_R[t_start:t_stop].iterrows():
             values = row.values
             i_not_nan = ~pd.isnull(values)
 
@@ -195,7 +201,7 @@ class Interpolator(object):
         if progress_bar:
             pbar.close()
 
-        self.gridded_data = self._fields_to_dataset(fields)
+        self.gridded_data = self._fields_to_dataset(fields, t_start, t_stop)
         return self.gridded_data
 
     def rbf(self):
@@ -216,13 +222,18 @@ class Interpolator(object):
         self.gridded_data = self._fields_to_dataset(fields)
         return self.gridded_data
 
-    def _fields_to_dataset(self, fields):
+    def _fields_to_dataset(self, fields, t_start=None, t_stop=None):
+        if t_start is None:
+            t_start = self.df_cmls_R.index[0]
+        if t_stop is None:
+            t_stop = self.df_cmls_R.index[-1]
+
         ds = xr.Dataset({self.variable: (['x', 'y', 'time'],
                                          np.moveaxis(np.array(fields),
                                                              0, -1))},
                         coords={'lon': (['x', 'y'], self.xgrid),
                                 'lat': (['x', 'y'], self.ygrid),
-                                'time': self.df_cmls_R.index})
+                                'time': self.df_cmls_R[t_start:t_stop].index})
         return ds
 
 

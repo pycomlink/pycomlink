@@ -14,15 +14,52 @@ from __future__ import division
 import numpy as np
 import pandas as pd
 import xarray as xr
+
 from scipy.spatial import cKDTree as KDTree
+from pykrige.ok import OrdinaryKriging
 
 from tqdm import tqdm
-from ok import kriging
 
 import geopandas
 import shapely as sh
 
+
 class Interpolator(object):
+    """ Class for interpolating CML data onto a grid using different methods
+
+    The CML data, typically the processed rain rate, is resampled to a
+    defined time interval and stored as pandas.DataFrame. The gridded data
+    after interpolation is stored an a xarray.Dataset.
+
+    Parameters
+    ----------
+
+    cml_list : list
+        List of Comlink objects
+    channel_name : str, optional
+        Key of the channel to use. Defaults to 'channel_1'
+    xgrid : array_like, optional
+        2D grid of x-coordinates
+    ygrid : array_like, optional
+        2D grid of y-coordinates
+    resolution : float, optional
+        Resolution of grid that will be generated and used for interpolation,
+        based on the bounding box around all CMLs in `cml_list`.
+    resample_time : str, optional
+        Resampling time for CML data. xarray nomenclature is used.
+        Defaults to 'H'.
+    resample_func : str, optional
+        Function to use for resampling, as understood by  xarray.
+        Defaults to 'mean'.
+    resample_label : str, optional
+        Position of temporal label to use while resampling. Defaults 'right'.
+    apply_factor : numeric, optional
+        Factor that is applied to the resampled data. Defaults to 1.
+    variable : str, optional
+        Variable name in the pandas.DataFrame of the ComlinkChannel.data that
+        will be used for resampling an interpolation.
+    """
+
     def __init__(self,
                  cml_list,
                  channel_name='channel_1',
@@ -34,6 +71,7 @@ class Interpolator(object):
                  resample_label='right',
                  apply_factor=1,
                  variable='R'):
+
         self.cml_list = cml_list
         self.variable = variable
 
@@ -58,7 +96,6 @@ class Interpolator(object):
             xgrid, ygrid = np.meshgrid(xcoords, ycoords)
             xi, yi = xgrid.flatten(), ygrid.flatten()
 
-            #self.grid = np.vstack((xi, yi)).T
             self.xgrid = xgrid
             self.ygrid = ygrid
         else:
@@ -83,9 +120,34 @@ class Interpolator(object):
 
 
     def calc_coverage_mask(self, max_dist_from_cml, add_to_gridded_data=True):
-        #TODO: Add option to do this for each time step, based on the
-        #      available CML in self.df_cml_R, i.e. exclusing those
-        #      with NaN.
+        """ Generate a coverage mask with a certain area around all CMLs
+
+        Parameters
+        ----------
+
+        max_dist_from_cml : float
+            Maximum distance from a CML path that should be considered as
+            covered. The units must be the same as for the coordinates of the
+            CMLs. Hence, if lat-lon is used in decimal degrees, this unit has
+            also to be used here. Note that the different scaling of lat-lon
+            degrees for higher latitudes is not accounted for.
+        add_to_gridded_data : bool, optional
+            Specify whether the coverage mask should automatically be added
+            to the gridded xarray.DataSet. Defaults to True.
+
+        Returns
+        -------
+
+        grid_points_covered_by_cmls : array of bool
+            2D array with size of `xgrid` and `ygrid` with True values where
+            the grid point is within the area considered covered.
+
+
+        """
+
+        # TODO: Add option to do this for each time step, based on the
+        #       available CML in self.df_cml_R, i.e. exclusing those
+        #       with NaN.
 
         # Build a polygon for the area "covered" by the CMLs
         # given a maximum distance from their individual paths
@@ -118,17 +180,17 @@ class Interpolator(object):
 
         # Generate a Boolean grid with shape of xgrid (and ygrid)
         # indicating which grid points are within the area covered by CMLs
-        grid_point_covered_by_cmls = (
+        grid_points_covered_by_cmls = (
             (~points_in_cml_area.index_right.isnull())
             .values.reshape(self.xgrid.shape))
 
-        self.grid_points_covered_by_cmls = grid_point_covered_by_cmls
+        self.grid_points_covered_by_cmls = grid_points_covered_by_cmls
 
         if add_to_gridded_data and (self.gridded_data is not None):
             self.gridded_data['coverage_mask'] = (
-                ['x', 'y'], grid_point_covered_by_cmls)
+                ['x', 'y'], grid_points_covered_by_cmls)
 
-        return grid_point_covered_by_cmls
+        return grid_points_covered_by_cmls
 
     def kriging(self, n_closest_points):
         # TODO: FIX Kriging. Results do not yet make sense...
@@ -148,26 +210,35 @@ class Interpolator(object):
         self.gridded_data = self._fields_to_dataset(fields)
         return self.gridded_data
 
-    def idw(self, max_dist=None, power=2):
-        fields = []
-
-        for t, row in self.df_cmls_R.iterrows():
-            values = row.values
-            i_not_nan = ~pd.isnull(values)
-            interp_values = idw(values[i_not_nan],
-                                self.lons[i_not_nan],
-                                self.lats[i_not_nan],
-                                self.xgrid,
-                                self.ygrid,
-                                max_dist=None,
-                                p=power)
-            fields.append(interp_values)
-
-        self.gridded_data = self._fields_to_dataset(fields)
-        return self.gridded_data
-
-    def idw_kdtree(self, nnear=10, p=2, eps=0.1, progress_bar=False,
+    def idw_kdtree(self, nnear=10, p=2, eps=0.1,
+                   progress_bar=False,
                    t_start=None, t_stop=None):
+        """ Perform Inverse Distance Weighting interpolation using a kd-tree
+
+        Parameters
+        ----------
+
+        nnear : int, optional
+            Number of nearest neighbours. Defaults to 10.
+        p : int, optional
+            Exponent in 1/r**p used to derived the weights for interpolation
+        eps : float, optional
+            Approximate nearest neighbours so that
+            distance <= (1 + eps) * true nearest
+        progress_bar : bool, optional
+            Switch on/off progress for loop of time steps
+        t_start : numpy.datetime64, datetime, or str using pandas syntax
+            Time at which to start with the interpolation
+        t_stop : numpy.datetime64, datetime, or str using pandas syntax
+            Time at which to stop with the interpolation
+
+        Returns
+        -------
+
+        xarray.Dataset with gridded data
+
+        """
+
         fields = []
 
         if t_start is None:
@@ -204,6 +275,7 @@ class Interpolator(object):
         self.gridded_data = self._fields_to_dataset(fields, t_start, t_stop)
         return self.gridded_data
 
+
     def rbf(self):
         from scipy.interpolate import Rbf
 
@@ -222,6 +294,7 @@ class Interpolator(object):
         self.gridded_data = self._fields_to_dataset(fields)
         return self.gridded_data
 
+
     def _fields_to_dataset(self, fields, t_start=None, t_stop=None):
         if t_start is None:
             t_start = self.df_cmls_R.index[0]
@@ -239,57 +312,14 @@ class Interpolator(object):
         return ds
 
 
-def idw(z, x, y, xi, yi, max_dist=None, p=2):
-
-    # Code adapted from
-    # http://stackoverflow.com/questions/3104781/...
-    # inverse-distance-weighted-idw-interpolation-with-python
-
-    ny, nx = xi.shape
-
-    dist = distance_matrix(x,y, xi.flatten(), yi.flatten())
-
-    if max_dist is not None:
-        dist[dist > max_dist] = 0
-
-    # In IDW, weights are 1 / distance
-    weights = 1.0 / dist**p
-
-    # Make weights sum to one
-    weights /= weights.sum(axis=0)
-
-    # Multiply the weights for each interpolated point by all observed Z-values
-    zi = np.dot(weights.T, z)
-
-    zi = zi.reshape((ny,nx))
-
-    return zi
-
-
-def distance_matrix(x0, y0, x1, y1):
-    # Code adapted from
-    # http://stackoverflow.com/questions/3104781/...
-    # inverse-distance-weighted-idw-interpolation-with-python
-
-    obs = np.vstack((x0, y0)).T
-    interp = np.vstack((x1, y1)).T
-
-    # Make a distance matrix between pairwise observations
-    # Note: from <http://stackoverflow.com/questions/1871536>
-    # (Yay for ufuncs!)
-    d0 = np.subtract.outer(obs[:,0], interp[:,0])
-    d1 = np.subtract.outer(obs[:,1], interp[:,1])
-
-    return np.hypot(d0, d1)
-
-
 class Invdisttree(object):
     """ inverse-distance-weighted interpolation using KDTree:
 
-    Taken from http://stackoverflow.com/questions/3104781/
+    Copied from http://stackoverflow.com/questions/3104781/
     inverse-distance-weighted-idw-interpolation-with-python
 
-    Licence: CC BY-NC-SA 3.0
+    Usage granted by original author here:
+    https://github.com/scipy/scipy/issues/2022#issuecomment-296373506
 
     invdisttree = Invdisttree( X, z )  -- data points, values
     interpol = invdisttree( q, nnear=3, eps=0, p=1, weights=None, stat=0 )

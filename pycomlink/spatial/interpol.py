@@ -314,50 +314,6 @@ class Interpolator(object):
         self.gridded_data = self._fields_to_dataset(fields, t_start, t_stop)
         return self.gridded_data
 
-    def rbf(self,
-            progress_bar=False,
-            t_start=None, t_stop=None):
-        from scipy.interpolate import Rbf
-
-        if t_start is None:
-            t_start = self.df_cmls_R.index[0]
-        if t_stop is None:
-            t_stop = self.df_cmls_R.index[-1]
-
-        if progress_bar:
-            pbar = tqdm(total=len(self.df_cmls_R[t_start:t_stop].index))
-
-        fields = []
-        for t, row in self.df_cmls_R[t_start:t_stop].iterrows():
-            values = row.values
-            i_not_nan = ~pd.isnull(values)
-
-            try:
-                rbf = Rbf(self.lons[i_not_nan],
-                          self.lats[i_not_nan],
-                          values[i_not_nan],
-                          function='linear')
-                interp_values = rbf(self.xgrid.flatten(),
-                                    self.ygrid.flatten())
-                interp_values = np.reshape(interp_values, self.xgrid.shape)
-
-            except:
-                print 'Error while doing rbf interpolation at %s' % t
-                interp_values = np.zeros_like(self.xgrid)
-
-            fields.append(interp_values)
-
-            if progress_bar:
-                pbar.update(1)
-
-        # Close progress bar
-        if progress_bar:
-            pbar.close()
-
-        self.gridded_data = self._fields_to_dataset(fields, t_start, t_stop)
-        return self.gridded_data
-
-
     def _fields_to_dataset(self, fields, t_start=None, t_stop=None):
         if t_start is None:
             t_start = self.df_cmls_R.index[0]

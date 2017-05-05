@@ -44,5 +44,7 @@ setup(
         'h5py',
         'xarray',
         'shapely',
-        'geopandas'],
+        'geopandas',
+        'tqdm',
+        'pykrige'],
 )

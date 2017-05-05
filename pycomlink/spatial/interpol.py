@@ -192,20 +192,59 @@ class Interpolator(object):
 
         return grid_points_covered_by_cmls
 
-    def kriging(self, n_closest_points):
-        # TODO: FIX Kriging. Results do not yet make sense...
+    def kriging(self,
+                progress_bar=False,
+                t_start=None, t_stop=None):
         fields = []
 
-        for t, row in self.df_cmls_R.iterrows():
+        if t_start is None:
+            t_start = self.df_cmls_R.index[0]
+        if t_stop is None:
+            t_stop = self.df_cmls_R.index[-1]
+
+        if progress_bar:
+            pbar = tqdm(total=len(self.df_cmls_R[t_start:t_stop].index))
+
+        for t, row in self.df_cmls_R[t_start:t_stop].iterrows():
             values = row.values
             i_not_nan = ~pd.isnull(values)
-            interp_values = kriging(self.lons[i_not_nan],
-                                    self.lats[i_not_nan],
-                                    values,
-                                    self.xgrid,
-                                    self.ygrid,
-                                    n_closest_points=n_closest_points)
-            fields.append(interp_values)
+
+            if values[i_not_nan].sum() == 0:
+                print 'Skipping %s' % t
+                zi = np.zeros_like(self.xgrid)
+
+            else:
+                try:
+                    ok = OrdinaryKriging(x=self.lons[i_not_nan],
+                                         y=self.lats[i_not_nan],
+                                         z=values[i_not_nan],
+                                         nlags=30,
+                                         variogram_model='spherical',
+                                         weight=True)
+
+                    zi, sigma = ok.execute('points',
+                                           self.xgrid.flatten(),
+                                           self.ygrid.flatten(),
+                                           n_closest_points=10,
+                                           backend='C')
+                    zi = np.reshape(zi, self.xgrid.shape)
+                except:
+                    #if 'Singular matrix' in err.message:
+                    #    print 'Singular matrix encountered while doing ' \
+                    #          'moving window kriging.'
+                    print 'Error while doing kriging for %s' % t
+                    zi = np.zeros_like(self.xgrid)
+                    #else:
+                    #    raise
+
+            fields.append(zi)
+
+            if progress_bar:
+                pbar.update(1)
+
+        # Close progress bar
+        if progress_bar:
+            pbar.close()
 
         self.gridded_data = self._fields_to_dataset(fields)
         return self.gridded_data
@@ -275,23 +314,47 @@ class Interpolator(object):
         self.gridded_data = self._fields_to_dataset(fields, t_start, t_stop)
         return self.gridded_data
 
-
-    def rbf(self):
+    def rbf(self,
+            progress_bar=False,
+            t_start=None, t_stop=None):
         from scipy.interpolate import Rbf
 
+        if t_start is None:
+            t_start = self.df_cmls_R.index[0]
+        if t_stop is None:
+            t_stop = self.df_cmls_R.index[-1]
+
+        if progress_bar:
+            pbar = tqdm(total=len(self.df_cmls_R[t_start:t_stop].index))
+
         fields = []
-        for t, row in self.df_cmls_R.iterrows():
+        for t, row in self.df_cmls_R[t_start:t_stop].iterrows():
             values = row.values
             i_not_nan = ~pd.isnull(values)
 
-            rbf = Rbf(self.lons[i_not_nan],
-                      self.lats[i_not_nan],
-                      values[i_not_nan],
-                      function='linear')
-            interp_values = rbf(self.xgrid, self.ygrid)
+            try:
+                rbf = Rbf(self.lons[i_not_nan],
+                          self.lats[i_not_nan],
+                          values[i_not_nan],
+                          function='linear')
+                interp_values = rbf(self.xgrid.flatten(),
+                                    self.ygrid.flatten())
+                interp_values = np.reshape(interp_values, self.xgrid.shape)
+
+            except:
+                print 'Error while doing rbf interpolation at %s' % t
+                interp_values = np.zeros_like(self.xgrid)
+
             fields.append(interp_values)
 
-        self.gridded_data = self._fields_to_dataset(fields)
+            if progress_bar:
+                pbar.update(1)
+
+        # Close progress bar
+        if progress_bar:
+            pbar.close()
+
+        self.gridded_data = self._fields_to_dataset(fields, t_start, t_stop)
         return self.gridded_data
 
 

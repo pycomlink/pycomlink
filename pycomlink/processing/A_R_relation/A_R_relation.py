@@ -5,7 +5,7 @@ import numpy as np
 # Functions for A-R power law calculatoins #
 ############################################
 
-def calc_R_from_A(A, L, f_GHz=None, a=None, b=None, pol='H'):
+def calc_R_from_A(A, L, f_GHz=None, a=None, b=None, pol='H', R_min=0.1):
     """Calculate rain rate from attenuation using the A-R Relationship
     
     Parameters
@@ -22,6 +22,8 @@ def calc_R_from_A(A, L, f_GHz=None, a=None, b=None, pol='H'):
         Parameter of A-R relationship
     L : float
         length of the link
+    R_min : float
+        Minimal rain rate in mm/h. Everything below will be set to zero.
         
     Returns
     -------
@@ -46,7 +48,7 @@ def calc_R_from_A(A, L, f_GHz=None, a=None, b=None, pol='H'):
     # This ignores the numpy warning stemming from A >=0 where A contains NaNs
     with np.errstate(invalid='ignore'):
         R[~nan_index & (A >= 0)] = (A[~nan_index & (A >= 0)]/(a*L))**(1/b)
-
+        R[~nan_index & (R < R_min)] = 0
     return R
 
 

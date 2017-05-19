@@ -68,7 +68,7 @@ def _numba_waa_schleiss(rsl, baseline, waa_max, delta_t, tau, wet):
     return waa
 
 
-def waa_adjust_baseline(rsl, baseline, waa_max, delta_t, tau, wet):
+def waa_adjust_baseline(rsl, baseline, wet, waa_max, delta_t, tau):
     
     """Calculate baseline adjustion due to wet antenna
         
@@ -108,4 +108,6 @@ def waa_adjust_baseline(rsl, baseline, waa_max, delta_t, tau, wet):
     wet = wet.astype(np.float64)
 
     waa = _numba_waa_schleiss(rsl, baseline, waa_max, delta_t, tau, wet)
-    return  baseline + waa , waa
+
+    #return baseline + waa, waa
+    return baseline + waa

@@ -15,6 +15,7 @@ from copy import deepcopy
 from pycomlink.processing.wet_dry import std_dev, stft
 from pycomlink.processing.baseline.baseline import \
     baseline_linear, baseline_constant
+from pycomlink.processing.wet_antenna.wet_antenna import waa_adjust_baseline
 from pycomlink.processing.A_R_relation.A_R_relation import calc_R_from_A
 from pycomlink.processing.quality_control.simple import set_to_nan_if
 
@@ -89,6 +90,11 @@ class Baseline(object):
                                     baseline_constant,
                                     ['txrx', 'wet'],
                                     'baseline')
+
+        self.waa_schleiss = cml_wrapper(cml,
+                                        waa_adjust_baseline,
+                                        ['txrx', 'baseline', 'wet'],
+                                        'baseline')
 
     # TODO: Integarte this somewhere else, since this
     #       sould be carried out after every baseline determination

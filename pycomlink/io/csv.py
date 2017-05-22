@@ -37,6 +37,7 @@ def write_to_wasim_input_file(cml_list,
     df['MM'] = np.char.mod('%02d', df.index.month)
     df['DD'] = np.char.mod('%02d', df.index.day)
     df['HH'] = np.char.mod('%02d', df.index.hour)
+    df.loc[df['HH'] == '00', 'HH'] = '24'
 
     # Reorder columns so that date columns come first
     cols_time = ['YYYY', 'MM', 'DD', 'HH']

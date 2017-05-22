@@ -62,7 +62,7 @@ def write_to_wasim_input_file(cml_list,
             raise ValueError('`source_projection` and `target_projection` '
                              'must both be either None or a EPSG string')
         altitude = -9999
-        df_coords[cml.metadata['cml_id']] = [altitude, y, x]
+        df_coords[cml.metadata['cml_id']] = [altitude, x, y]
 
     # Write variable info to file
     with open(fn, 'w') as f:

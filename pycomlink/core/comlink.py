@@ -99,7 +99,7 @@ class Comlink(object):
         calculated_length = self.calc_length()
 
         if 'length' in metadata.keys():
-            length_diff = calculated_length - self.metadata['length']
+            length_diff = calculated_length - metadata['length']
             if abs(length_diff) > 0.5:
                 warnings.warn('Calculated length = %2.2f and supplied length '
                               '= %2.2f differ more than 0.5 km' %

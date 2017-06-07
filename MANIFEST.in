@@ -1,2 +1,6 @@
-recursive-include notebooks *
+include notebooks *.ipynb
 include *.md
+
+prune notebooks/.ipynb_checkpoints
+prune notebooks/death_row
+prune pycomlink/death_row

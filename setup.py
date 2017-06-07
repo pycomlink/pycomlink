@@ -6,7 +6,7 @@ Created on Tue Dec  2 13:20:35 2014
 """
 
 import os
-from setuptools import setup
+from setuptools import setup, find_packages
 
 # Utility function to read the README file.
 # Used for the long_description.  It's nice, because now 1) we have a top level
@@ -26,7 +26,7 @@ setup(
     url = "https://github.com/pycomlink/pycomlink",
     download_url = (
         "https://github.com/pycomlink/pycomlink/archive/0.1.1.tar.gz"),
-    packages=['pycomlink'],
+    packages=find_packages(exclude=['test']),
     long_description=read('README.md'),
     classifiers=[
         "Development Status :: 3 - Alpha",

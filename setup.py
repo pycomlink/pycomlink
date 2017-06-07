@@ -17,13 +17,15 @@ def read(fname):
 
 setup(
     name = "pycomlink",
-    version = "0.1.0",
+    version = "0.1.1",
     author = "Christian Chwala",
     author_email = "christian.chwala@kit.edu",
     description = ("Python tools for MW link data processing"),
     license = "BSD",
     keywords = "microwave links precipitation radar",
     url = "https://github.com/pycomlink/pycomlink",
+    download_url = (
+        "https://github.com/pycomlink/pycomlink/archive/0.1.1.tar.gz"),
     packages=['pycomlink'],
     long_description=read('README.md'),
     classifiers=[
@@ -35,10 +37,10 @@ setup(
     # A list of all available classifiers can be found at 
     # https://pypi.python.org/pypi?%3Aaction=list_classifiers
     install_requires=[
-        'numpy', 
-        'scipy', 
+        'numpy',
+        'scipy',
         'pandas>=0.18',
-        'matplotlib', 
+        'matplotlib',
         'numba',
         'folium',
         'h5py',

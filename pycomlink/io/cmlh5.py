@@ -142,6 +142,7 @@ def write_to_cmlh5(cml_list, fn,
             t_in_file_start = t_start
         if t_stop < t_in_file_stop:
             t_in_file_stop = t_stop
+            include_t_stop_in_file = True
 
         if split_to_multiple_files:
             try:

@@ -129,9 +129,11 @@ def write_to_cmlh5(cml_list, fn,
             end=t_stop + pd.Timedelta(1, splitting_period),
             freq=splitting_period,
             normalize=True)
+        include_t_stop_in_file = False
     else:
         t_in_file_start_list = [t_start, ]
         t_in_file_stop_list = [t_stop, ]
+        include_t_stop_in_file = True
 
     # Write to file(s)
     for i, (t_in_file_start, t_in_file_stop) in \
@@ -179,6 +181,7 @@ def write_to_cmlh5(cml_list, fn,
                                         cml_ch=cml_ch,
                                         t_start=t_in_file_start,
                                         t_stop=t_in_file_stop,
+                                        include_t_stop=include_t_stop_in_file,
                                         compression=compression,
                                         compression_opts=compression_opts,
                                         write_all_data=write_all_data)
@@ -253,6 +256,7 @@ def _write_channel_data(chan_g,
                         t_stop,
                         compression,
                         compression_opts,
+                        include_t_stop=True,
                         write_all_data=False):
     """
 
@@ -264,6 +268,7 @@ def _write_channel_data(chan_g,
     t_stop
     compression
     compression_opts
+    include_t_stop
     write_all_data
 
     Returns
@@ -288,7 +293,10 @@ def _write_channel_data(chan_g,
     # Get the time index in UTC
     ts_t = cml_ch.data.index.tz_convert('UTC')
 
-    t_slice_ix = (ts_t >= t_start) & (ts_t < t_stop)
+    if include_t_stop:
+        t_slice_ix = (ts_t >= t_start) & (ts_t <= t_stop)
+    else:
+        t_slice_ix = (ts_t >= t_start) & (ts_t < t_stop)
 
     # write variables
     for name, attrs in _cml_ch_data_names_dict.iteritems():

@@ -185,6 +185,25 @@ class ComlinkChannel(object):
         else:
             raise ValueError('`inplace` must be either True or False')
 
+    def append_data(self, cml_ch):
+        """ Append data to the current channel
+
+        Parameters
+        ----------
+        cml_ch
+
+        Returns
+        -------
+
+        """
+
+        if self.metadata['channel_id'] != cml_ch.metadata['channel_id']:
+            raise ValueError('The `channel_id` must be the same.')
+
+        self.data = self.data.append(cml_ch.data)
+        self.data = self.data[~self.data.index.duplicated(keep='first')]
+        self.data = self.data.sort_index()
+
 
 def _parse_kwargs_to_dataframe(data, t, rx, tx):
     # The case where only `t`, `rx` and `tx` are supplied

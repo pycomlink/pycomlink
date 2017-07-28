@@ -15,9 +15,9 @@ import h5py
 
 from copy import deepcopy
 from warnings import warn
+from collections import OrderedDict
 
 from pycomlink import Comlink, ComlinkChannel
-
 
 
 CMLH5_VERSION = 0.2
@@ -59,6 +59,9 @@ cml_ch_data_names_dict = {
 #########################
 
 def write_to_cmlh5(cml_list, fn,
+                   t_start=None, t_stop=None,
+                   split_to_multiple_files=False, splitting_period='D',
+                   append_date_str_to_fn='_%Y%m%d',
                    write_all_data=False,
                    product_keys=None, product_names=None, product_units=None,
                    compression='gzip', compression_opts=4):
@@ -66,14 +69,22 @@ def write_to_cmlh5(cml_list, fn,
 
     Parameters
     ----------
+    cml_list
+    fn
+    t_start
+    t_stop
+    split_to_multiple_files
+    splitting_period
+    append_date_str_to_fn
+    write_all_data
+    product_keys
+    product_names
+    product_units
+    compression
+    compression_opts
 
-    cml_list:
-    fn:
-    product_keys:
-    product_names:
-    product_units:
-    compression:
-    compression_opts:
+    Returns
+    -------
 
     """
 
@@ -103,38 +114,112 @@ def write_to_cmlh5(cml_list, fn,
                                          ' so must be `product_units`')
                 product_units = [product_units]
 
-    # Write to file
-    with h5py.File(fn, mode='w') as h5file:
-        h5file.attrs['file_format'] = 'cmlH5'
-        h5file.attrs['file_format_version'] = CMLH5_VERSION
+    if (t_start is None) and (t_stop is None):
+            t_start, t_stop = (
+                _get_first_and_last_timestamp_in_cml_list(cml_list))
 
-        for i_cml, cml in enumerate(cml_list):
-            # Create CML HDF5 group
-            cml_g = h5file.create_group('cml_%d' % i_cml)
-            # Write CML attributes
-            _write_cml_attributes(cml_g, cml)
+    if split_to_multiple_files:
+        t_in_file_start_list = pd.date_range(
+            start=t_start,
+            end=t_stop,
+            freq=splitting_period,
+            normalize=True)
+        t_in_file_stop_list = pd.date_range(
+            start=t_start + pd.Timedelta(1, splitting_period),
+            end=t_stop + pd.Timedelta(1, splitting_period),
+            freq=splitting_period,
+            normalize=True)
+        include_t_stop_in_file = False
+    else:
+        t_in_file_start_list = [t_start, ]
+        t_in_file_stop_list = [t_stop, ]
+        include_t_stop_in_file = True
 
-            # Write CML channels
-            for i_channel, channel_id in enumerate(cml.channels.keys()):
-                cml_ch = cml.channels[channel_id]
-                chan_g = cml_g.create_group('channel_%d' % (i_channel + 1))
-                _write_channel_attributes(chan_g, cml_ch)
-                _write_channel_data(chan_g=chan_g,
-                                    cml_ch=cml_ch,
-                                    compression=compression,
-                                    compression_opts=compression_opts,
-                                    write_all_data=write_all_data)
+    # Write to file(s)
+    for i, (t_in_file_start, t_in_file_stop) in \
+            enumerate(zip(t_in_file_start_list, t_in_file_stop_list)):
+        if t_start > t_in_file_start:
+            t_in_file_start = t_start
+        if t_stop < t_in_file_stop:
+            t_in_file_stop = t_stop
+            include_t_stop_in_file = True
 
-            # Write CML derived products like rain rate for each CML
-            if product_keys is not None:
-                for i_prod, (product_key, product_name, product_unit) in \
-                        enumerate(zip(
-                            product_keys,
-                            product_names,
-                            product_units)):
-                    prod_g = cml_g.create_group('product_%d' % i_prod)
-                    _write_product(prod_g, cml, product_key, product_name,
-                                   product_unit, compression, compression_opts)
+        if split_to_multiple_files:
+            try:
+                fn_body, fn_ending = fn.split('.')
+            except:
+                raise ValueError('file name must contain a `.`, '
+                                 'e.g. `my_cml_file.h5`')
+            if append_date_str_to_fn:
+                fn_i = (fn_body +
+                        t_in_file_start.strftime(append_date_str_to_fn) +
+                        '.' + fn_ending)
+            else:
+                fn_i = '%s_%d.%s' % (fn_body, i, fn_ending)
+        else:
+            fn_i = fn
+
+        with h5py.File(fn_i, mode='w') as h5file:
+            h5file.attrs['file_format'] = 'cmlH5'
+            h5file.attrs['file_format_version'] = CMLH5_VERSION
+            h5file.attrs['time_coverage_start'] = t_in_file_start.strftime(
+                '%Y-%m-%dT%H:%M:%SZ')
+            h5file.attrs['time_coverage_stop'] = t_in_file_stop.strftime(
+                '%Y-%m-%dT%H:%M:%SZ')
+
+            for i_cml, cml in enumerate(cml_list):
+                # Create CML HDF5 group
+                cml_g = h5file.create_group('cml_%d' % i_cml)
+                # Write CML attributes
+                _write_cml_attributes(cml_g, cml)
+
+                # Write CML channels
+                for i_channel, channel_id in enumerate(cml.channels.keys()):
+                    cml_ch = cml.channels[channel_id]
+                    chan_g = cml_g.create_group('channel_%d' % (i_channel + 1))
+                    _write_channel_attributes(chan_g, cml_ch)
+                    _write_channel_data(chan_g=chan_g,
+                                        cml_ch=cml_ch,
+                                        t_start=t_in_file_start,
+                                        t_stop=t_in_file_stop,
+                                        include_t_stop=include_t_stop_in_file,
+                                        compression=compression,
+                                        compression_opts=compression_opts,
+                                        write_all_data=write_all_data)
+
+                # Write CML derived products like rain rate for each CML
+                if product_keys is not None:
+                    for i_prod, (product_key, product_name, product_unit) in \
+                            enumerate(zip(
+                                product_keys,
+                                product_names,
+                                product_units)):
+                        prod_g = cml_g.create_group('product_%d' % i_prod)
+                        _write_product(prod_g, cml, product_key,
+                                       product_name, product_unit,
+                                       compression, compression_opts)
+
+
+def _get_first_and_last_timestamp_in_cml_list(cml_list):
+    """
+
+    Parameters
+    ----------
+    cml_list
+
+    Returns
+    -------
+
+    """
+    t_min = (
+        min([min([cml_ch.data.index.min()
+                  for cml_ch in cml.channels.itervalues()])
+             for cml in cml_list]))
+    t_max = (
+        max([max([cml_ch.data.index.max()
+                  for cml_ch in cml.channels.itervalues()])
+             for cml in cml_list]))
+    return t_min, t_max
 
 
 def _write_cml_attributes(cml_g, cml):
@@ -168,17 +253,28 @@ def _write_channel_attributes(chan_g, cml_ch):
 
 def _write_channel_data(chan_g,
                         cml_ch,
+                        t_start,
+                        t_stop,
                         compression,
                         compression_opts,
+                        include_t_stop=True,
                         write_all_data=False):
     """
 
-    @param chan_g:
-    @param cml_ch:
-    @param compression:
-    @param compression_opts:
-    @param write_all_data:
-    @return:
+    Parameters
+    ----------
+    chan_g
+    cml_ch
+    t_start
+    t_stop
+    compression
+    compression_opts
+    include_t_stop
+    write_all_data
+
+    Returns
+    -------
+
     """
 
     if write_all_data:
@@ -195,18 +291,27 @@ def _write_channel_data(chan_g,
         # of this file
         _cml_ch_data_names_dict = cml_ch_data_names_dict
 
+    # Get the time index in UTC
+    ts_t = cml_ch.data.index.tz_convert('UTC')
+
+    if include_t_stop:
+        t_slice_ix = (ts_t >= t_start) & (ts_t <= t_stop)
+    else:
+        t_slice_ix = (ts_t >= t_start) & (ts_t < t_stop)
+
     # write variables
     for name, attrs in _cml_ch_data_names_dict.iteritems():
         if name == 'time':
-            # Get the time index in UTC
-            ts_t = cml_ch.data.index.tz_convert('UTC')
+
             # Transform the pandas (np.datetime64) which is in ns to seconds
             t_vec = ts_t.astype('int64') / 1e9
-            chan_g.create_dataset(name, data=t_vec,
+            chan_g.create_dataset(name,
+                                  data=t_vec[t_slice_ix],
                                   compression=compression,
                                   compression_opts=compression_opts)
         else:
-            chan_g.create_dataset(name, data=cml_ch.data[name].values,
+            chan_g.create_dataset(name,
+                                  data=cml_ch.data[name].values[t_slice_ix],
                                   compression=compression,
                                   compression_opts=compression_opts)
 
@@ -287,11 +392,22 @@ def _missing_attribute(attr_type):
 #########################
 
 
-def read_from_cmlh5(fn):
+def read_from_cmlh5(fn,
+                    cml_id_list=None,
+                    t_start=None,
+                    t_stop=None):
     """
 
-    @param fn:
-    @return:
+    Parameters
+    ----------
+    fn
+    cml_id_list
+    t_start
+    t_stop
+
+    Returns
+    -------
+
     """
     h5_reader = h5py.File(fn, mode='r')
     cml_list = []
@@ -301,6 +417,76 @@ def read_from_cmlh5(fn):
         cml_list.append(cml)
     print '%d CMLs read in' % len(cml_list)
     return cml_list
+
+
+def read_from_multiple_cmlh5(fn_list,
+                             cml_id_list=None,
+                             t_start=None,
+                             t_stop=None,
+                             sort_fn_list=True):
+    """
+
+    Parameters
+    ----------
+    fn_list
+    cml_id_list
+    t_start
+    t_stop
+    sort_fn_list
+
+    Returns
+    -------
+
+    """
+
+    if sort_fn_list:
+        fn_list.sort()
+
+    fn_list_selected = []
+
+    # Find the files where data is stored for the specified period
+    if (t_start is not None) and (t_stop is not None):
+        # loop through all files to find their temporal coverage
+
+        t_start = pd.to_datetime(t_start)
+        t_stop = pd.to_datetime(t_stop)
+
+        for fn in fn_list:
+            with h5py.File(fn, mode='r') as h5_reader:
+                # update fn_list so that only necessary files are contained
+                time_coverage_start = pd.to_datetime(
+                    h5_reader.attrs['time_coverage_start'])
+                time_coverage_stop = pd.to_datetime(
+                    h5_reader.attrs['time_coverage_stop'])
+                if ((time_coverage_start < t_stop) and
+                        (time_coverage_stop > t_start)):
+                    fn_list_selected.append(fn)
+    # If no start and stop data has been provided, just use fn_list
+    elif (t_start is None) and (t_stop is None):
+        fn_list_selected = fn_list
+    else:
+        raise ValueError('`t_start` and `t_stop` must both be either `None` '
+                         'or some timestamp information.')
+
+    # Loop over cmlh5 files and read them in
+    cml_lists = []
+    for fn in fn_list_selected:
+        cml_lists.append(read_from_cmlh5(fn=fn,
+                                         cml_id_list=cml_id_list,
+                                         t_start=t_start,
+                                         t_stop=t_stop))
+
+    # Concat data for the Comlink objects
+    cml_dict = OrderedDict()
+    for cml_list in cml_lists:
+        for cml in cml_list:
+            cml_id = cml.metadata['cml_id']
+            if cml_id in cml_dict.keys():
+                cml_dict[cml_id].append_data(cml)
+            else:
+                cml_dict[cml_id] = cml
+
+    return cml_dict.values()
 
 
 def _read_one_cml(cml_g):

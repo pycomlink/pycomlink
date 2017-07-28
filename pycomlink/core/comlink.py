@@ -317,6 +317,24 @@ class Comlink(object):
         center_lat = (coords.lat_a + coords.lat_b) / 2.0
         return center_lon, center_lat
 
+    def append_data(self, cml):
+        """ Append the data from the same CML stored in another Comlink object
+
+        Parameters
+        ----------
+        cml
+
+        Returns
+        -------
+
+        """
+
+        if self.metadata['cml_id'] != cml.metadata['cml_id']:
+            raise ValueError('The `cml_id` must be the same.')
+
+        for ch_name in self.channels.iterkeys():
+            self.channels[ch_name].append_data(cml.channels[ch_name])
+
 
 def _channels_list_to_dict(channels):
     """ Helper function to parse a list of channels to a dict of channels

@@ -206,10 +206,9 @@ def find_lowest_std_dev_period(rsl, window_length=600):
     # pad_only_left was added to be backwards compatible with the
     # old rolling_std_dev function which only padded with NaN on the
     # left side of the time series. Now symmetric padding is default!!!
-    roll_std_dev = rolling_std_dev(rsl,window_length, pad_only_left=True)
+    roll_std_dev = rolling_std_dev(rsl, window_length, pad_only_left=True)
     dry_stop = mlab.find(roll_std_dev == np.nanmin(roll_std_dev))
-    if len(dry_stop) > 1:
-        dry_stop = dry_stop[0]
+    dry_stop = dry_stop[0]
     dry_start = dry_stop - window_length
     return dry_start, dry_stop
 

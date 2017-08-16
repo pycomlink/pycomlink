@@ -221,7 +221,6 @@ def find_lowest_std_dev_period(rsl, window_length=600):
 def nans(shape, dtype=float):
     """Helper function for wet/dry classification
     """
-    import numpy as np
-    a = np.empty(shape, dtype)
+    a = np.empty(np.asarray(shape, dtype=int), dtype)
     a.fill(np.nan)
     return a

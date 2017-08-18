@@ -31,7 +31,7 @@ def plot_cml_paths(cml_list, fol_map=None, tiles='OpenStreetMap', **kwargs):
                                            (coords.lon_a + coords.lon_b)/2],
                                  tiles=tiles,
                                  zoom_start=8)
-        fol_map.add_children(folium.PolyLine([(coords.lat_a, coords.lon_a),
+        fol_map.add_child(folium.PolyLine([(coords.lat_a, coords.lon_a),
                                               (coords.lat_b, coords.lon_b)],
                                              **kwargs))
         lats.append(coords.lat_a)

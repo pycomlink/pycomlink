@@ -23,6 +23,8 @@ from comlink_channel import ComlinkChannel
 from ..processing import Processor
 from ..spatial.helper import distance
 
+Coords = namedtuple('coords', ['lon_a', 'lon_b', 'lat_a', 'lat_b'])
+
 
 class Comlink(object):
     """ A class representing a CML with its channels and metadata"""
@@ -166,7 +168,6 @@ class Comlink(object):
             'lat_a', 'lat_b'.
 
         """
-        Coords = namedtuple('coords', ['lon_a', 'lon_b', 'lat_a', 'lat_b'])
         coords = Coords(lon_a=self.metadata['site_a_longitude'],
                         lon_b=self.metadata['site_b_longitude'],
                         lat_a=self.metadata['site_a_latitude'],

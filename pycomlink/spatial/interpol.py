@@ -396,7 +396,8 @@ class Invdisttree(object):
         self.z = z
         self.stat = stat
         self.wn = 0
-        self.wsum = None;
+        self.wsum = None
+        self.q = None
 
     def __call__( self, q, nnear=6, eps=0, p=1, weights=None ):
             # nnear nearest neighbours of each query point --
@@ -407,7 +408,15 @@ class Invdisttree(object):
         if self.wsum is None:
             self.wsum = np.zeros(nnear)
 
-        self.distances, self.ix = self.tree.query( q, k=nnear, eps=eps )
+        # Do not recalculate the distance matrix if it has already
+        # been calculated for the same coordinates
+        if np.array_equal(q, self.q):
+            pass
+
+        else:
+            self.distances, self.ix = self.tree.query( q, k=nnear, eps=eps )
+            self.q = q
+
         interpol = np.zeros( (len(self.distances),) + np.shape(self.z[0]) )
         jinterpol = 0
         for dist, ix in zip( self.distances, self.ix ):

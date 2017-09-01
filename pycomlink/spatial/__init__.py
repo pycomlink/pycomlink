@@ -11,3 +11,4 @@
 
 import interpol
 import idw
+import interpolator

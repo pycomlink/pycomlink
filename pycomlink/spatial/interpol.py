@@ -15,7 +15,6 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from scipy.spatial import cKDTree as KDTree
 from pykrige.ok import OrdinaryKriging
 
 from tqdm import tqdm
@@ -23,6 +22,7 @@ from tqdm import tqdm
 import geopandas
 import shapely as sh
 
+from .idw import Invdisttree
 
 class Interpolator(object):
     """ Class for interpolating CML data onto a grid using different methods
@@ -292,12 +292,12 @@ class Interpolator(object):
             values = row.values
             i_not_nan = ~pd.isnull(values)
 
-            idw_tree = Invdisttree(np.array([self.lons[i_not_nan],
-                                             self.lats[i_not_nan]]).T,
-                                   values[i_not_nan],
+            idw_tree = Invdisttree(X=np.array([self.lons[i_not_nan],
+                                               self.lats[i_not_nan]]).T,
                                    leafsize=nnear+2)
-            interp_values = idw_tree(np.array([self.xgrid.flatten(),
-                                               self.ygrid.flatten()]).T,
+            interp_values = idw_tree(q=np.array([self.xgrid.flatten(),
+                                                 self.ygrid.flatten()]).T,
+                                     z=values[i_not_nan],
                                      nnear=nnear,
                                      p=p,
                                      eps=eps)

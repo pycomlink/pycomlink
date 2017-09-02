@@ -2,8 +2,10 @@ import abc
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
+from pykrige import OrdinaryKriging
 
 from .idw import Invdisttree
+
 
 class PointsToGridInterpolator(object):
     """ PointsToGridInterpolator class docstring """
@@ -78,6 +80,40 @@ class IdwKdtreeInterpolator(PointsToGridInterpolator):
                  z=z,
                  nnear=self.nnear,
                  p=self.p)
+        return zi
+
+
+class OrdinaryKrigingInterpolator(PointsToGridInterpolator):
+    def __init__(self,
+                 nlags=30,
+                 variogram_model='spherical',
+                 weight=True,
+                 n_closest_points=10,
+                 coordinates_type='euclidean'):
+        """ A ordinary kriging interpolator for points to grid"""
+
+        self.nlags = nlags
+        self.variogram_model = variogram_model
+        self.weight = weight
+        self.n_closest_points = n_closest_points
+        self.coordinates_type = coordinates_type
+
+    def _interpol_func(self, x, y, z, xi, yi):
+        ok = OrdinaryKriging(x,
+                             y,
+                             z,
+                             nlags=self.nlags,
+                             variogram_model=self.variogram_model,
+                             weight=self.weight,
+                             coordinates_type=self.coordinates_type)
+
+        zi, sigma = ok.execute(style='points',
+                               xpoints=xi,
+                               ypoints=yi,
+                               n_closest_points=self.n_closest_points,
+                               backend='C')
+
+        self.sigma = sigma
         return zi
 
 

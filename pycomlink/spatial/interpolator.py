@@ -89,7 +89,8 @@ class OrdinaryKrigingInterpolator(PointsToGridInterpolator):
                  variogram_model='spherical',
                  weight=True,
                  n_closest_points=10,
-                 coordinates_type='euclidean'):
+                 coordinates_type='euclidean',
+                 backend='C'):
         """ A ordinary kriging interpolator for points to grid"""
 
         self.nlags = nlags
@@ -97,6 +98,7 @@ class OrdinaryKrigingInterpolator(PointsToGridInterpolator):
         self.weight = weight
         self.n_closest_points = n_closest_points
         self.coordinates_type = coordinates_type
+        self.backend = backend
 
     def _interpol_func(self, x, y, z, xi, yi):
         ok = OrdinaryKriging(x,
@@ -111,7 +113,7 @@ class OrdinaryKrigingInterpolator(PointsToGridInterpolator):
                                xpoints=xi,
                                ypoints=yi,
                                n_closest_points=self.n_closest_points,
-                               backend='C')
+                               backend=self.backend)
 
         self.sigma = sigma
         return zi

@@ -68,7 +68,7 @@ class IdwKdtreeInterpolator(PointsToGridInterpolator):
         self.z = z
 
         if np.array_equal(x, self.x) and np.array_equal(y, self.y):
-            print 'Reusing old `Invdisttree`'
+            # print 'Reusing old `Invdisttree`'
             idw = self.idw
         else:
             idw = Invdisttree(X=zip(x, y))
@@ -149,8 +149,9 @@ class ComlinkGridInterpolator(object):
         i_not_nan = ~pd.isnull(z)
 
         if z[i_not_nan].sum() == 0:
-            print '%s: Returning NaNs because data contains only NaNs' % self.df_cmls.index[i]
-            zgrid = np.zeros_like(self._interpolator.xgrid)
+            # print('%s: Returning NaNs because data contains only NaNs' %
+            #      self.df_cmls.index[i])
+            zgrid = np.zeros_like(self.xgrid)
             zgrid[:] = np.nan
         else:
             zgrid = self._interpolator(x=self.x,

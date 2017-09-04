@@ -92,7 +92,7 @@ class Invdisttree(object):
             hasattr(self, 'eps') and np.array_equal(eps, self.eps)
             ):
             # Do nothing here
-            print 'reuse `distances`'
+            # print 'reuse `distances`'
             pass
         else:
             self.distances, self.ix = self.tree.query(q, k=nnear, eps=eps)

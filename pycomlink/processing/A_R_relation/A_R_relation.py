@@ -57,7 +57,7 @@ def a_b(f_GHz, pol, approx_type='ITU'):
     
     Parameters
     ----------
-    f_GHz : int or float
+    f_GHz : int, float or np.array of these
             Frequency of the microwave link in GHz
     pol : str
             Polarization of the microwave link 
@@ -87,20 +87,22 @@ def a_b(f_GHz, pol, approx_type='ITU'):
          
     """
     from scipy.interpolate import interp1d
-    
-    if f_GHz>=1 and f_GHz<=100:
-        if pol=='V' or pol=='v':
-            f_a = interp1d(ITU_table[0,:], ITU_table[2,:], kind='cubic')
-            f_b = interp1d(ITU_table[0,:], ITU_table[4,:], kind='cubic')
-        elif pol=='H' or pol=='h':
-            f_a = interp1d(ITU_table[0,:], ITU_table[1,:], kind='cubic')    
-            f_b = interp1d(ITU_table[0,:], ITU_table[3,:], kind='cubic')
+
+    f_GHz = np.asarray(f_GHz)
+
+    if f_GHz.min() < 1 or f_GHz.max() > 100:
+        raise ValueError('Frequency must be between 1 Ghz and 100 GHz.')
+    else:
+        if pol == 'V' or pol == 'v':
+            f_a = interp1d(ITU_table[0, :], ITU_table[2, :], kind='cubic')
+            f_b = interp1d(ITU_table[0, :], ITU_table[4, :], kind='cubic')
+        elif pol == 'H' or pol == 'h':
+            f_a = interp1d(ITU_table[0, :], ITU_table[1, :], kind='cubic')
+            f_b = interp1d(ITU_table[0, :], ITU_table[3, :], kind='cubic')
         else:
             ValueError('Polarization must be V, v, H or h.')
         a = f_a(f_GHz)
         b = f_b(f_GHz)
-    else:
-        raise ValueError('Frequency must be between 1 Ghz and 100 GHz.');
     return a, b
 
 

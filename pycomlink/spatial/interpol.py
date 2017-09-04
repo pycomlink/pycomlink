@@ -23,7 +23,11 @@ import geopandas
 import shapely as sh
 
 from .idw import Invdisttree
+from ..util.maintenance import deprecated
 
+
+@deprecated('Use the new `Interpolator` classes from '
+            '`pycomlink.spatial.interpolator`.')
 class Interpolator(object):
     """ Class for interpolating CML data onto a grid using different methods
 

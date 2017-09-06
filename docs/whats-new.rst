@@ -18,10 +18,9 @@ Backward Incompatible Changes
   * calculation of wet-dry error is now in module `validation.stats`
   * calculation of spatial coverage with CMLs was moved to function
     `spatial.coverage.calc_coverage_mask()`.
-
--Added new error metric for performance evaluation of wet-dry classification.
- The old one in `validation.validator.calc_wet_dry_error()` is depreciated now
- since its `dry_error` is not optimal.
+  * error metric for performance evaluation of wet-dry classification is now
+    in `validation.stats`. Errors are now returned with meaningful names as
+    namedtuples. `validation.validator.calc_wet_dry_error()` is depreciated now.
 
 Enhancements
 ~~~~~~~~~~~~
@@ -29,6 +28,9 @@ Enhancements
 -Read and write to and from multiple cmlh5 files (#12)
 
 -Improved `NaN` handling in `wet` indicator for baseline determination
+
+-Speed up of KDtreeIDW using numba and by reusing
+ previously calculated variables
 
 -Added example notebook for baseline determination
 

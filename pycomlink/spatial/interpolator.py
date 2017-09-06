@@ -89,7 +89,7 @@ class OrdinaryKrigingInterpolator(PointsToGridInterpolator):
                  variogram_model='spherical',
                  weight=True,
                  n_closest_points=10,
-                 coordinates_type='euclidean',
+                 # coordinates_type='euclidean', # Not supported in v1.3.1
                  backend='C'):
         """ A ordinary kriging interpolator for points to grid"""
 
@@ -97,7 +97,7 @@ class OrdinaryKrigingInterpolator(PointsToGridInterpolator):
         self.variogram_model = variogram_model
         self.weight = weight
         self.n_closest_points = n_closest_points
-        self.coordinates_type = coordinates_type
+        # self.coordinates_type = coordinates_type
         self.backend = backend
 
     def _interpol_func(self, x, y, z, xi, yi):
@@ -106,8 +106,8 @@ class OrdinaryKrigingInterpolator(PointsToGridInterpolator):
                              z,
                              nlags=self.nlags,
                              variogram_model=self.variogram_model,
-                             weight=self.weight,
-                             coordinates_type=self.coordinates_type)
+                             weight=self.weight)
+                             # coordinates_type=self.coordinates_type)
 
         zi, sigma = ok.execute(style='points',
                                xpoints=xi,
@@ -134,6 +134,7 @@ class ComlinkGridInterpolator(object):
         self.x = self.lons
         self.y = self.lats
 
+        # TODO: Forward arguments to select aggregation type and frequency
         self.df_cmls = get_dataframe_for_cml_variable(cml_list)
         self._interpolator = interpolator
         self.resolution = resolution

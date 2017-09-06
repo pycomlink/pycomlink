@@ -1,9 +1,9 @@
 import xarray as xr
 import pandas as pd
 import numpy as np
-
 from shapely.geometry import LineString, Polygon
 
+from pycomlink.util.maintenance import deprecated
 
 class Validator(object):
     def __init__(self):
@@ -152,6 +152,8 @@ def calc_intersect_weights(cml, xr_ds, offset=None):
     return intersect
 
 
+@deprecated('Use `pycomlink.validation.stats.calc_wet_error_rates()` '
+            'instead since the `dry_error` here makes no sense.')
 def calc_wet_dry_error(df_wet_truth, df_wet):
     dry_error = ((df_wet_truth == False) &
                  (df_wet == True)).sum() / float((df_wet_truth == False).sum())

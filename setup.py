@@ -46,6 +46,7 @@ setup(
         'h5py',
         'xarray',
         'shapely',
+        'pyproj',
         'tqdm',
         'pykrige'],
 )

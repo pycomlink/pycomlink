@@ -1,5 +1,5 @@
+import numpy as np
 import shapely as sh
-import geopandas
 
 
 def calc_coverage_mask(cml_list, xgrid, ygrid, max_dist_from_cml):
@@ -45,29 +45,18 @@ def calc_coverage_mask(cml_list, xgrid, ygrid, max_dist_from_cml):
                      cml.metadata['site_b_latitude']]])
                 .buffer(max_dist_from_cml, cap_style=1))
 
-        cml_dil_union = sh.ops.cascaded_union(cml_lines)
-        # Build a geopandas object for this polygon
-        gdf_cml_area = geopandas.GeoDataFrame(
-            geometry=geopandas.GeoSeries(cml_dil_union))
+        # Get coverage for each grid point
+        covered_list = []
+        for i, (x_i, y_i) in enumerate(zip(xgrid.ravel(), ygrid.ravel())):
+            grid_point = sh.geometry.Point((x_i, y_i))
+            for cml_line in cml_lines:
+                if grid_point.intersects(cml_line):
+                    covered_list.append(True)
+                    break
+            else:
+                covered_list.append(False)
 
-        # Generate a geopandas object for all grid points
-        sh_grid_point_list = [sh.geometry.Point(xy) for xy
-                              in zip(xgrid.flatten(),
-                                     ygrid.flatten())]
-        gdf_grid_points = geopandas.GeoDataFrame(
-            geometry=sh_grid_point_list)
-
-        # Find all grid points within the area covered by the CMLs
-        points_in_cml_area = geopandas.sjoin(gdf_grid_points,
-                                             gdf_cml_area,
-                                             how='left')
-
-        # Generate a Boolean grid with shape of xgrid (and ygrid)
-        # indicating which grid points are within the area covered by CMLs
-        grid_points_covered_by_cmls = (
-            (~points_in_cml_area.index_right.isnull())
-            .values.reshape(xgrid.shape))
-
-        grid_points_covered_by_cmls = grid_points_covered_by_cmls
+        grid_points_covered_by_cmls = (np.array(covered_list)
+                                       .reshape(xgrid.shape))
 
         return grid_points_covered_by_cmls

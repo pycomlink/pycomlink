@@ -12,3 +12,4 @@
 import interpol
 import idw
 import interpolator
+import coverage

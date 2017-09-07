@@ -1,5 +1,14 @@
-include notebooks *.ipynb
+include LICENSE.txt
+include MANIFEST.in
+
 include *.md
+
+recursive-include notebooks *.ipynb
+recursive-include notebooks *.py
+recursive-include notebooks/example_data *
+
+recursive-exclude notebooks __init__.py
+recursive-exclude notebooks *.pyc
 
 prune notebooks/.ipynb_checkpoints
 prune notebooks/death_row

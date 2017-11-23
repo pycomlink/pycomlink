@@ -23,6 +23,13 @@ from comlink_channel import ComlinkChannel
 from ..processing import Processor
 from ..spatial.helper import distance
 
+
+# Intermediate fix for pandas 0.21
+# https://github.com/pandas-dev/pandas/issues/18283
+# TODO: Remove this when solved via pandas 0.21.1
+from pandas.tseries import converter
+converter.register()
+
 Coords = namedtuple('coords', ['lon_a', 'lon_b', 'lat_a', 'lat_b'])
 
 

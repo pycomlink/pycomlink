@@ -1,5 +1,3 @@
-#import comlink_channel
-#import comlink
-
-from comlink_channel import ComlinkChannel
-from comlink import Comlink
+from __future__ import absolute_import
+from .comlink_channel import ComlinkChannel
+from .comlink import Comlink

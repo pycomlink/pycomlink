@@ -9,6 +9,8 @@
 # Licence:      The MIT License
 # ----------------------------------------------------------------------------
 
+from __future__ import print_function
+
 import numpy as np
 import pandas as pd
 import h5py
@@ -415,7 +417,7 @@ def read_from_cmlh5(fn,
         cml_g = h5_reader['/' + cml_g_name]
         cml = _read_one_cml(cml_g)
         cml_list.append(cml)
-    print '%d CMLs read in' % len(cml_list)
+    print('%d CMLs read in' % len(cml_list))
     return cml_list
 
 

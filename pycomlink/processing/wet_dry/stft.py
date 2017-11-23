@@ -1,3 +1,4 @@
+from __future__ import print_function
 #----------------------------------------------------------------------------
 # Name:         
 # Purpose:      
@@ -102,7 +103,7 @@ def stft_classification(rsl, window_length, threshold, f_divide,
                           window=window)
 
     elif Pxx is not None and f is not None:
-        print 'Skipping spectrogram calculation and using supplied Pxx'
+        print('Skipping spectrogram calculation and using supplied Pxx')
         #
         # TODO: check that Pxx has the correct size
         #

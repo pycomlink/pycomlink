@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 # ----------------------------------------------------------------------------
 # Name:         comlink
 # Purpose:      Class that represents one CML, which consists of several
@@ -19,7 +20,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import folium
 
-from comlink_channel import ComlinkChannel
+from .comlink_channel import ComlinkChannel
 from ..processing import Processor
 from ..spatial.helper import distance
 
@@ -88,11 +89,11 @@ class Comlink(object):
         # effect, because they are already part of the individual
         # ComlinkChannels
         if channels is not None:
-            if ((kwargs.has_key('t')) or
-                    (kwargs.has_key('rx')) or
-                    (kwargs.has_key('tx')) or
-                    (kwargs.has_key('f_GHz')) or
-                    (kwargs.has_key('pol'))):
+            if (('t' in kwargs) or
+                    ('rx' in kwargs) or
+                    ('tx' in kwargs) or
+                    ('f_GHz' in kwargs) or
+                    ('pol' in kwargs)):
                 warnings.warn('All supplied channel metadata (e.g. f_GHz) '
                               'has no effect, since they are already '
                               'contained in the supplied ComlinkChannel')

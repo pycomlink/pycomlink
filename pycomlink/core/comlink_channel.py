@@ -11,6 +11,8 @@
 # Licence:      The MIT License
 # ----------------------------------------------------------------------------
 
+from __future__ import print_function
+
 import numpy as np
 import pandas as pd
 import copy
@@ -103,8 +105,8 @@ class ComlinkChannel(object):
         return len(self.data)
 
     def __str__(self, *args, **kwargs):
-        print 'f_GHz: ', self.f_GHz
-        print self.data.__str__()
+        print('f_GHz: ', self.f_GHz)
+        print(self.data.__str__())
 
     def __getattr__(self, item):
         try:

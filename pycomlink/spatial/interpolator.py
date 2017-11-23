@@ -1,3 +1,4 @@
+from __future__ import print_function
 import abc
 import numpy as np
 import pandas as pd
@@ -179,7 +180,7 @@ class ComlinkGridInterpolator(object):
                     sigma = np.ones_like(self._interpolator.xgrid.ravel())
                     sigma[:] = np.nan
                 else:
-                    print 'baz'
+                    print('baz')
                     raise e
             zi_list.append(zi)
         return zi_list

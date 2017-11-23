@@ -9,6 +9,7 @@
 # Licence:      The MIT License
 #----------------------------------------------------------------------------
 
+from builtins import object
 from functools import wraps
 from copy import deepcopy
 
@@ -99,7 +100,7 @@ class Baseline(object):
     # TODO: Integarte this somewhere else, since this
     #       sould be carried out after every baseline determination
     def calc_A(self):
-        for ch_name, cml_ch in self._cml.channels.iteritems():
+        for ch_name, cml_ch in self._cml.channels.items():
             cml_ch.data['A'] = cml_ch.data['txrx'] - cml_ch.data['baseline']
         return self._cml
 
@@ -129,7 +130,7 @@ def cml_wrapper(cml, func,
 
         # Iterate over channels
         args_initial = deepcopy(args)
-        for name, cml_ch in cml.channels.iteritems():
+        for name, cml_ch in cml.channels.items():
             # Add var_in variables to args-list
             args = list(deepcopy(args_initial))
 
@@ -138,7 +139,7 @@ def cml_wrapper(cml, func,
                 args.insert(0, cml_ch.data[var_in].values)
 
             # Add additional kwargs
-            for k, v in additional_kwargs.iteritems():
+            for k, v in additional_kwargs.items():
                 kwargs[k] = v
 
             # Call processing function
@@ -148,10 +149,10 @@ def cml_wrapper(cml, func,
             if returns_temp_results:
                 ts, temp_result_dict = temp
                 try:
-                    cml_ch.intermediate_results.keys()
+                    list(cml_ch.intermediate_results.keys())
                 except AttributeError:
                     cml_ch.intermediate_results = {}
-                for key, value in temp_result_dict.iteritems():
+                for key, value in temp_result_dict.items():
                     cml_ch.intermediate_results[key] = value
             else:
                 ts = temp

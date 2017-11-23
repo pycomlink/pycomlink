@@ -1,3 +1,4 @@
+from __future__ import division
 import numpy as np
 
 
@@ -47,7 +48,7 @@ def calc_R_from_A(A, L, f_GHz=None, a=None, b=None, pol='H', R_min=0.1):
 
     # This ignores the numpy warning stemming from A >=0 where A contains NaNs
     with np.errstate(invalid='ignore'):
-        R[~nan_index & (A >= 0)] = (A[~nan_index & (A >= 0)]/(a*L))**(1/b)
+        R[~nan_index & (A >= 0)] = (A[~nan_index & (A >= 0)] / (a*L)) ** (1/b)
         R[~nan_index & (R < R_min)] = 0
     return R
 

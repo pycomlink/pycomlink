@@ -22,7 +22,7 @@ def set_to_nan_if(cml, ts_name, expression, value):
     else:
         raise ValueError('expresison `%s` not supported' % expression)
 
-    for ch_name, ch in cml.channels.iteritems():
+    for ch_name, ch in cml.channels.items():
         index = func(ch.data[ts_name], value)
         ch.data.loc[index, ts_name] = np.nan
         ch.data['txrx'] = ch.data['tx'] - ch.data['rx']

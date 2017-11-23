@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+from __future__ import division
 # ----------------------------------------------------------------------------
 # Name:         comlink
 # Purpose:      Class that represents one CML, which consists of several
@@ -12,6 +13,9 @@ from __future__ import absolute_import
 # Licence:      The MIT License
 # ----------------------------------------------------------------------------
 
+from builtins import zip
+from builtins import str
+from builtins import object
 import warnings
 from copy import deepcopy
 from collections import namedtuple
@@ -108,7 +112,7 @@ class Comlink(object):
 
         calculated_length = self.calc_length()
 
-        if 'length' in metadata.keys():
+        if 'length' in list(metadata.keys()):
             length_diff = calculated_length - metadata['length']
             if abs(length_diff) > 0.5:
                 warnings.warn('Calculated length = %2.2f and supplied length '
@@ -142,9 +146,9 @@ class Comlink(object):
         return html_str
 
     def __dir__(self):
-        attr_list = (Comlink.__dict__.keys() +
-                     self.__dict__.keys() +
-                     self.channels.keys())
+        attr_list = (list(Comlink.__dict__.keys()) +
+                     list(self.__dict__.keys()) +
+                     list(self.channels.keys()))
         return attr_list
 
     def __copy__(self):
@@ -215,8 +219,8 @@ class Comlink(object):
         coords = self.get_coordinates()
 
         if fol_map is None:
-            fol_map = folium.Map(location=[(coords.lat_a + coords.lat_b)/2,
-                                           (coords.lon_a + coords.lon_b)/2],
+            fol_map = folium.Map(location=[(coords.lat_a + coords.lat_b) / 2,
+                                           (coords.lon_a + coords.lon_b) / 2],
                                  tiles=tiles,
                                  zoom_start=11)
         fol_map.add_children(folium.PolyLine([(coords.lat_a, coords.lon_a),
@@ -294,7 +298,7 @@ class Comlink(object):
                                 for ch_key in channels}
 
         for ax_i, column in zip(ax, columns):
-            for i, (name, cml_ch) in enumerate(channels_to_plot.iteritems()):
+            for i, (name, cml_ch) in enumerate(channels_to_plot.items()):
                 if column == 'wet':
                     ax_i.fill_between(
                         cml_ch.data[column].index,
@@ -322,8 +326,8 @@ class Comlink(object):
 
         """
         coords = self.get_coordinates()
-        center_lon = (coords.lon_a + coords.lon_b) / 2.0
-        center_lat = (coords.lat_a + coords.lat_b) / 2.0
+        center_lon = (coords.lon_a + coords.lon_b) / 2
+        center_lat = (coords.lat_a + coords.lat_b) / 2
         return center_lon, center_lat
 
     def append_data(self, cml):
@@ -341,7 +345,7 @@ class Comlink(object):
         if self.metadata['cml_id'] != cml.metadata['cml_id']:
             raise ValueError('The `cml_id` must be the same.')
 
-        for ch_name in self.channels.iterkeys():
+        for ch_name in self.channels.keys():
             self.channels[ch_name].append_data(cml.channels[ch_name])
 
 

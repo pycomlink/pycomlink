@@ -1,3 +1,6 @@
+from __future__ import division
+from builtins import zip
+from builtins import object
 import xarray as xr
 import pandas as pd
 import numpy as np
@@ -155,8 +158,8 @@ def calc_intersect_weights(cml, xr_ds, offset=None):
 @deprecated('Use `pycomlink.validation.stats.calc_wet_error_rates()` '
             'instead since the `dry_error` here makes no sense.')
 def calc_wet_dry_error(df_wet_truth, df_wet):
-    dry_error = ((df_wet_truth == False) &
-                 (df_wet == True)).sum() / float((df_wet_truth == False).sum())
-    wet_error = ((df_wet_truth == True) &
-                 (df_wet == False)).sum() / float((df_wet_truth == True).sum())
+    dry_error = (((df_wet_truth == False) & (df_wet == True)).sum() /
+                 float((df_wet_truth == False).sum()))
+    wet_error = (((df_wet_truth == True) & (df_wet == False)).sum() /
+                 float((df_wet_truth == True).sum()))
     return wet_error, dry_error

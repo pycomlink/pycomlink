@@ -9,6 +9,7 @@
 # Licence:      The MIT License
 #----------------------------------------------------------------------------
 
+from __future__ import division
 import folium
 
 
@@ -27,8 +28,8 @@ def plot_cml_paths(cml_list, fol_map=None, tiles='OpenStreetMap', **kwargs):
         coords = cml.get_coordinates()
 
         if fol_map is None:
-            fol_map = folium.Map(location=[(coords.lat_a + coords.lat_b)/2,
-                                           (coords.lon_a + coords.lon_b)/2],
+            fol_map = folium.Map(location=[(coords.lat_a + coords.lat_b) / 2,
+                                           (coords.lon_a + coords.lon_b) / 2],
                                  tiles=tiles,
                                  zoom_start=8)
         fol_map.add_child(folium.PolyLine([(coords.lat_a, coords.lon_a),
@@ -39,7 +40,7 @@ def plot_cml_paths(cml_list, fol_map=None, tiles='OpenStreetMap', **kwargs):
         lons.append(coords.lon_a)
         lons.append(coords.lon_b)
 
-    fol_map.location = [(max(lats) + min(lats)) / 2.0,
-                        (max(lons) + min(lons)) / 2.0]
+    fol_map.location = [(max(lats) + min(lats)) / 2,
+                        (max(lons) + min(lons)) / 2]
 
     return fol_map

@@ -1,3 +1,5 @@
+from __future__ import division
+from builtins import str
 import unittest
 from copy import deepcopy
 
@@ -24,7 +26,7 @@ class TestComlinkInit(unittest.TestCase):
     def testWithOneComlinkChannel(self):
         cml = generate_standard_cml()
         np.testing.assert_almost_equal(cml.channel_1.rx, rx_list)
-        assert(cml.channel_1.f_GHz == f/1e9)
+        assert(cml.channel_1.f_GHz == f / 1e9)
 
 
 class TestComlinkCopy(unittest.TestCase):
@@ -47,13 +49,13 @@ class TestComlinkCopy(unittest.TestCase):
         assert(cml_copy.metadata['site_a_latitude'] == 44.1)
 
         # Test that DataFrames of channels are equal
-        for ch_name in cml.channels.keys():
+        for ch_name in list(cml.channels.keys()):
             ch = cml.channels[ch_name]
             ch_copy = cml_copy.channels[ch_name]
             pd.util.testing.assert_frame_equal(ch.data, ch_copy.data)
 
         # Test that the new DataFrames of the channels are copies and not a views
-        for ch_name in cml.channels.keys():
+        for ch_name in list(cml.channels.keys()):
             ch = cml.channels[ch_name]
             ch_copy = cml_copy.channels[ch_name]
             ch.data.rx[1] = -9999

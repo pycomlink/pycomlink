@@ -1,4 +1,7 @@
 from __future__ import print_function
+from builtins import zip
+from builtins import range
+from builtins import object
 import abc
 import numpy as np
 import pandas as pd
@@ -6,12 +9,11 @@ from tqdm import tqdm
 from pykrige import OrdinaryKriging
 
 from .idw import Invdisttree
+from future.utils import with_metaclass
 
 
-class PointsToGridInterpolator(object):
+class PointsToGridInterpolator(with_metaclass(abc.ABCMeta, object)):
     """ PointsToGridInterpolator class docstring """
-
-    __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
     def __init__(self):
@@ -72,12 +74,12 @@ class IdwKdtreeInterpolator(PointsToGridInterpolator):
             # print 'Reusing old `Invdisttree`'
             idw = self.idw
         else:
-            idw = Invdisttree(X=zip(x, y))
+            idw = Invdisttree(X=list(zip(x, y)))
             self.idw = idw
             self.x = x
             self.y = y
 
-        zi = idw(q=zip(xi, yi),
+        zi = idw(q=list(zip(xi, yi)),
                  z=z,
                  nnear=self.nnear,
                  p=self.p)
@@ -166,7 +168,7 @@ class ComlinkGridInterpolator(object):
     def loop_over_time(self):
         zi_list = []
 
-        for i in tqdm(range(len(self.df_cmls.index))):
+        for i in tqdm(list(range(len(self.df_cmls.index)))):
             try:
                 zi = self.interpolate_for_i(i)
             except ValueError as e:

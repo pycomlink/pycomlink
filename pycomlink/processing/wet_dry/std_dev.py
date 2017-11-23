@@ -93,7 +93,7 @@ def rolling_std_dev(x, window_length, pad_only_left=False):
     pad_nan = np.zeros(window_length-1)
     pad_nan[:] = np.NaN
     # add NaN to start and end of array
-    ix_mid = len(pad_nan)/2
+    ix_mid = len(pad_nan) // 2
     if pad_only_left == False:
         roll_std_dev = np.concatenate((pad_nan[:ix_mid],
                                        roll_std_dev,

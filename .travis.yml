@@ -1,9 +1,43 @@
 language: python
-python:
-  - "2.7"
-# command to install dependencies
+sudo: false
+matrix:
+    include:
+    - python: "2.7"
+      env: DEPS="numpy
+                 scipy
+                 pandas>=0.18
+                 matplotlib
+                 numba
+                 folium
+                 h5py
+                 xarray
+                 shapely
+                 pyproj
+                 tqdm
+                 pykrige"
+
+# setup adapted from https://github.com/bsmurphy/PyKrige/blob/master/.travis.yml
+before_install:
+    - wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh
+    - chmod +x miniconda.sh
+    - ./miniconda.sh -b
+    - export PATH=/home/travis/miniconda2/bin:$PATH
+    - conda update --yes conda
+    - conda info -a
+
 install:
-  - pip install -r requirements.txt
+    - conda create -q -n pycomlink-env python=${TRAVIS_PYTHON_VERSION} --yes
+    - source activate pycomlink-env
+    - conda install --yes $DEPS pip
+    - pip install coveralls
+    - pip install pytest
+    - python -V
+    - python setup.py build_ext --inplace
+    - python setup.py install
+    - cd ..
+
+
 # command to run tests
 script:
-  - pytest # or py.test for Python versions 3.5 and below
+    - cd ./pycomlink/
+    - pytest

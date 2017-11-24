@@ -22,6 +22,7 @@ before_install:
     - chmod +x miniconda.sh
     - ./miniconda.sh -b
     - export PATH=/home/travis/miniconda2/bin:$PATH
+    - conda config --add channels conda-forge
     - conda update --yes conda
     - conda info -a
 

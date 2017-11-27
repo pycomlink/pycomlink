@@ -1,0 +1,12 @@
+numpy
+scipy
+pandas>=0.18
+matplotlib
+numba
+folium
+h5py
+xarray
+shapely
+pyproj
+tqdm
+pykrige

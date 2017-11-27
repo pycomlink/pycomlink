@@ -1,3 +1,5 @@
+from __future__ import division
+from builtins import str
 import unittest
 
 import numpy as np
@@ -42,7 +44,7 @@ class TestComlinkChannelInit(unittest.TestCase):
 
     def test_kwargs(self):
         cml_ch = ComlinkChannel(rx=rx_list, tx=tx_list, t=t_list, frequency=f)
-        assert(cml_ch.f_GHz == f/1e9)
+        assert(cml_ch.f_GHz == f /1e9)
 
 
 class TestComlinkChannelAttributes(unittest.TestCase):
@@ -79,7 +81,7 @@ class TestComlinkChannelCopy(unittest.TestCase):
         # Test that the new metadata is not a reference but a copy
         cml_ch.f_GHz = 999
         assert(cml_ch.f_GHz == 999)
-        assert(cml_ch_copy.f_GHz == f/1e9)
+        assert(cml_ch_copy.f_GHz == f /1e9)
 
     def test_deepcopy(self):
         from copy import deepcopy
@@ -105,7 +107,7 @@ class TestComlinkChannelCopy(unittest.TestCase):
         # Test that the new metadata is not a reference but a copy
         cml_ch.f_GHz = 999
         assert(cml_ch.f_GHz == 999)
-        assert(cml_ch_copy.f_GHz == f/1e9)
+        assert(cml_ch_copy.f_GHz == f /1e9)
 
 
 class TestComlinkChannelTypeAfterManipulation(unittest.TestCase):
@@ -148,9 +150,9 @@ class TestComlinkChannelTypeAfterManipulation(unittest.TestCase):
 
 def assert_comlink_channel_equal(cml_ch_1, cml_ch_2):
 
-    assert(cml_ch_1.f_GHz == f/1e9)
+    assert(cml_ch_1.f_GHz == f / 1e9)
 
-    assert(cml_ch_2.f_GHz == f/1e9)
+    assert(cml_ch_2.f_GHz == f / 1e9)
 
     for key in cml_ch_1.__dict__:
         if key == 'data':

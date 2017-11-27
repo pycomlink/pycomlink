@@ -9,6 +9,10 @@
 # Licence:      The MIT License
 # ----------------------------------------------------------------------------
 
+from __future__ import print_function
+from __future__ import division
+
+from builtins import zip
 import numpy as np
 import pandas as pd
 import h5py
@@ -213,11 +217,11 @@ def _get_first_and_last_timestamp_in_cml_list(cml_list):
     """
     t_min = (
         min([min([cml_ch.data.index.min()
-                  for cml_ch in cml.channels.itervalues()])
+                  for cml_ch in cml.channels.values()])
              for cml in cml_list]))
     t_max = (
         max([max([cml_ch.data.index.max()
-                  for cml_ch in cml.channels.itervalues()])
+                  for cml_ch in cml.channels.values()])
              for cml in cml_list]))
     return t_min, t_max
 
@@ -229,7 +233,7 @@ def _write_cml_attributes(cml_g, cml):
 
     """
 
-    for attr_name, attr_options in cml_metadata_dict.iteritems():
+    for attr_name, attr_options in cml_metadata_dict.items():
         cml_g.attrs[attr_name] = cml.metadata[attr_name]
 
 
@@ -240,7 +244,7 @@ def _write_channel_attributes(chan_g, cml_ch):
 
     """
 
-    for attr_name, attr_options in cml_ch_metadata_dict.iteritems():
+    for attr_name, attr_options in cml_ch_metadata_dict.items():
         attr_value = cml_ch.metadata[attr_name]
         if attr_value is None:
             if attr_options['mandatory']:
@@ -284,7 +288,7 @@ def _write_channel_data(chan_g,
         _cml_ch_data_names_dict = deepcopy(cml_ch_data_names_dict)
         # Attach all other column names of the channel's DataFrame
         for column_name in cml_ch.data.columns:
-            if not column_name in _cml_ch_data_names_dict.keys():
+            if not column_name in list(_cml_ch_data_names_dict.keys()):
                 _cml_ch_data_names_dict[column_name] = {}
     else:
         # If only standard data shall be written use the dict defined on top
@@ -300,7 +304,7 @@ def _write_channel_data(chan_g,
         t_slice_ix = (ts_t >= t_start) & (ts_t < t_stop)
 
     # write variables
-    for name, attrs in _cml_ch_data_names_dict.iteritems():
+    for name, attrs in _cml_ch_data_names_dict.items():
         if name == 'time':
 
             # Transform the pandas (np.datetime64) which is in ns to seconds
@@ -315,14 +319,14 @@ def _write_channel_data(chan_g,
                                   compression=compression,
                                   compression_opts=compression_opts)
 
-        for attr_name, attr_value in attrs.iteritems():
+        for attr_name, attr_value in attrs.items():
             chan_g[name].attrs[attr_name] = attr_value
 
     # Create time scale
     chan_g['time'].dims.create_scale(chan_g['time'], 'time')
 
     # Link all other datasets to the time scale
-    for name in _cml_ch_data_names_dict.keys():
+    for name in list(_cml_ch_data_names_dict.keys()):
         if not name == 'time':
             chan_g[name].dims[0].attach_scale(chan_g['time'])
 
@@ -349,7 +353,7 @@ def _write_product(prod_g, cml,
 
     ts_t = cml_ch.data.index.tz_convert('UTC')
     # Transform the pandas (np.datetime64) which is in ns to seconds
-    t_vec = ts_t.astype('int64') / 1e9
+    t_vec = ts_t.astype('int64'), 1e9
     prod_g.create_dataset('time',
                           data=t_vec,
                           compression=compression,
@@ -415,7 +419,7 @@ def read_from_cmlh5(fn,
         cml_g = h5_reader['/' + cml_g_name]
         cml = _read_one_cml(cml_g)
         cml_list.append(cml)
-    print '%d CMLs read in' % len(cml_list)
+    print('%d CMLs read in' % len(cml_list))
     return cml_list
 
 
@@ -481,12 +485,12 @@ def read_from_multiple_cmlh5(fn_list,
     for cml_list in cml_lists:
         for cml in cml_list:
             cml_id = cml.metadata['cml_id']
-            if cml_id in cml_dict.keys():
+            if cml_id in list(cml_dict.keys()):
                 cml_dict[cml_id].append_data(cml)
             else:
                 cml_dict[cml_id] = cml
 
-    return cml_dict.values()
+    return list(cml_dict.values())
 
 
 def _read_one_cml(cml_g):
@@ -498,7 +502,7 @@ def _read_one_cml(cml_g):
     metadata = _read_cml_metadata(cml_g)
 
     cml_ch_list = []
-    for cml_ch_name, cml_ch_g in cml_g.items():
+    for cml_ch_name, cml_ch_g in list(cml_g.items()):
         if 'channel_' in cml_ch_name:
             cml_ch_list.append(_read_cml_channel(cml_ch_g))
 
@@ -515,7 +519,7 @@ def _read_cml_metadata(cml_g):
     """
 
     metadata = {}
-    for attr_name, attr_options in cml_metadata_dict.iteritems():
+    for attr_name, attr_options in cml_metadata_dict.items():
         value = cml_g.attrs[attr_name]
         # TODO: Handle NaN values
         metadata[attr_name] = value
@@ -530,7 +534,7 @@ def _read_cml_channel_metadata(cml_ch_g):
     """
 
     metadata = {}
-    for attr_name, attr_options in cml_ch_metadata_dict.iteritems():
+    for attr_name, attr_options in cml_ch_metadata_dict.items():
         value = cml_ch_g.attrs[attr_name]
         # TODO: Handle NaN values
         metadata[attr_name] = value
@@ -546,7 +550,7 @@ def _read_cml_channel_data(cml_ch_g):
     """
 
     data_dict = {}
-    for name, attrs in cml_ch_data_names_dict.iteritems():
+    for name, attrs in cml_ch_data_names_dict.items():
         data_dict[name] = cml_ch_g[name]
 
     # Time is stored in seconds since epoch and is represented in pandas by

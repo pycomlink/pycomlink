@@ -1,2 +1,3 @@
-import temporal
-import maintenance
+from __future__ import absolute_import
+from . import temporal
+from . import maintenance

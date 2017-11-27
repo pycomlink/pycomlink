@@ -9,6 +9,6 @@
 # Licence:      The MIT License
 #----------------------------------------------------------------------------
 
-
-import interactive_maps
-import maps
+from __future__ import absolute_import
+from . import interactive_maps
+from . import maps

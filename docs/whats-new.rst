@@ -1,6 +1,16 @@
 What's New
 ==========
 
+v0.2.2 (not released)
+---------------------
+
+Enhancements
+~~~~~~~~~~~~
+
+* Codebase is Python 3 now, keeping backwards compatibility to Python 2.7
+  via using the `future` module.
+
+
 v0.2.1
 ------
 

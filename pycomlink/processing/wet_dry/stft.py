@@ -1,3 +1,5 @@
+from __future__ import print_function
+from __future__ import division
 #----------------------------------------------------------------------------
 # Name:         
 # Purpose:      
@@ -10,6 +12,7 @@
 #----------------------------------------------------------------------------
 
 
+from builtins import range
 import numpy as np
 from matplotlib import mlab
 from matplotlib.mlab import specgram as specg
@@ -20,7 +23,7 @@ from pycomlink.processing.wet_dry.std_dev import rolling_std_dev
 def stft_classification(rsl, window_length, threshold, f_divide,
                         t_dry_start=None, t_dry_stop=None, dry_length=None,
                         mirror=False,
-                        window=None, Pxx=None, f=None, f_sampling=1/60.0):
+                        window=None, Pxx=None, f=None, f_sampling=1/60):
 
     """Perform wet/dry classification with Rolling Fourier-transform method
 
@@ -102,7 +105,7 @@ def stft_classification(rsl, window_length, threshold, f_divide,
                           window=window)
 
     elif Pxx is not None and f is not None:
-        print 'Skipping spectrogram calculation and using supplied Pxx'
+        print('Skipping spectrogram calculation and using supplied Pxx')
         #
         # TODO: check that Pxx has the correct size
         #
@@ -115,19 +118,19 @@ def stft_classification(rsl, window_length, threshold, f_divide,
     # Add NaNs as the missing spectral data at the beginning and end of
     # the time series (stemming from the window length)
     N_diff = len(rsl) - len(Pxx[0])
-    N_missing_start = np.floor(N_diff/2.0)
+    N_missing_start = np.floor(N_diff / 2)
 
     if mirror:
-        for i in range((len(rsl)-1)-(NFFT/2-1), len(rsl)):
-            rsl_mirr = np.concatenate((rsl[i-(NFFT/2-1):i],
-                                       rsl[i-(NFFT/2-1):i][::-1]))
+        for i in range((len(rsl)-1)-(NFFT/2 - 1), len(rsl)):
+            rsl_mirr = np.concatenate((rsl[i-(NFFT/2 - 1):i],
+                                       rsl[i-(NFFT/2 - 1):i][::-1]))
             Pxx_mirr, f, t = specg(rsl_mirr,
                                    NFFT=NFFT,
                                    Fs=f_sampling,
                                    noverlap=NFFT-1,
                                    window=window)
 
-            if i == (len(rsl)-1)-(NFFT/2-1):
+            if i == (len(rsl)-1)-(NFFT/2 - 1):
                 Pxx_end = Pxx_mirr
             else:
                 Pxx_end = np.append(Pxx_end,Pxx_mirr,1)
@@ -162,7 +165,7 @@ def stft_classification(rsl, window_length, threshold, f_divide,
     # Normalize the power spectrogram with the mean dry spectrum.
     # The array([...]) syntax is needed to transpose P_dry_mean to
     # a column vector (1D arrays cannot be transposed in Numpy)
-    P_norm = Pxx_extended/ np.array([P_dry_mean]).T
+    P_norm = Pxx_extended / np.array([P_dry_mean]).T
 
     i_f_divide_low = np.where(f <= f_divide)
     i_f_divide_high = np.where(f > f_divide)

@@ -9,6 +9,7 @@
 # Licence:      The MIT License
 #----------------------------------------------------------------------------
 
+from builtins import range
 import numpy as np
 import pandas as pd
 

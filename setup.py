@@ -49,5 +49,6 @@ setup(
         'shapely',
         'pyproj',
         'tqdm',
-        'pykrige'],
+        'pykrige',
+        'future'],
 )

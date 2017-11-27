@@ -9,7 +9,8 @@
 # Licence:      The MIT License
 #----------------------------------------------------------------------------
 
-import interpol
-import idw
-import interpolator
-import coverage
+from __future__ import absolute_import
+from . import interpol
+from . import idw
+from . import interpolator
+from . import coverage

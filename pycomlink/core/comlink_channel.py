@@ -11,6 +11,11 @@
 # Licence:      The MIT License
 # ----------------------------------------------------------------------------
 
+from __future__ import print_function
+from __future__ import division
+
+from builtins import str
+from builtins import object
 import numpy as np
 import pandas as pd
 import copy
@@ -103,8 +108,8 @@ class ComlinkChannel(object):
         return len(self.data)
 
     def __str__(self, *args, **kwargs):
-        print 'f_GHz: ', self.f_GHz
-        print self.data.__str__()
+        print('f_GHz: ', self.f_GHz)
+        print(self.data.__str__())
 
     def __getattr__(self, item):
         try:
@@ -136,9 +141,9 @@ class ComlinkChannel(object):
 
     def _repr_html_(self):
         metadata_str = ''
-        for key, value in self.metadata.iteritems():
+        for key, value in self.metadata.items():
             if key == 'frequency':
-                metadata_str += (str(key) + ': ' + str(value/1e9) + ' GHz<br/>')
+                metadata_str += (str(key) + ': ' + str(value / 1e9) + ' GHz<br/>')
             else:
                 metadata_str += (str(key) + ': ' + str(value) + '<br/>')
         return metadata_str + self.data._repr_html_()

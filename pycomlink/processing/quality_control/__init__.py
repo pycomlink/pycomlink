@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 #----------------------------------------------------------------------------
 # Name:         
 # Purpose:      
@@ -9,4 +10,4 @@
 # Licence:      The MIT License
 #----------------------------------------------------------------------------
 
-import simple
+from . import simple

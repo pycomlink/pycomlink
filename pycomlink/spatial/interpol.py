@@ -10,7 +10,9 @@
 #----------------------------------------------------------------------------
 
 from __future__ import division
+from __future__ import print_function
 
+from builtins import object
 import numpy as np
 import pandas as pd
 import xarray as xr
@@ -137,7 +139,7 @@ class Interpolator(object):
             i_not_nan = ~pd.isnull(values)
 
             if values[i_not_nan].sum() == 0:
-                print 'Skipping %s' % t
+                print('Skipping %s' % t)
                 zi = np.zeros_like(self.xgrid)
 
             else:
@@ -159,7 +161,7 @@ class Interpolator(object):
                     #if 'Singular matrix' in err.message:
                     #    print 'Singular matrix encountered while doing ' \
                     #          'moving window kriging.'
-                    print 'Error while doing kriging for %s' % t
+                    print('Error while doing kriging for %s' % t)
                     zi = np.zeros_like(self.xgrid)
                     #else:
                     #    raise

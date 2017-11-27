@@ -15,6 +15,19 @@ matrix:
                  pyproj
                  tqdm
                  pykrige"
+    - python: "3.6"
+      env: DEPS="numpy
+                 scipy
+                 pandas>=0.18
+                 matplotlib
+                 numba
+                 folium
+                 h5py
+                 xarray
+                 shapely
+                 pyproj
+                 tqdm
+                 pykrige"
 
 # setup adapted from https://github.com/bsmurphy/PyKrige/blob/master/.travis.yml
 before_install:

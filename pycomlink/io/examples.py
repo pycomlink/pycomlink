@@ -5,8 +5,7 @@ from pycomlink.io.cmlh5 import read_from_cmlh5
 
 
 def get_example_data_path():
-    return pkg_resources.resource_filename('pycomlink',
-                                           '../notebooks/example_data')
+    return pkg_resources.resource_filename('pycomlink', 'io/example_data')
 
 
 def read_one_cml():

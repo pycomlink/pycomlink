@@ -223,14 +223,14 @@ def _parse_kwargs_to_dataframe(data, t, rx, tx):
         if isinstance(data, pd.DataFrame):
             # `data` is what we want, so return it
             df = data
-            try:
-                df.tx
-            except AttributeError:
-                raise AttributeError('DataFrame `data` must have a column `tx`')
-            try:
-                df.rx
-            except AttributeError:
-                raise AttributeError('DataFrame `data` must have a column `tx`')
+            #try:
+            #    df.tx
+            #except AttributeError:
+            #    raise AttributeError('DataFrame `data` must have a column `tx`')
+            #try:
+            #    df.rx
+            #except AttributeError:
+            #    raise AttributeError('DataFrame `data` must have a column `tx`')
         else:
             raise ValueError('type of `data` is %s, '
                              'but must be pandas.DataFrame' % type(data))
@@ -238,6 +238,6 @@ def _parse_kwargs_to_dataframe(data, t, rx, tx):
     else:
         raise ValueError('Could not parse the supplied arguments')
 
-    df['txrx'] = df.tx - df.rx
+    #df['txrx'] = df.tx - df.rx
     df.index.name = 'time'
     return df

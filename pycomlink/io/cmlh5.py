@@ -45,12 +45,24 @@ cml_ch_metadata_dict = {
 }
 
 cml_ch_data_names_dict = {
-    'rx': {'mandatory': True,
+    'rx': {'mandatory': False,
            'quantity': 'Received signal level',
            'units': 'dBm'},
     'tx': {'mandatory': False,
            'quantity': 'Trasmitted signal level',
            'units': 'dBm'},
+    'rx_min': {'mandatory': False,
+           'quantity': 'Minimum received signal level',
+           'units': 'dBm'},
+    'rx_max': {'mandatory': False,
+               'quantity': 'Maximum received signal level',
+               'units': 'dBm'},
+    'tx_min': {'mandatory': False,
+           'quantity': 'Minimum trasmitted signal level',
+           'units': 'dBm'},
+    'tx_max': {'mandatory': False,
+               'quantity': 'Maximum trasmitted signal level',
+               'units': 'dBm'},
     'time': {'mandatory': True,
              'quantity': 'Timestamp',
              'units': 'seconds since 1970-01-01 00:00:00',
@@ -305,30 +317,34 @@ def _write_channel_data(chan_g,
 
     # write variables
     for name, attrs in _cml_ch_data_names_dict.items():
-        if name == 'time':
+        if name in cml_ch.data.columns:
+            if name == 'time':
 
-            # Transform the pandas (np.datetime64) which is in ns to seconds
-            t_vec = ts_t.astype('int64') / 1e9
-            chan_g.create_dataset(name,
-                                  data=t_vec[t_slice_ix],
-                                  compression=compression,
-                                  compression_opts=compression_opts)
+                # Transform the pandas (np.datetime64) which is in ns to seconds
+                t_vec = ts_t.astype('int64') / 1e9
+                chan_g.create_dataset(name,
+                                      data=t_vec[t_slice_ix],
+                                      compression=compression,
+                                      compression_opts=compression_opts)
+            else:
+                chan_g.create_dataset(name,
+                                      data=cml_ch.data[name].values[t_slice_ix],
+                                      compression=compression,
+                                      compression_opts=compression_opts)
+
+            for attr_name, attr_value in attrs.items():
+                chan_g[name].attrs[attr_name] = attr_value
         else:
-            chan_g.create_dataset(name,
-                                  data=cml_ch.data[name].values[t_slice_ix],
-                                  compression=compression,
-                                  compression_opts=compression_opts)
-
-        for attr_name, attr_value in attrs.items():
-            chan_g[name].attrs[attr_name] = attr_value
+            print('`%s` not found in ComlinkChannel.data.columns' % name)
 
     # Create time scale
     chan_g['time'].dims.create_scale(chan_g['time'], 'time')
 
     # Link all other datasets to the time scale
     for name in list(_cml_ch_data_names_dict.keys()):
-        if not name == 'time':
-            chan_g[name].dims[0].attach_scale(chan_g['time'])
+        if name in cml_ch.data.columns:
+            if not name == 'time':
+                chan_g[name].dims[0].attach_scale(chan_g['time'])
 
 
 def _write_product(prod_g, cml,
@@ -551,7 +567,10 @@ def _read_cml_channel_data(cml_ch_g):
 
     data_dict = {}
     for name, attrs in cml_ch_data_names_dict.items():
-        data_dict[name] = cml_ch_g[name]
+        try:
+            data_dict[name] = cml_ch_g[name]
+        except:
+            print('`%s` not in cml_ch_g' % name)
 
     # Time is stored in seconds since epoch and is represented in pandas by
     # np.datetime64 in nanoseconds

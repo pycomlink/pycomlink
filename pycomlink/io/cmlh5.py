@@ -44,29 +44,37 @@ cml_ch_metadata_dict = {
              'options': ['on', 'off']}
 }
 
-cml_ch_data_names_dict = {
+cml_ch_time_dict = {
+    'mandatory': True,
+    'quantity': 'Timestamp',
+    'units': 'seconds since 1970-01-01 00:00:00',
+    'calendar': 'proleptic_gregorian'
+}
+
+cml_ch_data_names_dict_tx_rx = {
     'rx': {'mandatory': False,
            'quantity': 'Received signal level',
            'units': 'dBm'},
     'tx': {'mandatory': False,
            'quantity': 'Trasmitted signal level',
            'units': 'dBm'},
+    'time': cml_ch_time_dict
+}
+
+cml_ch_data_names_dict_tx_rx_min_max = {
     'rx_min': {'mandatory': False,
-           'quantity': 'Minimum received signal level',
-           'units': 'dBm'},
+               'quantity': 'Minimum received signal level',
+               'units': 'dBm'},
     'rx_max': {'mandatory': False,
                'quantity': 'Maximum received signal level',
                'units': 'dBm'},
     'tx_min': {'mandatory': False,
-           'quantity': 'Minimum trasmitted signal level',
-           'units': 'dBm'},
+               'quantity': 'Minimum trasmitted signal level',
+               'units': 'dBm'},
     'tx_max': {'mandatory': False,
                'quantity': 'Maximum trasmitted signal level',
                'units': 'dBm'},
-    'time': {'mandatory': True,
-             'quantity': 'Timestamp',
-             'units': 'seconds since 1970-01-01 00:00:00',
-             'calendar': 'proleptic_gregorian'}
+    'time': cml_ch_time_dict
 }
 
 
@@ -76,6 +84,7 @@ cml_ch_data_names_dict = {
 
 def write_to_cmlh5(cml_list, fn,
                    t_start=None, t_stop=None,
+                   column_names_to_write=None,
                    split_to_multiple_files=False, splitting_period='D',
                    append_date_str_to_fn='_%Y%m%d',
                    write_all_data=False,
@@ -89,6 +98,7 @@ def write_to_cmlh5(cml_list, fn,
     fn
     t_start
     t_stop
+    column_names_to_write
     split_to_multiple_files
     splitting_period
     append_date_str_to_fn
@@ -194,14 +204,16 @@ def write_to_cmlh5(cml_list, fn,
                     cml_ch = cml.channels[channel_id]
                     chan_g = cml_g.create_group('channel_%d' % (i_channel + 1))
                     _write_channel_attributes(chan_g, cml_ch)
-                    _write_channel_data(chan_g=chan_g,
-                                        cml_ch=cml_ch,
-                                        t_start=t_in_file_start,
-                                        t_stop=t_in_file_stop,
-                                        include_t_stop=include_t_stop_in_file,
-                                        compression=compression,
-                                        compression_opts=compression_opts,
-                                        write_all_data=write_all_data)
+                    _write_channel_data(
+                        chan_g=chan_g,
+                        cml_ch=cml_ch,
+                        t_start=t_in_file_start,
+                        t_stop=t_in_file_stop,
+                        column_names_to_write=column_names_to_write,
+                        include_t_stop=include_t_stop_in_file,
+                        compression=compression,
+                        compression_opts=compression_opts,
+                        write_all_data=write_all_data)
 
                 # Write CML derived products like rain rate for each CML
                 if product_keys is not None:
@@ -271,6 +283,7 @@ def _write_channel_data(chan_g,
                         cml_ch,
                         t_start,
                         t_stop,
+                        column_names_to_write,
                         compression,
                         compression_opts,
                         include_t_stop=True,
@@ -283,6 +296,7 @@ def _write_channel_data(chan_g,
     cml_ch
     t_start
     t_stop
+    column_names_to_write
     compression
     compression_opts
     include_t_stop
@@ -293,19 +307,44 @@ def _write_channel_data(chan_g,
 
     """
 
-    if write_all_data:
-        # If all channel data shall be written, build a dict with the
-        # columns names and additional metadata. Start with the dict
-        # with the default channel data definition
-        _cml_ch_data_names_dict = deepcopy(cml_ch_data_names_dict)
-        # Attach all other column names of the channel's DataFrame
+    # Build a dictionary with the info for the standard data that is to be
+    # written to a cmlh5 file, i.e. `tx` and `rx`, or `rx_min`, `rx_max`,...
+    _cml_ch_data_names_dict = {'time': cml_ch_time_dict}
+    for column_name in cml_ch.data.columns:
+        try:
+            _cml_ch_data_names_dict[column_name] = (
+                cml_ch_data_names_dict_tx_rx[column_name])
+        except KeyError:
+            pass
+        try:
+            _cml_ch_data_names_dict[column_name] = (
+                cml_ch_data_names_dict_tx_rx_min_max[column_name])
+        except KeyError:
+            pass
+
+    if (write_all_data is False) and (column_names_to_write is None):
+        pass
+    # If desired, add the rest of the columns, but without specific info
+    # on the data like units or a descriptive name
+    elif (write_all_data is True) and (column_names_to_write is None):
         for column_name in cml_ch.data.columns:
-            if not column_name in list(_cml_ch_data_names_dict.keys()):
+            if column_name not in list(_cml_ch_data_names_dict.keys()):
                 _cml_ch_data_names_dict[column_name] = {}
+    # Or add additional columns according to the info passed as argument
+    elif (write_all_data is False) and (column_names_to_write is not None):
+        if isinstance(column_names_to_write, dict):
+            for key, value in column_names_to_write.iteritems():
+                _cml_ch_data_names_dict[key] = value
+        elif isinstance(column_names_to_write, list):
+            for column_name in column_names_to_write:
+                _cml_ch_data_names_dict[column_name] = {}
+        else:
+            raise AttributeError('`column_names_to_write` must be either a list'
+                                 'or a dict')
     else:
-        # If only standard data shall be written use the dict defined on top
-        # of this file
-        _cml_ch_data_names_dict = cml_ch_data_names_dict
+        raise AttributeError('`write_all_data cannot be True if '
+                             '`columns_names_to_write` is provided '
+                             'and not None')
 
     # Get the time index in UTC
     ts_t = cml_ch.data.index.tz_convert('UTC')
@@ -317,25 +356,23 @@ def _write_channel_data(chan_g,
 
     # write variables
     for name, attrs in _cml_ch_data_names_dict.items():
-        if name in cml_ch.data.columns:
-            if name == 'time':
-
-                # Transform the pandas (np.datetime64) which is in ns to seconds
-                t_vec = ts_t.astype('int64') / 1e9
-                chan_g.create_dataset(name,
-                                      data=t_vec[t_slice_ix],
-                                      compression=compression,
-                                      compression_opts=compression_opts)
-            else:
-                chan_g.create_dataset(name,
-                                      data=cml_ch.data[name].values[t_slice_ix],
-                                      compression=compression,
-                                      compression_opts=compression_opts)
-
-            for attr_name, attr_value in attrs.items():
-                chan_g[name].attrs[attr_name] = attr_value
+        if name == 'time':
+            # Transform the pandas (np.datetime64) which is in ns to seconds
+            t_vec = ts_t.astype('int64') / 1e9
+            chan_g.create_dataset(name,
+                                  data=t_vec[t_slice_ix],
+                                  compression=compression,
+                                  compression_opts=compression_opts)
+        elif name in cml_ch.data.columns:
+            chan_g.create_dataset(name,
+                                  data=cml_ch.data[name].values[t_slice_ix],
+                                  compression=compression,
+                                  compression_opts=compression_opts)
         else:
             print('`%s` not found in ComlinkChannel.data.columns' % name)
+
+        for attr_name, attr_value in attrs.items():
+            chan_g[name].attrs[attr_name] = attr_value
 
     # Create time scale
     chan_g['time'].dims.create_scale(chan_g['time'], 'time')
@@ -415,7 +452,9 @@ def _missing_attribute(attr_type):
 def read_from_cmlh5(fn,
                     cml_id_list=None,
                     t_start=None,
-                    t_stop=None):
+                    t_stop=None,
+                    column_names_to_read=None,
+                    read_all_data=False):
     """
 
     Parameters
@@ -424,6 +463,8 @@ def read_from_cmlh5(fn,
     cml_id_list
     t_start
     t_stop
+    column_names_to_read
+    read_all_data
 
     Returns
     -------
@@ -433,8 +474,14 @@ def read_from_cmlh5(fn,
     cml_list = []
     for cml_g_name in h5_reader['/']:
         cml_g = h5_reader['/' + cml_g_name]
-        cml = _read_one_cml(cml_g)
-        cml_list.append(cml)
+        cml = _read_one_cml(cml_g=cml_g,
+                            cml_id_list=cml_id_list,
+                            t_start=t_start,
+                            t_stop=t_stop,
+                            column_names_to_read=column_names_to_read,
+                            read_all_data=read_all_data)
+        if cml is not None:
+            cml_list.append(cml)
     print('%d CMLs read in' % len(cml_list))
     return cml_list
 
@@ -509,18 +556,43 @@ def read_from_multiple_cmlh5(fn_list,
     return list(cml_dict.values())
 
 
-def _read_one_cml(cml_g):
+def _read_one_cml(cml_g,
+                  cml_id_list=None,
+                  t_start=None,
+                  t_stop=None,
+                  column_names_to_read=None,
+                  read_all_data=False):
     """
 
-    @param cml_g:
-    @return:
+    Parameters
+    ----------
+    cml_g
+    cml_id_list
+    t_start
+    t_stop
+    column_names_to_read
+    read_all_data
+
+    Returns
+    -------
+
     """
     metadata = _read_cml_metadata(cml_g)
+
+    if cml_id_list is not None:
+        if metadata['cml_id'] not in cml_id_list:
+            return None
 
     cml_ch_list = []
     for cml_ch_name, cml_ch_g in list(cml_g.items()):
         if 'channel_' in cml_ch_name:
-            cml_ch_list.append(_read_cml_channel(cml_ch_g))
+            cml_ch_list.append(
+                _read_cml_channel(
+                    cml_ch_g=cml_ch_g,
+                    t_start=t_start,
+                    t_stop=t_stop,
+                    column_names_to_read=column_names_to_read,
+                    read_all_data=read_all_data))
 
     # TODO: Handle `auxiliary_N` and `product_N` cml_g-subgroups
 
@@ -557,16 +629,45 @@ def _read_cml_channel_metadata(cml_ch_g):
     return metadata
 
 
-def _read_cml_channel_data(cml_ch_g):
+def _read_cml_channel_data(cml_ch_g,
+                           t_start=None,
+                           t_stop=None,
+                           column_names_to_read=None,
+                           read_all_data=None):
     """
 
-    @param cml_ch_g:
-    @return:
+    Parameters
+    ----------
+    cml_ch_g
+    t_start
+    t_stop
+    column_names_to_read
+    read_all_data
+
+    Returns
+    -------
 
     """
+
+    if (read_all_data is False) and (column_names_to_read is None):
+        _cml_ch_data_names_list = list(set(
+            cml_ch_data_names_dict_tx_rx.keys() +
+            cml_ch_data_names_dict_tx_rx_min_max.keys()))
+    elif (read_all_data is True) and (column_names_to_read is None):
+        _cml_ch_data_names_list = cml_ch_g.keys()
+    elif (read_all_data is False) and (column_names_to_read is not None):
+        if isinstance(column_names_to_read, list):
+            _cml_ch_data_names_list = column_names_to_read
+        else:
+            raise AttributeError('`column_names_to_write` must be either a list'
+                                 'or a dict')
+    else:
+        raise AttributeError('`read_all_data cannot be True if '
+                             '`columns_names_to_read` is provided '
+                             'and not None')
 
     data_dict = {}
-    for name, attrs in cml_ch_data_names_dict.items():
+    for name in _cml_ch_data_names_list:
         try:
             data_dict[name] = cml_ch_g[name]
         except:
@@ -584,14 +685,32 @@ def _read_cml_channel_data(cml_ch_g):
     return df
 
 
-def _read_cml_channel(cml_ch_g):
+def _read_cml_channel(cml_ch_g,
+                      t_start=None,
+                      t_stop=None,
+                      column_names_to_read=None,
+                      read_all_data=None):
     """
 
-    @param cml_ch_g:
-    @return:
+    Parameters
+    ----------
+    cml_ch_g
+    t_start
+    t_stop
+    column_names_to_read
+    read_all_data
+
+    Returns
+    -------
+
     """
-    metadata = _read_cml_channel_metadata(cml_ch_g)
-    df = _read_cml_channel_data(cml_ch_g)
+    metadata = _read_cml_channel_metadata(cml_ch_g=cml_ch_g)
+    df = _read_cml_channel_data(
+        cml_ch_g=cml_ch_g,
+        t_start=t_start,
+        t_stop=t_stop,
+        column_names_to_read=column_names_to_read,
+        read_all_data=read_all_data)
     return ComlinkChannel(data=df, metadata=metadata)
 
 

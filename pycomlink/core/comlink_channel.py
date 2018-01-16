@@ -238,6 +238,16 @@ def _parse_kwargs_to_dataframe(data, t, rx, tx):
     else:
         raise ValueError('Could not parse the supplied arguments')
 
-    #df['txrx'] = df.tx - df.rx
+    # Quick fix to make this work for instantaneous and min-max data
+    try:
+        df['txrx'] = df.tx - df.rx
+    except AttributeError:
+        pass
+    try:
+        df['txrx_max'] = df.tx_max - df.rx_min
+        df['txrx_min'] = df.tx_min = df.rx_max
+    except AttributeError:
+        pass
+
     df.index.name = 'time'
     return df

@@ -651,10 +651,10 @@ def _read_cml_channel_data(cml_ch_g,
 
     if (read_all_data is False) and (column_names_to_read is None):
         _cml_ch_data_names_list = list(set(
-            cml_ch_data_names_dict_tx_rx.keys() +
-            cml_ch_data_names_dict_tx_rx_min_max.keys()))
+            list(cml_ch_data_names_dict_tx_rx.keys()) +
+            list(cml_ch_data_names_dict_tx_rx_min_max.keys())))
     elif (read_all_data is True) and (column_names_to_read is None):
-        _cml_ch_data_names_list = cml_ch_g.keys()
+        _cml_ch_data_names_list = list(cml_ch_g.keys())
     elif (read_all_data is False) and (column_names_to_read is not None):
         if isinstance(column_names_to_read, list):
             _cml_ch_data_names_list = column_names_to_read

@@ -9,7 +9,14 @@ Enhancements
 
 * Codebase is Python 3 now, keeping backwards compatibility to Python 2.7
   via using the `future` module.
-
+* min-max CML data can now be written to and read from cmlh5. Standard column
+  names are `tx_min`, `tx_max`, `rx_min` and `rx_max`. When reading from cmlh5
+  without specifying dedicated column names, the function tries out the
+  standard column names for min-max and instantaneous. If it does not find any
+  match it will print an error message.
+* Added example file with min-max data for 75 CMLs. This dataset is derived
+  from the existing example dataset of 75 CMLs with instantaneous measurements.
+* Added example notebook comparing min-max and instantaneous CML data
 
 v0.2.1
 ------

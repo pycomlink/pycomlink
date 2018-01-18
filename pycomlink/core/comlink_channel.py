@@ -223,14 +223,14 @@ def _parse_kwargs_to_dataframe(data, t, rx, tx):
         if isinstance(data, pd.DataFrame):
             # `data` is what we want, so return it
             df = data
-            try:
-                df.tx
-            except AttributeError:
-                raise AttributeError('DataFrame `data` must have a column `tx`')
-            try:
-                df.rx
-            except AttributeError:
-                raise AttributeError('DataFrame `data` must have a column `tx`')
+            #try:
+            #    df.tx
+            #except AttributeError:
+            #    raise AttributeError('DataFrame `data` must have a column `tx`')
+            #try:
+            #    df.rx
+            #except AttributeError:
+            #    raise AttributeError('DataFrame `data` must have a column `tx`')
         else:
             raise ValueError('type of `data` is %s, '
                              'but must be pandas.DataFrame' % type(data))
@@ -238,6 +238,16 @@ def _parse_kwargs_to_dataframe(data, t, rx, tx):
     else:
         raise ValueError('Could not parse the supplied arguments')
 
-    df['txrx'] = df.tx - df.rx
+    # Quick fix to make this work for instantaneous and min-max data
+    try:
+        df['txrx'] = df.tx - df.rx
+    except AttributeError:
+        pass
+    try:
+        df['txrx_max'] = df.tx_max - df.rx_min
+        df['txrx_min'] = df.tx_min - df.rx_max
+    except AttributeError:
+        pass
+
     df.index.name = 'time'
     return df

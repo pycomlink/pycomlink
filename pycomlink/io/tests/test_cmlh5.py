@@ -8,10 +8,8 @@ import pandas as pd
 
 import pycomlink as pycml
 
-cml = pycml.io.examples.read_one_cml()
-cml2 = pycml.io.examples.read_one_cml()
-cml2.metadata['cml_id'] = 'cml_foo'
-cml2.channel_1.metadata['frequency'] = 42.42e9
+cml_list_instantaneous = pycml.io.examples.get_75_cmls()[0:11]
+cml_list_min_max = pycml.io.examples.get_75_cmls_min_max()[0:11]
 
 
 class TemporaryDirectory(object):
@@ -29,7 +27,12 @@ class TemporaryDirectory(object):
 
 # Round trip testing for cmlh5 write/read
 class TestRoundTripCmlh5(unittest.TestCase):
+    def setUp(self):
+        self.cml_list = cml_list_instantaneous
+
     def testWithOneFileOneCml(self):
+        cml = self.cml_list[0]
+
         with TemporaryDirectory() as temp_dir:
             temp_fn = os.path.join(temp_dir, 'test_cmlh5.h5')
             pycml.io.write_to_cmlh5([cml, ], fn=temp_fn)
@@ -44,47 +47,44 @@ class TestRoundTripCmlh5(unittest.TestCase):
                     cml.channels[ch_name].data,
                     cml_loaded.channels[ch_name].data)
 
-    def testWithOneFileTwoCmls(self):
+    def testWithOneFileThreeCmls(self):
+        cml_list = self.cml_list
         with TemporaryDirectory() as temp_dir:
             temp_fn = os.path.join(temp_dir, 'test_cmlh5.h5')
-            pycml.io.write_to_cmlh5([cml, cml2], fn=temp_fn)
+            pycml.io.write_to_cmlh5(cml_list, fn=temp_fn)
 
-            cml_loaded, cml2_loaded = pycml.io.read_from_cmlh5(fn=temp_fn)
+            cml_list_loaded = pycml.io.read_from_cmlh5(fn=temp_fn)
 
-            assert(cml.metadata['cml_id'] == cml_loaded.metadata['cml_id'])
-            assert(cml2.metadata['cml_id'] == cml2_loaded.metadata['cml_id'])
-            for ch_name in cml.channels.keys():
-                pd.util.testing.assert_frame_equal(
-                    cml.channels[ch_name].data,
-                    cml_loaded.channels[ch_name].data)
-            for ch_name in cml_loaded.channels.keys():
-                pd.util.testing.assert_frame_equal(
-                    cml2.channels[ch_name].data,
-                    cml2_loaded.channels[ch_name].data)
+            for cml, cml_loaded in zip(cml_list, cml_list_loaded):
+                assert(cml.metadata['cml_id'] == cml_loaded.metadata['cml_id'])
+                for ch_name in cml.channels.keys():
+                    pd.util.testing.assert_frame_equal(
+                        cml.channels[ch_name].data,
+                        cml_loaded.channels[ch_name].data)
 
     def testWithMultiFilesTwoCmls(self):
+        cml_list = self.cml_list
         with TemporaryDirectory() as temp_dir:
             temp_fn = os.path.join(temp_dir, 'test_cmlh5.h5')
-            pycml.io.write_to_cmlh5([cml, cml2],
+            pycml.io.write_to_cmlh5(cml_list,
                                     fn=temp_fn,
                                     splitting_period='D',
                                     split_to_multiple_files=True)
 
             temp_fn_list = glob(temp_fn.split('.')[0] + '*')
             assert(len(temp_fn_list) ==
-                   len(cml.channel_1.data.resample('D').mean().index))
-            cml_loaded, cml2_loaded = pycml.io.cmlh5.read_from_multiple_cmlh5(
+                   len(cml_list[0].channel_1.data.resample('D').mean().index))
+            cml_list_loaded = pycml.io.cmlh5.read_from_multiple_cmlh5(
                 fn_list=temp_fn_list)
 
-            assert(cml.metadata['cml_id'] == cml_loaded.metadata['cml_id'])
-            assert(cml2.metadata['cml_id'] == cml2_loaded.metadata['cml_id'])
-            for ch_name in cml.channels.keys():
-                pd.util.testing.assert_frame_equal(
-                    cml.channels[ch_name].data,
-                    cml_loaded.channels[ch_name].data)
-            for ch_name in cml_loaded.channels.keys():
-                pd.util.testing.assert_frame_equal(
-                    cml2.channels[ch_name].data,
-                    cml2_loaded.channels[ch_name].data)
+            for cml, cml_loaded in zip(cml_list, cml_list_loaded):
+                assert(cml.metadata['cml_id'] == cml_loaded.metadata['cml_id'])
+                for ch_name in cml.channels.keys():
+                    pd.util.testing.assert_frame_equal(
+                        cml.channels[ch_name].data,
+                        cml_loaded.channels[ch_name].data)
 
 
+class TestRoundTripCmlh5MinMax(TestRoundTripCmlh5):
+    def setUp(self):
+        self.cml_list = cml_list_min_max

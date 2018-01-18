@@ -670,8 +670,11 @@ def _read_cml_channel_data(cml_ch_g,
     for name in _cml_ch_data_names_list:
         try:
             data_dict[name] = cml_ch_g[name]
-        except:
-            print('`%s` not in cml_ch_g' % name)
+        except KeyError:
+            pass
+    if len(list(data_dict.keys())) == 0:
+        print('Warning: No dataset matching the column names %s '
+              'found in cml_ch_g' % str(_cml_ch_data_names_list))
 
     # Time is stored in seconds since epoch and is represented in pandas by
     # np.datetime64 in nanoseconds

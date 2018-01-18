@@ -245,7 +245,7 @@ def _parse_kwargs_to_dataframe(data, t, rx, tx):
         pass
     try:
         df['txrx_max'] = df.tx_max - df.rx_min
-        df['txrx_min'] = df.tx_min = df.rx_max
+        df['txrx_min'] = df.tx_min - df.rx_max
     except AttributeError:
         pass
 

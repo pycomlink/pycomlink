@@ -195,7 +195,7 @@ def write_to_cmlh5(cml_list, fn,
 
             for i_cml, cml in enumerate(cml_list):
                 # Create CML HDF5 group
-                cml_g = h5file.create_group('cml_%d' % i_cml)
+                cml_g = h5file.create_group(cml.metadata['cml_id'])
                 # Write CML attributes
                 _write_cml_attributes(cml_g, cml)
 

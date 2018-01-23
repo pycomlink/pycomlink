@@ -97,12 +97,16 @@ class Baseline(object):
                                         ['txrx', 'baseline', 'wet'],
                                         'baseline')
 
-    # TODO: Integarte this somewhere else, since this
-    #       sould be carried out after every baseline determination
-    def calc_A(self):
-        for ch_name, cml_ch in self._cml.channels.items():
-            cml_ch.data['A'] = cml_ch.data['txrx'] - cml_ch.data['baseline']
-        return self._cml
+        self.calc_A = cml_wrapper(cml,
+                                  _calc_A,
+                                  ['txrx', 'baseline'],
+                                  'A')
+
+
+# TODO: Integarte this somewhere else, since this
+#       sould be carried out after every baseline determination
+def _calc_A(txrx, baseline):
+    return txrx - baseline
 
 
 class A_R(object):
@@ -128,6 +132,9 @@ def cml_wrapper(cml, func,
         else:
             vars_in_list = vars_in
 
+        t_start = kwargs.pop('t_start', None)
+        t_stop = kwargs.pop('t_start', None)
+
         # Iterate over channels
         args_initial = deepcopy(args)
         for name, cml_ch in cml.channels.items():
@@ -136,7 +143,18 @@ def cml_wrapper(cml, func,
 
             # Go through list in reverse to have the correct order
             for var_in in reversed(vars_in_list):
-                args.insert(0, cml_ch.data[var_in].values)
+                if (t_start is not None) and (t_stop is not None):
+                    t_ix = ((cml_ch.data.index > t_start) &
+                            (cml_ch.data.index < t_stop))
+                elif t_start is not None:
+                    t_ix = cml_ch.data.index > t_start
+                elif t_stop is not None:
+                    t_ix = cml_ch.data.index < t_stop
+
+                if (t_start is not None) or (t_stop is not None):
+                    args.insert(0, cml_ch.data.loc[t_ix, var_in].values)
+                else:
+                    args.insert(0, cml_ch.data.loc[:, var_in].values)
 
             # Add additional kwargs
             for k, v in additional_kwargs.items():
@@ -156,7 +174,11 @@ def cml_wrapper(cml, func,
                     cml_ch.intermediate_results[key] = value
             else:
                 ts = temp
-            cml_ch.data[var_out] = ts
+
+            if (t_start is not None) or (t_stop is not None):
+                cml_ch.data.loc[t_ix, var_out] = ts
+            else:
+                cml_ch.data.loc[:, var_out] = ts
         
         return cml
     return func_wrapper

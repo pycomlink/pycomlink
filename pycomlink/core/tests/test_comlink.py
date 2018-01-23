@@ -7,9 +7,9 @@ import numpy as np
 import pandas as pd
 
 from pycomlink.core import ComlinkChannel, Comlink
+from test_comlink_channel import assert_comlink_channel_equal
 
-
-t_date_range = pd.date_range(start='2015-01-01', periods=200, freq='min')
+t_date_range = pd.date_range(start='2015-01-01', periods=500, freq='min')
 t_list = [str(date) for date in t_date_range]
 rx_list = list(np.sin(np.linspace(0, 10, len(t_list))))
 tx_list = list(np.cos(np.linspace(0, 10, len(t_list))))
@@ -75,6 +75,30 @@ class TestComlinkCopy(unittest.TestCase):
         assert('wet' not in cml.channel_1.columns)
 
 
+class TestComlinkChannelAppendData(unittest.TestCase):
+    def test_append_no_kwargs(self):
+        cml_full = generate_standard_cml()
+        cml_shortened = generate_standard_cml()
+        for cml_ch in cml_shortened.channels.values():
+            cml_ch.data = cml_ch.data.iloc[:100, :]
+        cml_rest_of_data = generate_standard_cml()
+        for cml_ch in cml_rest_of_data.channels.values():
+            cml_ch.data = cml_ch.data.iloc[100:, :]
+
+        cml_shortened.append_data(cml_rest_of_data)
+
+        assert_comlink_equal(cml_shortened, cml_full)
+
+    def test_append_wrong_cml(self):
+        cml = generate_standard_cml()
+        cml_wrong = generate_standard_cml()
+        cml_wrong.metadata['cml_id'] = 'Wrong_CML_ID'
+
+        self.assertRaises(ValueError,
+                          cml.append_data,
+                          cml_wrong)
+
+
 def generate_standard_cml():
     cml = Comlink(channels=deepcopy(cml_ch),
                   metadata={'site_a_latitude': 44.1,
@@ -86,5 +110,10 @@ def generate_standard_cml():
 
 
 def assert_comlink_equal(cml_1, cml_2):
-    pass
+    for key in cml_1.metadata.keys():
+        assert(cml_1.metadata[key] == cml_2.metadata[key])
+
+    for ch_name in cml_1.channels.keys():
+        assert_comlink_channel_equal(cml_1.channels[ch_name],
+                                     cml_2.channels[ch_name])
 

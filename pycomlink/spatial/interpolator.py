@@ -130,7 +130,13 @@ class ComlinkGridInterpolator(object):
                  xgrid=None,
                  ygrid=None,
                  resolution=None,
-                 interpolator=IdwKdtreeInterpolator()):
+                 interpolator=IdwKdtreeInterpolator(),
+                 resample_to='H',
+                 resample_label='right',
+                 variable='R',
+                 channels=['channel_1'],
+                 aggregation_func=np.mean,
+                 apply_factor=1):
 
         self.lons, self.lats = get_lon_lat_list_from_cml_list(cml_list)
         # Later some coordinate transformations can be added here
@@ -138,7 +144,15 @@ class ComlinkGridInterpolator(object):
         self.y = self.lats
 
         # TODO: Forward arguments to select aggregation type and frequency
-        self.df_cmls = get_dataframe_for_cml_variable(cml_list)
+        self.df_cmls = get_dataframe_for_cml_variable(
+            cml_list,
+            resample_to=resample_to,
+            resample_label=resample_label,
+            variable=variable,
+            channels=channels,
+            aggregation_func=aggregation_func,
+            apply_factor=apply_factor)
+
         self._interpolator = interpolator
         self.resolution = resolution
 

@@ -79,10 +79,10 @@ class TestComlinkChannelAppendData(unittest.TestCase):
     def test_append_no_kwargs(self):
         cml_full = generate_standard_cml()
         cml_shortened = generate_standard_cml()
-        for cml_ch in cml_shortened.channels.itervalues():
+        for cml_ch in cml_shortened.channels.values():
             cml_ch.data = cml_ch.data.iloc[:100, :]
         cml_rest_of_data = generate_standard_cml()
-        for cml_ch in cml_rest_of_data.channels.itervalues():
+        for cml_ch in cml_rest_of_data.channels.values():
             cml_ch.data = cml_ch.data.iloc[100:, :]
 
         cml_shortened.append_data(cml_rest_of_data)
@@ -110,10 +110,10 @@ def generate_standard_cml():
 
 
 def assert_comlink_equal(cml_1, cml_2):
-    for key in cml_1.metadata.iterkeys():
+    for key in cml_1.metadata.keys():
         assert(cml_1.metadata[key] == cml_2.metadata[key])
 
-    for ch_name in cml_1.channels.iterkeys():
+    for ch_name in cml_1.channels.keys():
         assert_comlink_channel_equal(cml_1.channels[ch_name],
                                      cml_2.channels[ch_name])
 

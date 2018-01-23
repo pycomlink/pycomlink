@@ -194,7 +194,6 @@ class TestComlinkChannelAppendData(unittest.TestCase):
                            (df.index[-1] - pd.Timedelta('60min')), :]))
         assert(cml_ch_shortened.data.index[-1] == df.index[-1])
 
-
     def test_append_wrong_cml_ch(self):
         df = pd.DataFrame(index=t_date_range,
                           data={'rx': rx_list,

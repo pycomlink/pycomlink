@@ -204,7 +204,7 @@ class ComlinkChannel(object):
 
         """
 
-        for key in self.metadata.iterkeys():
+        for key in self.metadata.keys():
             if self.metadata[key] != cml_ch.metadata[key]:
                 raise ValueError('ComlinkChannel metadata `%s` is different'
                                  'for the two channels: %s vs. %s' %

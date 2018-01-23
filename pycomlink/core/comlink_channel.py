@@ -190,24 +190,40 @@ class ComlinkChannel(object):
         else:
             raise ValueError('`inplace` must be either True or False')
 
-    def append_data(self, cml_ch):
+    def append_data(self, cml_ch, max_length=None, max_age=None):
         """ Append data to the current channel
 
         Parameters
         ----------
         cml_ch
+        max_length
+        max_age
 
         Returns
         -------
 
         """
 
-        if self.metadata['channel_id'] != cml_ch.metadata['channel_id']:
-            raise ValueError('The `channel_id` must be the same.')
+        for key in self.metadata.iterkeys():
+            if self.metadata[key] != cml_ch.metadata[key]:
+                raise ValueError('ComlinkChannel metadata `%s` is different'
+                                 'for the two channels: %s vs. %s' %
+                                 (key,
+                                  self.metadata[key],
+                                  cml_ch.metadata[key]))
 
         self.data = self.data.append(cml_ch.data)
         self.data = self.data[~self.data.index.duplicated(keep='first')]
         self.data = self.data.sort_index()
+
+        if max_length is not None:
+            if max_length < len(self.data):
+                self.data = self.data.iloc[-max_length:, :]
+
+        if max_age is not None:
+            min_allowed_timestamp = (self.data.index[-1] -
+                                     pd.Timedelta(max_age))
+            self.data = self.data.loc[self.data.index > min_allowed_timestamp]
 
 
 def _parse_kwargs_to_dataframe(data, t, rx, tx):

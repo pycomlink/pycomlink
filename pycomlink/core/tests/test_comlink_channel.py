@@ -8,7 +8,7 @@ import pandas as pd
 from pycomlink.core import ComlinkChannel
 
 
-t_date_range = pd.date_range(start='2015-01-01', periods=20, freq='min')
+t_date_range = pd.date_range(start='2015-01-01', periods=500, freq='min')
 t_list = [str(date) for date in t_date_range]
 rx_list = list(np.sin(np.linspace(0, 10, len(t_list))))
 tx_list = list(np.cos(np.linspace(0, 10, len(t_list))))
@@ -146,6 +146,67 @@ class TestComlinkChannelTypeAfterManipulation(unittest.TestCase):
         assert(type(cml_ch_5min_inplace_true) == ComlinkChannel)
         assert_comlink_channel_equal(cml_ch_5min_inplace_true,
                                      cml_ch_5min)
+
+
+class TestComlinkChannelAppendData(unittest.TestCase):
+    def test_append_no_kwargs(self):
+        df = pd.DataFrame(index=t_date_range,
+                          data={'rx': rx_list,
+                                'tx': tx_list})
+        cml_ch_full = ComlinkChannel(data=df, frequency=f)
+        cml_ch_shortened = ComlinkChannel(data=df.iloc[:100, :], frequency=f)
+        cml_ch_rest_of_data = ComlinkChannel(data=df.iloc[100:, :], frequency=f)
+
+        assert(len(cml_ch_full.data) == len(t_date_range))
+        assert(len(cml_ch_shortened.data) == len(t_date_range[:100]))
+        assert(len(cml_ch_rest_of_data.data) == len(t_date_range[100:]))
+
+        cml_ch_shortened.append_data(cml_ch_rest_of_data)
+
+        assert_comlink_channel_equal(cml_ch_shortened, cml_ch_full)
+
+    def test_append_max_length(self):
+        df = pd.DataFrame(index=t_date_range,
+                          data={'rx': rx_list,
+                                'tx': tx_list})
+        cml_ch_shortened = ComlinkChannel(data=df.iloc[:100, :], frequency=f)
+        cml_ch_rest_of_data = ComlinkChannel(data=df.iloc[100:, :], frequency=f)
+
+        cml_ch_shortened.append_data(cml_ch_rest_of_data, max_length=10)
+
+        assert(len(cml_ch_shortened.data) == 10)
+        assert(cml_ch_shortened.data.index[-1] == df.index[-1])
+        assert(cml_ch_shortened.data.index[0] == df.index[-10])
+        assert(cml_ch_shortened.data.tx[-1] == df.tx[-1])
+        assert(cml_ch_shortened.data.tx[0] == df.tx[-10])
+
+    def test_append_max_age(self):
+        df = pd.DataFrame(index=t_date_range,
+                          data={'rx': rx_list,
+                                'tx': tx_list})
+        cml_ch_shortened = ComlinkChannel(data=df.iloc[:100, :], frequency=f)
+        cml_ch_rest_of_data = ComlinkChannel(data=df.iloc[100:, :], frequency=f)
+
+        cml_ch_shortened.append_data(cml_ch_rest_of_data, max_age='60min')
+
+        assert(len(cml_ch_shortened.data) ==
+               len(df.iloc[df.index >
+                           (df.index[-1] - pd.Timedelta('60min')), :]))
+        assert(cml_ch_shortened.data.index[-1] == df.index[-1])
+
+
+    def test_append_wrong_cml_ch(self):
+        df = pd.DataFrame(index=t_date_range,
+                          data={'rx': rx_list,
+                                'tx': tx_list})
+        cml_ch_shortened = ComlinkChannel(data=df.iloc[:100, :],
+                                          frequency=f)
+        cml_ch_rest_of_data = ComlinkChannel(data=df.iloc[100:, :],
+                                             frequency=22.235 * 1e9)
+
+        self.assertRaises(ValueError,
+                          cml_ch_shortened.append_data,
+                          cml_ch_rest_of_data)
 
 
 def assert_comlink_channel_equal(cml_ch_1, cml_ch_2):

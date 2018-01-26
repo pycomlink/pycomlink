@@ -43,7 +43,8 @@ install:
     - conda create -q -n pycomlink-env python=${TRAVIS_PYTHON_VERSION} --yes
     - source activate pycomlink-env
     - conda install --yes $DEPS pip
-    - pip install coveralls
+    - conda install -c conda-forge codecov
+    #- pip install coveralls
     - pip install pytest
     - python -V
     - python setup.py build_ext --inplace
@@ -51,8 +52,10 @@ install:
     - cd ..
     - du -h
 
-
 # command to run tests
 script:
     - cd ./pycomlink/
     - pytest
+
+after_success:
+  - codecov -t 11f90261-08f5-481c-a73f-f45f987827ba

@@ -46,6 +46,7 @@ install:
     - conda install -c conda-forge --yes codecov
     #- pip install coveralls
     - pip install pytest
+    - pip install pytest-cov
     - python -V
     - python setup.py build_ext --inplace
     - python setup.py install

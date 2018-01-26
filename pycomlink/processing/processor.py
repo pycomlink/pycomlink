@@ -133,7 +133,7 @@ def cml_wrapper(cml, func,
             vars_in_list = vars_in
 
         t_start = kwargs.pop('t_start', None)
-        t_stop = kwargs.pop('t_start', None)
+        t_stop = kwargs.pop('t_stop', None)
 
         # Iterate over channels
         args_initial = deepcopy(args)

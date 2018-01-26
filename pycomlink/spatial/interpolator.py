@@ -48,11 +48,12 @@ class PointsToGridInterpolator(with_metaclass(abc.ABCMeta, object)):
 
 
 class IdwKdtreeInterpolator(PointsToGridInterpolator):
-    def __init__(self, nnear=8, p=2, exclude_nan=True):
+    def __init__(self, nnear=8, p=2, exclude_nan=True, max_distance=None):
         """ A k-d tree based IDW interpolator for points to grid """
         self.nnear = nnear
         self.p = p
         self.exclude_nan = exclude_nan
+        self.max_distance = max_distance
         self.x = None
         self.y = None
 
@@ -82,7 +83,8 @@ class IdwKdtreeInterpolator(PointsToGridInterpolator):
         zi = idw(q=list(zip(xi, yi)),
                  z=z,
                  nnear=self.nnear,
-                 p=self.p)
+                 p=self.p,
+                 max_distance=self.max_distance)
         return zi
 
 

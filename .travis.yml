@@ -45,8 +45,7 @@ install:
     - conda install --yes $DEPS pip
     - conda install -c conda-forge --yes codecov
     #- pip install coveralls
-    - pip install pytest
-    - pip install pytest-cov
+    - pip install pytest pytest-cov
     - python -V
     - python setup.py build_ext --inplace
     - python setup.py install
@@ -56,7 +55,7 @@ install:
 # command to run tests
 script:
     - cd ./pycomlink/
-    - pytest --cov
+    - pytest --cov=pycomlink
 
 after_success:
     - codecov

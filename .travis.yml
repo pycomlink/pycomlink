@@ -55,7 +55,7 @@ install:
 # command to run tests
 script:
     - cd ./pycomlink/
-    - pytest --cov=pycomlink
+    - py.test --cov=pycomlink
 
 after_success:
     - codecov

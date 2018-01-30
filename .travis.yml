@@ -47,15 +47,14 @@ install:
     #- pip install coveralls
     - pip install pytest pytest-cov
     - python -V
-    - python setup.py build_ext --inplace
+    #- python setup.py build_ext --inplace
     - python setup.py install
-    - cd ..
+    - pwd
     - du -h
 
 # command to run tests
 script:
-    - cd ./pycomlink/
-    - py.test pycomlink --cov=pycomlink
+    - py.test --cov
 
 after_success:
     - codecov

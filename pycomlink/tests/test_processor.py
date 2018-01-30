@@ -1,19 +1,10 @@
 import unittest
-
-import pycomlink as pycml
-
-def load_and_clean_example_data():
-    cml = pycml.io.examples.read_one_cml()
-    cml.process.quality_control.set_to_nan_if('tx', '>=', 100)
-    cml.process.quality_control.set_to_nan_if('rx', '==', -99.9)
-    for cml_ch in cml.channels.values():
-        cml_ch.data.interpolate(limit=3)
-    return cml
+from pycomlink.tests.utils import load_and_clean_example_cml
 
 
 class TestWetDryStdDev(unittest.TestCase):
     def test_standrad_processing(self):
-        cml = load_and_clean_example_data()
+        cml = load_and_clean_example_cml()
         cml.process.wet_dry.std_dev(window_length=60, threshold=0.8)
 
         assert (cml.channel_1.data.wet.loc['2016-11-02 14:00'].values[0]
@@ -43,7 +34,7 @@ class TestWetDryStdDev(unittest.TestCase):
                 == True)
 
     def test_processing_for_selected_time_period(self):
-        cml = load_and_clean_example_data()
+        cml = load_and_clean_example_cml()
 
         # First as a comparisson the standard way
         cml.process.wet_dry.std_dev(window_length=60, threshold=0.8)

@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 
 from pycomlink.core import ComlinkChannel, Comlink
-from test_comlink_channel import assert_comlink_channel_equal
+from pycomlink.tests.test_comlink_channel import assert_comlink_channel_equal
 
 t_date_range = pd.date_range(start='2015-01-01', periods=500, freq='min')
 t_list = [str(date) for date in t_date_range]

@@ -4,6 +4,7 @@ from builtins import range
 from builtins import object
 import abc
 import numpy as np
+import scipy
 import pandas as pd
 from tqdm import tqdm
 from pykrige import OrdinaryKriging
@@ -88,10 +89,10 @@ class IdwKdtreeInterpolator(PointsToGridInterpolator):
 
 class OrdinaryKrigingInterpolator(PointsToGridInterpolator):
     def __init__(self,
-                 nlags=30,
+                 nlags=100,
                  variogram_model='spherical',
                  weight=True,
-                 n_closest_points=10,
+                 n_closest_points=None,
                  # coordinates_type='euclidean', # Not supported in v1.3.1
                  backend='C'):
         """ A ordinary kriging interpolator for points to grid"""
@@ -143,7 +144,6 @@ class ComlinkGridInterpolator(object):
         self.x = self.lons
         self.y = self.lats
 
-        # TODO: Forward arguments to select aggregation type and frequency
         self.df_cmls = get_dataframe_for_cml_variable(
             cml_list,
             resample_to=resample_to,
@@ -185,9 +185,9 @@ class ComlinkGridInterpolator(object):
         for i in tqdm(list(range(len(self.df_cmls.index)))):
             try:
                 zi = self.interpolate_for_i(i)
-            except ValueError as e:
+            except (scipy.linalg.LinAlgError, ValueError) as e:
                 # Catch Kriging error and return NaNs
-                if e.args[0] == 'Singular matrix':
+                if e.args[0].lower() == 'singular matrix':
                     print('%s: Kriging calculations produced '
                           'singular matrix. Returning NaNs.'
                           % self.df_cmls.index[i])

@@ -6,6 +6,7 @@ include *.md
 recursive-include notebooks *.ipynb
 recursive-include notebooks *.py
 recursive-include pycomlink/io/example_data *
+recursive-include pycomlink/tests/test_data *
 
 recursive-exclude notebooks __init__.py
 recursive-exclude notebooks *.pyc

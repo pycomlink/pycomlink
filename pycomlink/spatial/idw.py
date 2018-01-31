@@ -73,9 +73,19 @@ class Invdisttree(object):
         self.wsum = None
         self.q = None
 
-    def __call__(self, q, z, nnear=6, eps=0, p=1, weights=None):
-            # nnear nearest neighbours of each query point --
+    def __call__(self,
+                 q,
+                 z,
+                 nnear=6,
+                 eps=0,
+                 p=1,
+                 weights=None,
+                 max_distance=None):
+        # nnear nearest neighbours of each query point --
         assert len(self.X) == len(z), "len(X) %d != len(z) %d" % (len(self.X), len(z))
+
+        if max_distance is None:
+            max_distance = np.inf
 
         if nnear <= 1:
             raise ValueError('`nnear` must be greater than 1')
@@ -98,7 +108,11 @@ class Invdisttree(object):
             # print 'reuse `distances`'
             pass
         else:
-            self.distances, self.ix = self.tree.query(q, k=nnear, eps=eps)
+            self.distances, self.ix = self.tree.query(
+                q,
+                k=nnear,
+                eps=eps,
+                distance_upper_bound=max_distance)
             self.q = q
             self.nnear = nnear
             self.eps = eps

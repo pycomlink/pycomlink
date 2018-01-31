@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 import pycomlink as pycml
-from pycomlink.tests.utils import load_and_clean_example_cml_list
+from pycomlink.tests.utils import load_processed_cml_list
 
 
 class TestIdwKdtreeInterpolator(unittest.TestCase):
@@ -22,11 +22,11 @@ class TestOrdiniaryKrigingInterpolator(unittest.TestCase):
 
 class TestComlinkGridInterpolator(unittest.TestCase):
     def test_default_idw(self):
-        cml_list = load_and_clean_example_cml_list()
+        cml_list = load_processed_cml_list()
 
         interpolator = pycml.spatial.interpolator.ComlinkGridInterpolator(
             cml_list=cml_list,
-            variable='rx',
+            variable='R',
             resolution=0.05,
             interpolator=pycml.spatial.interpolator.IdwKdtreeInterpolator())
 
@@ -35,36 +35,38 @@ class TestComlinkGridInterpolator(unittest.TestCase):
         assert zgrid[0].shape == (16, 23)
 
         np.testing.assert_array_almost_equal(zgrid[10][1:4, 1:4], np.array(
-            [[-46.85263666, -46.87468505, -46.21003706],
-             [-46.70700606, -46.92331939, -46.92513674],
-             [-46.15441647, -46.55741421, -46.39807402]]))
+            [[0., 0., 0.],
+             [0.02679148, 0., 0.],
+             [0.17902197, 0.10871572, 0.]]))
 
         np.testing.assert_array_almost_equal(zgrid[20][1:4, 1:4], np.array(
-            [[-46.86313914, -46.89160703, -46.26548933],
-             [-46.71264833, -46.92780239, -46.96490213],
-             [-46.11732763, -46.53814125, -46.4805056]]))
+            [[0.01852385, 0.08876891, 0.14781145],
+             [0.05900791, 0.15852366, 0.14716676],
+             [0.16692699, 0.16040398, 0.11649888]]))
 
         zgrid_i = interpolator.interpolate_for_i(3)
         np.testing.assert_array_almost_equal(zgrid_i[1:4, 1:4], np.array(
-            [[-46.84939582, -46.89709485, -46.26185758],
-             [-46.71798389, -46.96183674, -46.97195592],
-             [-46.12521554, -46.55562653, -46.48171999]]))
+            [[0.04484675, 0.12339762, 0.1185833],
+             [0.07857356, 0.26151277, 0.13641106],
+             [0.2014109, 0.19460449, 0.08598332]]))
 
     def test_default_kriging(self):
-        cml_list = load_and_clean_example_cml_list()
+        cml_list = load_processed_cml_list()
 
+        # TODO: Use 'C' backend when available via pip installed pykirge
         interpolator = pycml.spatial.interpolator.ComlinkGridInterpolator(
             cml_list=cml_list,
-            variable='rx',
+            variable='R',
             resolution=0.05,
             interpolator=(pycml.spatial.interpolator.
-                          OrdinaryKrigingInterpolator()))
+                          OrdinaryKrigingInterpolator(backend='loop')))
 
         zgrid = interpolator.loop_over_time()
 
         assert zgrid[0].shape == (16, 23)
 
-        np.testing.assert_array_almost_equal(zgrid[10][1:4, 1:4], np.array(
-            [[-46.37344738, -46.37336952, -46.37318653],
-             [-45.62199173, -46.37342665, -46.37327972],
-             [-45.25576347, -45.25585099, -46.01024901]]))
+        # TODO: Check if theses results change when using the 'C' backend
+        np.testing.assert_array_almost_equal(zgrid[24][1:4, 1:4], np.array(
+            [[2.41876631, 3.55747763, 5.21045399],
+             [2.59474309, 3.74337047, 4.95187848],
+             [2.89174467, 3.57024647, 4.49247846]]))

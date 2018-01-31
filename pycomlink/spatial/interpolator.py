@@ -4,6 +4,7 @@ from builtins import range
 from builtins import object
 import abc
 import numpy as np
+import scipy
 import pandas as pd
 from tqdm import tqdm
 from pykrige import OrdinaryKriging
@@ -48,11 +49,12 @@ class PointsToGridInterpolator(with_metaclass(abc.ABCMeta, object)):
 
 
 class IdwKdtreeInterpolator(PointsToGridInterpolator):
-    def __init__(self, nnear=8, p=2, exclude_nan=True):
+    def __init__(self, nnear=8, p=2, exclude_nan=True, max_distance=None):
         """ A k-d tree based IDW interpolator for points to grid """
         self.nnear = nnear
         self.p = p
         self.exclude_nan = exclude_nan
+        self.max_distance = max_distance
         self.x = None
         self.y = None
 
@@ -82,16 +84,17 @@ class IdwKdtreeInterpolator(PointsToGridInterpolator):
         zi = idw(q=list(zip(xi, yi)),
                  z=z,
                  nnear=self.nnear,
-                 p=self.p)
+                 p=self.p,
+                 max_distance=self.max_distance)
         return zi
 
 
 class OrdinaryKrigingInterpolator(PointsToGridInterpolator):
     def __init__(self,
-                 nlags=30,
+                 nlags=100,
                  variogram_model='spherical',
                  weight=True,
-                 n_closest_points=10,
+                 n_closest_points=None,
                  # coordinates_type='euclidean', # Not supported in v1.3.1
                  backend='C'):
         """ A ordinary kriging interpolator for points to grid"""
@@ -130,15 +133,28 @@ class ComlinkGridInterpolator(object):
                  xgrid=None,
                  ygrid=None,
                  resolution=None,
-                 interpolator=IdwKdtreeInterpolator()):
+                 interpolator=IdwKdtreeInterpolator(),
+                 resample_to='H',
+                 resample_label='right',
+                 variable='R',
+                 channels=['channel_1'],
+                 aggregation_func=np.mean,
+                 apply_factor=1):
 
         self.lons, self.lats = get_lon_lat_list_from_cml_list(cml_list)
         # Later some coordinate transformations can be added here
         self.x = self.lons
         self.y = self.lats
 
-        # TODO: Forward arguments to select aggregation type and frequency
-        self.df_cmls = get_dataframe_for_cml_variable(cml_list)
+        self.df_cmls = get_dataframe_for_cml_variable(
+            cml_list,
+            resample_to=resample_to,
+            resample_label=resample_label,
+            variable=variable,
+            channels=channels,
+            aggregation_func=aggregation_func,
+            apply_factor=apply_factor)
+
         self._interpolator = interpolator
         self.resolution = resolution
 
@@ -171,9 +187,9 @@ class ComlinkGridInterpolator(object):
         for i in tqdm(list(range(len(self.df_cmls.index)))):
             try:
                 zi = self.interpolate_for_i(i)
-            except ValueError as e:
+            except (scipy.linalg.LinAlgError, ValueError) as e:
                 # Catch Kriging error and return NaNs
-                if e.args[0] == 'Singular matrix':
+                if e.args[0].lower() == 'singular matrix':
                     print('%s: Kriging calculations produced '
                           'singular matrix. Returning NaNs.'
                           % self.df_cmls.index[i])

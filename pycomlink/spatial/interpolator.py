@@ -6,6 +6,7 @@ import abc
 import numpy as np
 import scipy
 import pandas as pd
+import xarray as xr
 from tqdm import tqdm
 from pykrige import OrdinaryKriging
 
@@ -145,6 +146,7 @@ class ComlinkGridInterpolator(object):
         # Later some coordinate transformations can be added here
         self.x = self.lons
         self.y = self.lats
+        self.variable = variable
 
         self.df_cmls = get_dataframe_for_cml_variable(
             cml_list,
@@ -163,6 +165,7 @@ class ComlinkGridInterpolator(object):
                                                 xgrid=xgrid,
                                                 ygrid=ygrid,
                                                 resolution=resolution)
+        self.ds_gridded = None
 
     def interpolate_for_i(self, i):
         z = self.df_cmls.iloc[i, :]
@@ -181,7 +184,7 @@ class ComlinkGridInterpolator(object):
                                        ygrid=self.ygrid)
         return zgrid
 
-    def loop_over_time(self):
+    def loop_over_time(self, t_start=None, t_stop=None):
         zi_list = []
 
         for i in tqdm(list(range(len(self.df_cmls.index)))):
@@ -201,7 +204,27 @@ class ComlinkGridInterpolator(object):
                     print('baz')
                     raise e
             zi_list.append(zi)
-        return zi_list
+
+        self.ds_gridded = self._fields_to_dataset(field_list=zi_list,
+                                                  t_start=t_start,
+                                                  t_stop=t_stop)
+        return self.ds_gridded
+
+    def _fields_to_dataset(self, field_list, t_start=None, t_stop=None):
+        if t_start is None:
+            t_start = self.df_cmls.index[0]
+        if t_stop is None:
+            t_stop = self.df_cmls.index[-1]
+
+        ds = xr.Dataset(
+            data_vars={self.variable: ((['time', 'y', 'x'],
+                                        np.array(field_list)))},
+            coords={'lon': (['y', 'x'], self.xgrid),
+                    'lat': (['y', 'x'], self.ygrid),
+                    'time': (self.df_cmls[t_start:t_stop]
+                             .index.values
+                             .astype(np.datetime64))})
+        return ds
 
 
 def _generate_grid(x, y, xgrid, ygrid, resolution):

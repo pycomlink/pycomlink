@@ -26,19 +26,11 @@ class PointsToGridInterpolator(with_metaclass(abc.ABCMeta, object)):
         """ Perform the interpolation """
         assert(len(x) == len(y) == len(z))
 
-        # Generate the grids if they are not supplied
-        if (xgrid is None) and (ygrid is None):
-            if resolution is None:
-                raise ValueError('`resolution must be set if `xgrid` '
-                                 'and `ygrid` are None.')
-            self.xgrid, self.ygrid = _generate_grid(x=x,
-                                                    y=y,
-                                                    resolution=resolution)
-        elif (xgrid is not None) and (ygrid is not None):
-            self.xgrid, self.ygrid = xgrid, ygrid
-        else:
-            raise ValueError('`xgrid` and `ygrid` must both either be None '
-                             'or not.')
+        self.xgrid, self.ygrid = _generate_grid(x=x,
+                                                y=y,
+                                                xgrid=xgrid,
+                                                ygrid=ygrid,
+                                                resolution=resolution)
 
         zi = self._interpol_func(x=x,
                                  y=y,
@@ -269,16 +261,24 @@ class ComlinkGridInterpolator(object):
         return ds
 
 
-def _generate_grid(x, y, resolution):
+def _generate_grid(x, y, xgrid, ygrid, resolution):
     """ Generate grid with certain resolution """
 
-    xcoords = np.arange(min(x) - resolution,
-                        max(x) + resolution,
-                        resolution)
-    ycoords = np.arange(min(y) - resolution,
-                        max(y) + resolution,
-                        resolution)
-    xgrid, ygrid = np.meshgrid(xcoords, ycoords)
+    if (xgrid is None) or (ygrid is None):
+
+        if resolution is None:
+            raise ValueError('`resolution must be set if `xgrid` '
+                             'or `ygrid` are None')
+
+        xcoords = np.arange(min(x) - resolution,
+                            max(x) + resolution,
+                            resolution)
+        ycoords = np.arange(min(y) - resolution,
+                            max(y) + resolution,
+                            resolution)
+        xgrid, ygrid = np.meshgrid(xcoords, ycoords)
+    else:
+        pass
     return xgrid, ygrid
 
 

@@ -176,6 +176,21 @@ class ComlinkGridInterpolator(object):
         self.ds_gridded = None
 
     def interpolate_for_i(self, i):
+        """ Interpolate CML data for one specific time index
+
+        Parameters
+        ----------
+        i : int
+            Integer refering to time index in `DataFrame` of the aggregated CML
+            data
+
+        Returns
+        -------
+
+        zgrid : numpy.array
+            Array of interpolated field
+
+        """
         z = self.df_cmls.iloc[i, :]
         i_not_nan = ~pd.isnull(z)
 
@@ -193,6 +208,25 @@ class ComlinkGridInterpolator(object):
         return zgrid
 
     def loop_over_time(self, t_start=None, t_stop=None):
+        """ Do interpolation for many time steps
+
+        Note: This function also updates the attribute `ds_gridded`.
+
+        Parameters
+        ----------
+        t_start : str, optional
+            Starting time for interpolation loop
+        t_stop : str, optional
+            Stop time for interpolation loop
+
+        Returns
+        -------
+
+        ds_gridded : xarray.Dataset
+            Dataset of the gridded fields, including x- and y-grid and
+            timestamps
+
+        """
         zi_list = []
 
         for i in tqdm(list(range(len(self.df_cmls.index)))):
@@ -265,21 +299,48 @@ def get_dataframe_for_cml_variable(cml_list,
                                    channels=['channel_1'],
                                    aggregation_func=np.mean,
                                    apply_factor=1):
-    """ Build a DataFrame for a certain variable for all CMLs """
+    """ Build a DataFrame for a certain variable for all CMLs
+
+    The column names of the resulting `DataFrame` are the `cml_id`s of
+    each CML. The temporal aggregation of the CML data contained in the
+    `ComlinkChannel.data` `DataFrame`.
+
+    Parameters
+    ----------
+    cml_list : iterable of `Comlink` objects
+    resample_to : str, optional
+        `pandas` resampling string, defaults to 'H
+    resample_label : {'left', 'right'}, optional
+        `pandas` resampling label, defaults to 'right'
+    variable : str, optional
+        Column name used in the `DataFrame` in `ComlinkChannel.data` for
+        the data that shall be aggregated
+    channels : interable, optional
+        List of the channel names to use for
+    aggregation_func
+    apply_factor
+
+    Returns
+    -------
+
+    df : pandas.DataFrame
+        DataFrame with one column for each CML
+
+    """
 
     # Resample time series of each CML
-    df_cmls_R = pd.DataFrame()
+    df = pd.DataFrame()
 
     # TODO: Extend the code to be able to average over two channels if desired
     channel_name = channels[0]
 
     for cml in cml_list:
-        df_cmls_R[cml.metadata['cml_id']] = (
+        df[cml.metadata['cml_id']] = (
             cml.channels[channel_name].data[variable]
             .resample(resample_to, label=resample_label)
             .apply(aggregation_func))
-    df_cmls_R *= apply_factor
+    df *= apply_factor
 
-    return df_cmls_R
+    return df
 
 

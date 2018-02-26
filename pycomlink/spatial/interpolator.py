@@ -26,11 +26,11 @@ class PointsToGridInterpolator(with_metaclass(abc.ABCMeta, object)):
         """ Perform the interpolation """
         assert(len(x) == len(y) == len(z))
 
-        self.xgrid, self.ygrid = _generate_grid(x=x,
-                                                y=y,
-                                                xgrid=xgrid,
-                                                ygrid=ygrid,
-                                                resolution=resolution)
+        self.xgrid, self.ygrid = _parse_grid_kwargs(x_list=x,
+                                                    y_list=y,
+                                                    xgrid=xgrid,
+                                                    ygrid=ygrid,
+                                                    resolution=resolution)
 
         zi = self._interpol_func(x=x,
                                  y=y,
@@ -160,11 +160,11 @@ class ComlinkGridInterpolator(object):
         self._interpolator = interpolator
         self.resolution = resolution
 
-        self.xgrid, self.ygrid = _generate_grid(x=self.x,
-                                                y=self.y,
-                                                xgrid=xgrid,
-                                                ygrid=ygrid,
-                                                resolution=resolution)
+        self.xgrid, self.ygrid = _parse_grid_kwargs(x_list=self.x,
+                                                    y_list=self.y,
+                                                    xgrid=xgrid,
+                                                    ygrid=ygrid,
+                                                    resolution=resolution)
         self.ds_gridded = None
 
     def interpolate_for_i(self, i):
@@ -261,8 +261,25 @@ class ComlinkGridInterpolator(object):
         return ds
 
 
-def _generate_grid(x, y, xgrid, ygrid, resolution):
-    """ Generate grid with certain resolution """
+def _parse_grid_kwargs(x_list, y_list, xgrid, ygrid, resolution):
+    """ Generate grids if None is supplied
+
+    If `xgrid` and `ygrid` are None, a grid with a spatial resolution of
+    `resolution` is generated using the bounding box defined by the minima
+    and maxima of `x_list` and `y_list`.
+
+    Parameters
+    ----------
+    x_list
+    y_list
+    xgrid
+    ygrid
+    resolution
+
+    Returns
+    -------
+
+    """
 
     if (xgrid is None) or (ygrid is None):
 
@@ -270,11 +287,11 @@ def _generate_grid(x, y, xgrid, ygrid, resolution):
             raise ValueError('`resolution must be set if `xgrid` '
                              'or `ygrid` are None')
 
-        xcoords = np.arange(min(x) - resolution,
-                            max(x) + resolution,
+        xcoords = np.arange(min(x_list) - resolution,
+                            max(x_list) + resolution,
                             resolution)
-        ycoords = np.arange(min(y) - resolution,
-                            max(y) + resolution,
+        ycoords = np.arange(min(y_list) - resolution,
+                            max(y_list) + resolution,
                             resolution)
         xgrid, ygrid = np.meshgrid(xcoords, ycoords)
     else:

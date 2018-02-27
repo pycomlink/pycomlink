@@ -23,7 +23,29 @@ class PointsToGridInterpolator(with_metaclass(abc.ABCMeta, object)):
         return
 
     def __call__(self, x, y, z, xgrid=None, ygrid=None, resolution=None):
-        """ Perform the interpolation """
+        """ Perform interpolation
+
+        This calls the actual internal interpolation function. Passing `x` and
+        `y` every time is not optimal for performance, but subclasses might
+        be implemented to reuse precalculated information of `x` and `y` have
+        not change comapred to last call to interpolation function.
+
+        Parameters
+        ----------
+        x : array-like
+        y : array-like
+        z : array-like
+        xgrid : 2D array
+        ygrid : 2D array
+        resolution : float
+
+        Returns
+        -------
+
+        zgrid : interpolated data with shape of `xgrid` and `ygrid`
+
+        """
+
         assert(len(x) == len(y) == len(z))
 
         self.xgrid, self.ygrid = _parse_grid_kwargs(x_list=x,

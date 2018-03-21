@@ -167,12 +167,12 @@ def calc_intersect_weights(cml,
     for i, j in zip(ix_in_bbox[0], ix_in_bbox[1]):
         if grid_point_location == 'center':
             xy_center = grid[i, j]
-            if i < grid.shape[0] - 1:
+            if j < grid.shape[1] - 1:
                 width = np.abs(grid[i, j, 0] - grid[i, j + 1, 0])
             else:
                 print('i=%d' % i)
                 width = np.abs(grid[i, j, 0] - grid[i, j - 1, 0])
-            if j < grid.shape[1] - 1:
+            if i < grid.shape[0] - 1:
                 height = np.abs(grid[i, j, 1] - grid[i + 1, j, 1])
             else:
                 print('j=%d' % j)

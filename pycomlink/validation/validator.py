@@ -106,7 +106,27 @@ class PointValidator(Validator):
         pass
 
 
-def calc_intersect_weights(cml, xr_ds, offset=None):
+def calc_intersect_weights(cml,
+                           xr_ds,
+                           grid_point_location='center',
+                           offset=None):
+    """
+
+    Parameters
+    ----------
+    cml
+    xr_ds
+    grid_point_location
+    offset
+
+    Returns
+    -------
+
+    intersect : array
+        2D array of intersection weights with shape of the longitudes- and
+        latitudes grid of `xr_ds`
+
+    """
     grid = np.stack([xr_ds.longitudes.values, xr_ds.latitudes.values], axis=2)
 
     # Get link coordinates for easy access
@@ -118,10 +138,9 @@ def calc_intersect_weights(cml, xr_ds, offset=None):
 
     # Derive grid cell width to set bounding box offset
     ll_cell = grid[0, 1, 0] - grid[0, 0, 0]
-    ul_cell = grid[(len(grid) - 1), 1, 0] - grid[(len(grid) - 1), 0, 0]
-    lr_cell = grid[0, (len(grid) - 1), 0] - grid[0, (len(grid) - 2), 0]
-    ur_cell = grid[(len(grid) - 1), (len(grid) - 1), 0] - grid[
-        (len(grid) - 1), (len(grid) - 2), 0]
+    ul_cell = grid[-1, 1, 0] - grid[-1, 0, 0]
+    lr_cell = grid[0, -1, 0] - grid[0, -2, 0]
+    ur_cell = (grid[-1, -1, 0] - grid[-1, -2, 0])
     offset_calc = max(ll_cell, ul_cell, lr_cell, ur_cell)
 
     # Set bounding box offset
@@ -146,10 +165,32 @@ def calc_intersect_weights(cml, xr_ds, offset=None):
     # calculate the intersect weigh for each pixel
     ix_in_bbox = np.where(bounding_box == True)
     for i, j in zip(ix_in_bbox[0], ix_in_bbox[1]):
-        poly = [(grid[i, j]), (grid[i + 1, j]),
-                (grid[i + 1, j + 1]), (grid[i, j + 1])]
-        pixel = Polygon(poly)
-        c = link.intersection(pixel)
+        if grid_point_location == 'center':
+            xy_center = grid[i, j]
+            if i < grid.shape[0] - 1:
+                width = np.abs(grid[i, j, 0] - grid[i, j + 1, 0])
+            else:
+                print('i=%d' % i)
+                width = np.abs(grid[i, j, 0] - grid[i, j - 1, 0])
+            if j < grid.shape[1] - 1:
+                height = np.abs(grid[i, j, 1] - grid[i + 1, j, 1])
+            else:
+                print('j=%d' % j)
+                height = np.abs(grid[i, j, 1] - grid[i - 1, j, 1])
+
+            width_vec = np.array([width, 0])
+            height_vec = np.array([0, height])
+
+            pixel_poly = Polygon(
+                [xy_center - width_vec / 2.0 - height_vec / 2.0,
+                 xy_center + width_vec / 2.0 - height_vec / 2.0,
+                 xy_center + width_vec / 2.0 + height_vec / 2.0,
+                 xy_center - width_vec / 2.0 + height_vec / 2.0])
+        else:
+            raise ValueError('`grid_point_location` = %s not implemented' %
+                             grid_point_location)
+
+        c = link.intersection(pixel_poly)
         if not c.is_empty:
             intersect[i][j] = (c.length / link.length)
     return intersect

@@ -208,7 +208,7 @@ class ComlinkGridInterpolator(object):
         z = self.df_cmls.iloc[i, :]
         i_not_nan = ~pd.isnull(z)
 
-        if z[i_not_nan].sum() == 0:
+        if (~pd.isnull(z)).sum() == 0:
             # print('%s: Returning NaNs because data contains only NaNs' %
             #      self.df_cmls.index[i])
             zgrid = np.zeros_like(self.xgrid)

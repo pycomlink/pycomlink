@@ -158,34 +158,52 @@ def calc_intersect_weights(cml,
         ((lon_grid > lon_min - offset) & (lon_grid < lon_max + offset)) &
         ((lat_grid > lat_min - offset) & (lat_grid < lat_max + offset)))
 
+    # Calculate polygon corners assuming that `grid` defines the center
+    # of each grid cell
+    #
+    # Upper right
+    ur_grid = np.zeros_like(grid)
+    ur_grid[0:-1, 0:-1, :] = (grid[0:-1, 0:-1, :] + grid[1:, 1:, :]) / 2.0
+    ur_grid[-1, :, :] = (ur_grid[-2, :, :]
+                         + (ur_grid[-2, :, :] - ur_grid[-3, :, :]))
+    ur_grid[:, -1, :] = (ur_grid[:, -2, :]
+                         + (ur_grid[:, -2, :] - ur_grid[:, -3, :]))
+    # Upper left
+    ul_grid = np.zeros_like(grid)
+    ul_grid[0:-1, 1:, :] = (grid[0:-1, 1:, :] + grid[1:, :-1, :]) / 2.0
+    ul_grid[-1, :, :] = (ul_grid[-2, :, :]
+                         + (ul_grid[-2, :, :] - ul_grid[-3, :, :]))
+    ul_grid[:, 0, :] = (ul_grid[:, 1, :]
+                        - (ul_grid[:, 2, :] - ul_grid[:, 1, :]))
+    # Lower right
+    lr_grid = np.zeros_like(grid)
+    lr_grid[1:, 0:-1, :] = (grid[1:, 0:-1, :] + grid[:-1, 1:, :]) / 2.0
+    lr_grid[0, :, :] = (lr_grid[1, :, :]
+                        - (lr_grid[2, :, :] - lr_grid[1, :, :]))
+    lr_grid[:, -1, :] = (lr_grid[:, -2, :]
+                         + (lr_grid[:, -2, :] - lr_grid[:, -3, :]))
+    # Lower left
+    ll_grid = np.zeros_like(grid)
+    ll_grid[1:, 1:, :] = (grid[1:, 1:, :] + grid[:-1, :-1, :]) / 2.0
+    ll_grid[0, :, :] = (ll_grid[1, :, :]
+                        - (ll_grid[2, :, :] - ll_grid[1, :, :]))
+    ll_grid[:, 0, :] = (ll_grid[:, 1, :]
+                        - (ll_grid[:, 2, :] - ll_grid[:, 1, :]))
+
     # Find intersection
     intersect = np.zeros([grid.shape[0], grid.shape[1]])
-
+    pixel_poly_list = []
     # Iterate only over the indices within the bounding box and
     # calculate the intersect weigh for each pixel
     ix_in_bbox = np.where(bounding_box == True)
     for i, j in zip(ix_in_bbox[0], ix_in_bbox[1]):
         if grid_point_location == 'center':
-            xy_center = grid[i, j]
-            if j < grid.shape[1] - 1:
-                width = np.abs(grid[i, j, 0] - grid[i, j + 1, 0])
-            else:
-                print('i=%d' % i)
-                width = np.abs(grid[i, j, 0] - grid[i, j - 1, 0])
-            if i < grid.shape[0] - 1:
-                height = np.abs(grid[i, j, 1] - grid[i + 1, j, 1])
-            else:
-                print('j=%d' % j)
-                height = np.abs(grid[i, j, 1] - grid[i - 1, j, 1])
-
-            width_vec = np.array([width, 0])
-            height_vec = np.array([0, height])
-
             pixel_poly = Polygon(
-                [xy_center - width_vec / 2.0 - height_vec / 2.0,
-                 xy_center + width_vec / 2.0 - height_vec / 2.0,
-                 xy_center + width_vec / 2.0 + height_vec / 2.0,
-                 xy_center - width_vec / 2.0 + height_vec / 2.0])
+                [ll_grid[i, j],
+                 lr_grid[i, j],
+                 ur_grid[i, j],
+                 ul_grid[i, j]])
+            pixel_poly_list.append(pixel_poly)
         else:
             raise ValueError('`grid_point_location` = %s not implemented' %
                              grid_point_location)

@@ -60,13 +60,13 @@ class GridValidator(Validator):
         w_mask = intersect_weights > 0
         # Since we cannot use a 2D mask in xarray, build the slices of
         # indices for the x- and y-axis
-        w_ix_x = np.unique(np.where(w_mask)[0])
-        w_ix_y = np.unique(np.where(w_mask)[1])
+        w_ix_x = np.unique(np.where(w_mask)[1])
+        w_ix_y = np.unique(np.where(w_mask)[0])
         slice_x = slice(w_ix_x.min(), w_ix_x.max()+1)
         slice_y = slice(w_ix_y.min(), w_ix_y.max()+1)
 
-        self.weighted_grid_sum = (self.xr_ds[values][t_mask, slice_x, slice_y] *
-                                  intersect_weights[slice_x, slice_y]
+        self.weighted_grid_sum = (self.xr_ds[values][t_mask, slice_y, slice_x]
+                                  * intersect_weights[slice_y, slice_x]
                                   ).sum(dim=['x', 'y']).to_dataframe()
 
         return self.weighted_grid_sum

@@ -114,10 +114,20 @@ def calc_intersect_weights(cml,
 
     Parameters
     ----------
-    cml
-    xr_ds
-    grid_point_location
-    offset
+    cml : Comlink
+        One Comlink object for whose path the intersecting weights should
+        be calculated
+    xr_ds : xarray.DataSet or xarrat.DataArray
+        DataSete or DataArray that must have coordinates named `longitudes`
+        and `latitudes` which are each a 2D matrices of the coordinates
+    grid_point_location : str, optional
+        The only option currently is `center` which assumes that the
+        coordinates in `xr_ds` represent the centers of grid cells
+    offset : float, optional
+        The offset in units of the coordinates to contrain the calculation
+        of intersection to a bounding box around the CML coordinates. The
+        offset specifies by how much this bounding box will be larger then
+        the widht- and height-extent of the CML coordinates.
 
     Returns
     -------

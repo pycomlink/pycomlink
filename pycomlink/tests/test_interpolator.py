@@ -30,19 +30,21 @@ class TestComlinkGridInterpolator(unittest.TestCase):
             resolution=0.05,
             interpolator=pycml.spatial.interpolator.IdwKdtreeInterpolator())
 
-        zgrid = interpolator.loop_over_time()
+        ds = interpolator.loop_over_time()
 
-        assert zgrid[0].shape == (16, 23)
+        assert ds.R.isel(time=0).values.shape == (16, 23)
 
-        np.testing.assert_array_almost_equal(zgrid[10][1:4, 1:4], np.array(
-            [[0., 0., 0.],
-             [0.02679148, 0., 0.],
-             [0.17902197, 0.10871572, 0.]]))
+        np.testing.assert_array_almost_equal(
+            ds.R.isel(time=10).values[1:4, 1:4],
+            np.array([[0., 0., 0.],
+                      [0.02679148, 0., 0.],
+                      [0.17902197, 0.10871572, 0.]]))
 
-        np.testing.assert_array_almost_equal(zgrid[20][1:4, 1:4], np.array(
-            [[0.01852385, 0.08876891, 0.14781145],
-             [0.05900791, 0.15852366, 0.14716676],
-             [0.16692699, 0.16040398, 0.11649888]]))
+        np.testing.assert_array_almost_equal(
+            ds.R.isel(time=20).values[1:4, 1:4],
+            np.array([[0.01852385, 0.08876891, 0.14781145],
+                      [0.05900791, 0.15852366, 0.14716676],
+                      [0.16692699, 0.16040398, 0.11649888]]))
 
         zgrid_i = interpolator.interpolate_for_i(3)
         np.testing.assert_array_almost_equal(zgrid_i[1:4, 1:4], np.array(
@@ -61,12 +63,13 @@ class TestComlinkGridInterpolator(unittest.TestCase):
             interpolator=(pycml.spatial.interpolator.
                           OrdinaryKrigingInterpolator(backend='loop')))
 
-        zgrid = interpolator.loop_over_time()
+        ds = interpolator.loop_over_time()
 
-        assert zgrid[0].shape == (16, 23)
+        assert ds.R.isel(time=0).values.shape == (16, 23)
 
         # TODO: Check if theses results change when using the 'C' backend
-        np.testing.assert_array_almost_equal(zgrid[24][1:4, 1:4], np.array(
-            [[2.41876631, 3.55747763, 5.21045399],
-             [2.59474309, 3.74337047, 4.95187848],
-             [2.89174467, 3.57024647, 4.49247846]]))
+        np.testing.assert_array_almost_equal(
+            ds.R.isel(time=24).values[1:4, 1:4],
+            np.array([[2.41876631, 3.55747763, 5.21045399],
+                      [2.59474309, 3.74337047, 4.95187848],
+                      [2.89174467, 3.57024647, 4.49247846]]))

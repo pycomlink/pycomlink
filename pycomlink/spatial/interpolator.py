@@ -252,9 +252,9 @@ class ComlinkGridInterpolator(object):
                     print('%s: Kriging calculations produced '
                           'singular matrix. Returning NaNs.'
                           % self.df_cmls.index[i])
-                    zi = np.ones_like(self._interpolator.xgrid.ravel())
+                    zi = np.ones_like(self._interpolator.xgrid)
                     zi[:] = np.nan
-                    sigma = np.ones_like(self._interpolator.xgrid.ravel())
+                    sigma = np.ones_like(self._interpolator.xgrid)
                     sigma[:] = np.nan
                 else:
                     print('baz')

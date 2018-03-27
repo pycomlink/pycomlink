@@ -1,9 +1,11 @@
 from __future__ import division
 from builtins import zip
 from builtins import object
+from collections import namedtuple
 import xarray as xr
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 from shapely.geometry import LineString, Polygon
 
 from pycomlink.util.maintenance import deprecated
@@ -22,9 +24,6 @@ class Validator(object):
         pearson_r = joined_df.xr_ds.corr(joined_df.txrx_nf, method='pearson')
         return pearson_r
 
-    def _get_cml_pair(self, cml):
-        pass
-
 
 class GridValidator(Validator):
     def __init__(self, lats=None, lons=None, values=None, xr_ds=None):
@@ -38,16 +37,23 @@ class GridValidator(Validator):
 
         pass
 
-    def _get_cml_pair_indices(self, cml):
+    def _get_cml_intersection_weights(self, cml):
         self.cml = cml
+        cml_coords = cml.get_coordinates()
+
         # get intersect weights
-        self.intersect_weights = calc_intersect_weights(self.cml, self.xr_ds)
-        # get weighted truth values from grid
+        self.intersect_weights = calc_intersect_weights(
+            x1_line=cml_coords.lon_a,
+            y1_line=cml_coords.lat_a,
+            x2_line=cml_coords.lon_b,
+            y2_line=cml_coords.lat_b,
+            x_grid=self.xr_ds.longitudes.values,
+            y_grid=self.xr_ds.latitudes.values)
 
         return self.intersect_weights
 
     def get_time_series(self, cml, values):
-        intersect_weights = self._get_cml_pair_indices(cml)
+        intersect_weights = self._get_cml_intersection_weights(cml)
 
         # Get start and end time of CML data set to constrain lookup in `xr_ds`
         t_start = cml.channel_1.data.index.values[0]
@@ -92,42 +98,105 @@ class GridValidator(Validator):
 
         return df_temp.groupby('truth_time_ix').mean()
 
+    def plot_intersections(self, cml, ax=None):
+        if ax is None:
+            fig, ax = plt.subplots()
+        cml.plot_line(ax=ax)
+
+        # Generate lon-lat grid assuming the original coordinates represent
+        # the center of the grid
+        lons = np.zeros(self.xr_ds.longitudes.shape + np.array([1, 1]))
+        lats = np.zeros(self.xr_ds.latitudes.shape + np.array([1, 1]))
+
+        grid = np.stack([self.xr_ds.longitudes.values,
+                         self.xr_ds.latitudes.values],
+                        axis=2)
+        grid_corners = _calc_grid_corners_for_center_location(grid)
+
+        lons[:-1, :-1] = grid_corners.ll_grid[:, :, 0]
+        lons[-1, :-1] = grid_corners.ul_grid[-1, :, 0]
+        lons[:-1, -1] = grid_corners.lr_grid[:, -1, 0]
+        lons[-1, -1] = grid_corners.ur_grid[-1, -1, 0]
+
+        lats[:-1, :-1] = grid_corners.ll_grid[:, :, 1]
+        lats[-1, :-1] = grid_corners.ul_grid[-1, :, 1]
+        lats[:-1, -1] = grid_corners.lr_grid[:, -1, 1]
+        lats[-1, -1] = grid_corners.ur_grid[-1, -1, 1]
+
+        cml_coords = cml.get_coordinates()
+
+        # get intersect weights
+        intersect, pixel_poly_list = calc_intersect_weights(
+            x1_line=cml_coords.lon_a,
+            y1_line=cml_coords.lat_a,
+            x2_line=cml_coords.lon_b,
+            y2_line=cml_coords.lat_b,
+            x_grid=self.xr_ds.longitudes.values,
+            y_grid=self.xr_ds.latitudes.values,
+            return_pixel_poly_list=True)
+
+        ax.pcolormesh(lons, lats, intersect, cmap=plt.cm.gray_r)
+        ax.scatter(self.xr_ds.longitudes.values,
+                   self.xr_ds.latitudes.values, s=1, c='k')
+        for pixel_poly in pixel_poly_list:
+            ax.plot(*pixel_poly.exterior.xy)
+
+        ax.set_ylim()
+
+        return ax
+
 
 class PointValidator(Validator):
     def __init__(lats, lons, values):
-        self.truth_data = [lats, lons, time_series]
+        #self.truth_data = [lats, lons, time_series]
+        pass
 
     def _get_cml_pair_indices(cml):
         # get nearest point location
 
-        return pair_indices
+        #return pair_indices
+        pass
 
     def get_time_series(self, cml, values):
         pass
 
 
-def calc_intersect_weights(cml,
-                           xr_ds,
+def calc_intersect_weights(x1_line,
+                           y1_line,
+                           x2_line,
+                           y2_line,
+                           x_grid,
+                           y_grid,
                            grid_point_location='center',
-                           offset=None):
-    """
+                           offset=None,
+                           return_pixel_poly_list=False):
+    """ Calculate intersecting weights for a line and a grid
+
+    Calculate the intersecting weights for the line defined by `x1_line`,
+    `y1_line`, `x2_line` and `y2_line` and the grid defined by the x- and y-
+    grid points from `x_grid` and `y_grid`.
 
     Parameters
     ----------
-    cml : Comlink
-        One Comlink object for whose path the intersecting weights should
-        be calculated
-    xr_ds : xarray.DataSet or xarrat.DataArray
-        DataSete or DataArray that must have coordinates named `longitudes`
-        and `latitudes` which are each a 2D matrices of the coordinates
+    x1_line : float
+    y1_line : float
+    x2_line : float
+    y2_line : float
+    x_grid : 2D array
+        x-coordinates of grid points
+    y_grid : 2D array
+        y-coordinates of grid points
     grid_point_location : str, optional
         The only option currently is `center` which assumes that the
         coordinates in `xr_ds` represent the centers of grid cells
     offset : float, optional
-        The offset in units of the coordinates to contrain the calculation
+        The offset in units of the coordinates to constrain the calculation
         of intersection to a bounding box around the CML coordinates. The
         offset specifies by how much this bounding box will be larger then
-        the widht- and height-extent of the CML coordinates.
+        the width- and height-extent of the CML coordinates.
+    return_pixel_poly_list : bool, optional
+        If `True`, also return the list of shapely.Polygon objects which were
+        used to calculate the intersection weights. Defaults to `False`.
 
     Returns
     -------
@@ -135,16 +204,20 @@ def calc_intersect_weights(cml,
     intersect : array
         2D array of intersection weights with shape of the longitudes- and
         latitudes grid of `xr_ds`
+    pixel_poly_list : list, optional
+        List of shapely.Polygons which were used to calculate intersections
 
     """
-    grid = np.stack([xr_ds.longitudes.values, xr_ds.latitudes.values], axis=2)
+
+    #grid = np.stack([xr_ds.longitudes.values, xr_ds.latitudes.values], axis=2)
+    grid = np.stack([x_grid, y_grid], axis=2)
 
     # Get link coordinates for easy access
-    cml_coords = cml.get_coordinates()
+    #cml_coords = cml.get_coordinates()
 
     # Convert CML to shapely line
-    link = LineString([(cml_coords.lon_a, cml_coords.lat_a),
-                       (cml_coords.lon_b, cml_coords.lat_b)])
+    link = LineString([(x1_line, y1_line),
+                       (x2_line, y2_line)])
 
     # Derive grid cell width to set bounding box offset
     ll_cell = grid[0, 1, 0] - grid[0, 0, 0]
@@ -158,19 +231,66 @@ def calc_intersect_weights(cml,
         offset = offset_calc
 
     # Set bounding box
-    lon_max = max([cml_coords.lon_a, cml_coords.lon_b])
-    lon_min = min([cml_coords.lon_a, cml_coords.lon_b])
-    lat_max = max([cml_coords.lat_a, cml_coords.lat_b])
-    lat_min = min([cml_coords.lat_a, cml_coords.lat_b])
-    lon_grid = grid[:, :, 0]
-    lat_grid = grid[:, :, 1]
+    x_max = max([x1_line, x2_line])
+    x_min = min([x1_line, x2_line])
+    y_max = max([y1_line, y2_line])
+    y_min = min([y1_line, y2_line])
+    #lon_grid = grid[:, :, 0]
+    #lat_grid = grid[:, :, 1]
     bounding_box = (
-        ((lon_grid > lon_min - offset) & (lon_grid < lon_max + offset)) &
-        ((lat_grid > lat_min - offset) & (lat_grid < lat_max + offset)))
+        ((x_grid > x_min - offset) & (x_grid < x_max + offset)) &
+        ((y_grid > y_min - offset) & (y_grid < y_max + offset)))
 
     # Calculate polygon corners assuming that `grid` defines the center
     # of each grid cell
     #
+    # Upper right
+    grid_corners = _calc_grid_corners_for_center_location(grid)
+
+    # Find intersection
+    intersect = np.zeros([grid.shape[0], grid.shape[1]])
+    pixel_poly_list = []
+    # Iterate only over the indices within the bounding box and
+    # calculate the intersect weigh for each pixel
+    ix_in_bbox = np.where(bounding_box == True)
+    for i, j in zip(ix_in_bbox[0], ix_in_bbox[1]):
+        if grid_point_location == 'center':
+            pixel_poly = Polygon(
+                [grid_corners.ll_grid[i, j],
+                 grid_corners.lr_grid[i, j],
+                 grid_corners.ur_grid[i, j],
+                 grid_corners.ul_grid[i, j]])
+            pixel_poly_list.append(pixel_poly)
+        else:
+            raise ValueError('`grid_point_location` = %s not implemented' %
+                             grid_point_location)
+
+        c = link.intersection(pixel_poly)
+        if not c.is_empty:
+            intersect[i][j] = (c.length / link.length)
+
+    if return_pixel_poly_list:
+        return intersect, pixel_poly_list
+    else:
+        return intersect
+
+
+def _calc_grid_corners_for_center_location(grid):
+    """
+
+    Parameters
+    ----------
+    grid : array
+        3D matrix holding x and y grids. Shape of `grid` must be
+        (height, width, 2).
+
+    Returns
+    -------
+
+    namedtuple with the grids for the four corners around the
+    central grid points
+
+    """
     # Upper right
     ur_grid = np.zeros_like(grid)
     ur_grid[0:-1, 0:-1, :] = (grid[0:-1, 0:-1, :] + grid[1:, 1:, :]) / 2.0
@@ -200,28 +320,13 @@ def calc_intersect_weights(cml,
     ll_grid[:, 0, :] = (ll_grid[:, 1, :]
                         - (ll_grid[:, 2, :] - ll_grid[:, 1, :]))
 
-    # Find intersection
-    intersect = np.zeros([grid.shape[0], grid.shape[1]])
-    pixel_poly_list = []
-    # Iterate only over the indices within the bounding box and
-    # calculate the intersect weigh for each pixel
-    ix_in_bbox = np.where(bounding_box == True)
-    for i, j in zip(ix_in_bbox[0], ix_in_bbox[1]):
-        if grid_point_location == 'center':
-            pixel_poly = Polygon(
-                [ll_grid[i, j],
-                 lr_grid[i, j],
-                 ur_grid[i, j],
-                 ul_grid[i, j]])
-            pixel_poly_list.append(pixel_poly)
-        else:
-            raise ValueError('`grid_point_location` = %s not implemented' %
-                             grid_point_location)
+    GridCorners = namedtuple('GridCorners',
+                             ['ur_grid', 'ul_grid', 'lr_grid', 'll_grid'])
 
-        c = link.intersection(pixel_poly)
-        if not c.is_empty:
-            intersect[i][j] = (c.length / link.length)
-    return intersect
+    return GridCorners(ur_grid=ur_grid,
+                       ul_grid=ul_grid,
+                       lr_grid=lr_grid,
+                       ll_grid=ll_grid)
 
 
 @deprecated('Use `pycomlink.validation.stats.calc_wet_error_rates()` '

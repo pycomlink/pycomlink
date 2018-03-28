@@ -206,7 +206,6 @@ class ComlinkGridInterpolator(object):
 
         """
         z = self.df_cmls.iloc[i, :]
-        i_not_nan = ~pd.isnull(z)
 
         if (~pd.isnull(z)).sum() == 0:
             # print('%s: Returning NaNs because data contains only NaNs' %

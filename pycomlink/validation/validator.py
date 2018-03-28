@@ -209,6 +209,9 @@ def calc_intersect_weights(x1_line,
 
     """
 
+    x_grid = x_grid.astype('float64')
+    y_grid = y_grid.astype('float64')
+
     #grid = np.stack([xr_ds.longitudes.values, xr_ds.latitudes.values], axis=2)
     grid = np.stack([x_grid, y_grid], axis=2)
 
@@ -243,9 +246,11 @@ def calc_intersect_weights(x1_line,
 
     # Calculate polygon corners assuming that `grid` defines the center
     # of each grid cell
-    #
-    # Upper right
-    grid_corners = _calc_grid_corners_for_center_location(grid)
+    if grid_point_location == 'center':
+        grid_corners = _calc_grid_corners_for_center_location(grid)
+    else:
+        raise ValueError('`grid_point_location` = %s not implemented' %
+                         grid_point_location)
 
     # Find intersection
     intersect = np.zeros([grid.shape[0], grid.shape[1]])
@@ -254,16 +259,12 @@ def calc_intersect_weights(x1_line,
     # calculate the intersect weigh for each pixel
     ix_in_bbox = np.where(bounding_box == True)
     for i, j in zip(ix_in_bbox[0], ix_in_bbox[1]):
-        if grid_point_location == 'center':
-            pixel_poly = Polygon(
-                [grid_corners.ll_grid[i, j],
-                 grid_corners.lr_grid[i, j],
-                 grid_corners.ur_grid[i, j],
-                 grid_corners.ul_grid[i, j]])
-            pixel_poly_list.append(pixel_poly)
-        else:
-            raise ValueError('`grid_point_location` = %s not implemented' %
-                             grid_point_location)
+        pixel_poly = Polygon(
+            [grid_corners.ll_grid[i, j],
+             grid_corners.lr_grid[i, j],
+             grid_corners.ur_grid[i, j],
+             grid_corners.ul_grid[i, j]])
+        pixel_poly_list.append(pixel_poly)
 
         c = link.intersection(pixel_poly)
         if not c.is_empty:
@@ -291,6 +292,9 @@ def _calc_grid_corners_for_center_location(grid):
     central grid points
 
     """
+
+    grid = grid.astype('float64')
+
     # Upper right
     ur_grid = np.zeros_like(grid)
     ur_grid[0:-1, 0:-1, :] = (grid[0:-1, 0:-1, :] + grid[1:, 1:, :]) / 2.0

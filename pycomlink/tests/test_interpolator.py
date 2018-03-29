@@ -52,6 +52,19 @@ class TestComlinkGridInterpolator(unittest.TestCase):
              [0.07857356, 0.26151277, 0.13641106],
              [0.2014109, 0.19460449, 0.08598332]]))
 
+    def test_default_idw_aggregated_to_new_index(self):
+        cml_list = load_processed_cml_list()
+
+        interpolator = pycml.spatial.interpolator.ComlinkGridInterpolator(
+            cml_list=cml_list,
+            variable='R',
+            resolution=0.05,
+            interpolator=pycml.spatial.interpolator.IdwKdtreeInterpolator())
+
+        ds = interpolator.loop_over_time()
+
+        assert ds.R.isel(time=0).values.shape == (16, 23)
+
     def test_default_kriging(self):
         cml_list = load_processed_cml_list()
 

@@ -11,6 +11,8 @@ from tqdm import tqdm
 from pykrige import OrdinaryKriging
 
 from .idw import Invdisttree
+from ..util.temporal import aggregate_df_onto_DatetimeIndex
+
 from future.utils import with_metaclass
 
 
@@ -158,6 +160,7 @@ class ComlinkGridInterpolator(object):
                  resolution=None,
                  interpolator=IdwKdtreeInterpolator(),
                  resample_to='H',
+                 resample_to_new_index=None,
                  resample_label='right',
                  variable='R',
                  channels=['channel_1'],
@@ -173,6 +176,7 @@ class ComlinkGridInterpolator(object):
         self.df_cmls = get_dataframe_for_cml_variable(
             cml_list,
             resample_to=resample_to,
+            resample_to_new_index=resample_to_new_index,
             resample_label=resample_label,
             variable=variable,
             channels=channels,
@@ -332,6 +336,7 @@ def get_lon_lat_list_from_cml_list(cml_list):
 
 def get_dataframe_for_cml_variable(cml_list,
                                    resample_to='H',
+                                   resample_to_new_index=None,
                                    resample_label='right',
                                    variable='R',
                                    channels=['channel_1'],
@@ -348,6 +353,10 @@ def get_dataframe_for_cml_variable(cml_list,
     cml_list : iterable of `Comlink` objects
     resample_to : str, optional
         `pandas` resampling string, defaults to 'H
+    resample_to_new_index : iterable of datetime or something similar, optional
+        Time stamps of a new index on which to aggregate. If this argument is
+        supplied, `resample_to` is ignored and the CML data is aggregated to
+        this new index, which can have arbitrary time steps.
     resample_label : {'left', 'right'}, optional
         `pandas` resampling label, defaults to 'right'
     variable : str, optional
@@ -372,11 +381,21 @@ def get_dataframe_for_cml_variable(cml_list,
     # TODO: Extend the code to be able to average over two channels if desired
     channel_name = channels[0]
 
-    for cml in cml_list:
-        df[cml.metadata['cml_id']] = (
-            cml.channels[channel_name].data[variable]
-            .resample(resample_to, label=resample_label)
-            .apply(aggregation_func))
+    if resample_to_new_index is not None:
+        for cml in cml_list:
+            df_cml = cml.channels[channel_name].data[variable]
+            df[cml.metadata['cml_id']] = aggregate_df_onto_DatetimeIndex(
+                df=df_cml,
+                new_index=resample_to_new_index,
+                label=resample_label,
+                method=aggregation_func)
+    else:
+        for cml in cml_list:
+            df[cml.metadata['cml_id']] = (
+                cml.channels[channel_name].data[variable]
+                .resample(resample_to, label=resample_label)
+                .apply(aggregation_func))
+
     df *= apply_factor
 
     return df

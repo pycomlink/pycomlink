@@ -376,7 +376,7 @@ def get_dataframe_for_cml_variable(cml_list,
     """
 
     # Resample time series of each CML
-    df = pd.DataFrame()
+    df_dict = {}
 
     # TODO: Extend the code to be able to average over two channels if desired
     channel_name = channels[0]
@@ -384,17 +384,20 @@ def get_dataframe_for_cml_variable(cml_list,
     if resample_to_new_index is not None:
         for cml in cml_list:
             df_cml = cml.channels[channel_name].data[variable]
-            df[cml.metadata['cml_id']] = aggregate_df_onto_DatetimeIndex(
+            df_dict[cml.metadata['cml_id']] = aggregate_df_onto_DatetimeIndex(
                 df=df_cml,
                 new_index=resample_to_new_index,
                 label=resample_label,
                 method=aggregation_func)
+
     else:
         for cml in cml_list:
-            df[cml.metadata['cml_id']] = (
+            df_dict[cml.metadata['cml_id']] = (
                 cml.channels[channel_name].data[variable]
                 .resample(resample_to, label=resample_label)
                 .apply(aggregation_func))
+
+    df = pd.concat(df_dict, axis=1)
 
     df *= apply_factor
 

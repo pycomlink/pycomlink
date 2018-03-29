@@ -160,6 +160,7 @@ class ComlinkGridInterpolator(object):
                  resolution=None,
                  interpolator=IdwKdtreeInterpolator(),
                  resample_to='H',
+                 floor_before_resample_to_new_index='min',
                  resample_to_new_index=None,
                  resample_label='right',
                  variable='R',
@@ -177,6 +178,8 @@ class ComlinkGridInterpolator(object):
             cml_list,
             resample_to=resample_to,
             resample_to_new_index=resample_to_new_index,
+            floor_before_resample_to_new_index=
+            floor_before_resample_to_new_index,
             resample_label=resample_label,
             variable=variable,
             channels=channels,
@@ -338,6 +341,7 @@ def get_dataframe_for_cml_variable(cml_list,
                                    resample_to='H',
                                    resample_to_new_index=None,
                                    resample_label='right',
+                                   floor_before_resample_to_new_index='min',
                                    variable='R',
                                    channels=['channel_1'],
                                    aggregation_func=np.mean,
@@ -357,6 +361,10 @@ def get_dataframe_for_cml_variable(cml_list,
         Time stamps of a new index on which to aggregate. If this argument is
         supplied, `resample_to` is ignored and the CML data is aggregated to
         this new index, which can have arbitrary time steps.
+    floor_before_resample_to_new_index : str
+        Per default this is set to 'min' and will floor the CML DataFrame
+        DatetimeIndex to minutes before doing a custom aggregation to a new
+        index.
     resample_label : {'left', 'right'}, optional
         `pandas` resampling label, defaults to 'right'
     variable : str, optional
@@ -381,8 +389,11 @@ def get_dataframe_for_cml_variable(cml_list,
     if resample_to_new_index is not None:
         df_dict = {}
         for cml in cml_list:
-            df_dict[cml.metadata['cml_id']] = (cml.channels[channel_name]
-                                               .data[variable])
+            df_cml = cml.channels[channel_name].data[variable]
+            if floor_before_resample_to_new_index:
+                df_cml.index = (
+                    df_cml.index.floor(floor_before_resample_to_new_index))
+            df_dict[cml.metadata['cml_id']] = df_cml
         df = pd.concat(df_dict, axis=1)
         df = aggregate_df_onto_DatetimeIndex(
             df=df,

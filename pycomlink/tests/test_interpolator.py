@@ -93,9 +93,9 @@ class TestComlinkGridInterpolator(unittest.TestCase):
 
         np.testing.assert_array_almost_equal(
             ds.R.isel(time=6).values[-3:, -3:],
-            np.array([[2.68456511,  2.3083342 ,  1.99627359],
-                      [3.30853954,  2.87754027,  2.48889028],
-                      [3.83424582,  3.28489834,  3.00832896]]))
+            np.array([[2.64776423,  2.27544954,  1.96875187],
+                      [3.26109505,  2.83678722,  2.45349594],
+                      [3.77713447,  3.2373787,  2.96544491]]))
 
     def test_default_kriging(self):
         cml_list = load_processed_cml_list()

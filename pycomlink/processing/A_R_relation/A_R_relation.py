@@ -53,6 +53,59 @@ def calc_R_from_A(A, L, f_GHz=None, a=None, b=None, pol='H', R_min=0.1):
     return R
 
 
+def calc_R_from_A_min_max(Ar_max, L, f_GHz=None, a=None, b=None, pol='H',
+                          R_min=0.1, k=90):
+    """Calculate rain rate from attenuation using the A-R Relationship
+    Parameters
+    ----------
+    Ar_max : float or iterable of float
+        Attenuation of microwave signal (with min/max measurements of RSL/TSL)
+    f_GHz : float, optional
+        Frequency in GHz
+    pol : string
+        Polarization, default is 'H'
+    a : float, optional
+        Parameter of A-R relationship
+    b : float, optional
+        Parameter of A-R relationship
+    L : float
+        length of the link
+    R_min : float
+        Minimal rain rate in mm/h. Everything below will be set to zero.
+    k : int, optional
+        number of measurements between two consecutive measurement of rx/tx
+    Returns
+    -------
+    float or iterable of float
+        Rain rate
+    Note
+    ----
+    Based on: "Empirical Study of the Quantization Bias Effects in
+    Commercial Microwave Links Min/Max Attenuation
+    Measurements for Rain Monitoring" by OSTROMETZKY J., ESHEL A.
+    """
+
+    # calculate rain-rate using the calibrated power law (with wet-antenna)
+    euler_gamma = 0.57721566
+    if f_GHz is not None:
+        a, b = a_b(f_GHz, pol=pol)
+
+    a_max = a * (np.log(k) + euler_gamma) ** b
+
+    # calculate rainfall
+    R = np.zeros_like(Ar_max, dtype='float')
+
+    nan_index = np.isnan(Ar_max)
+    R[nan_index] = np.nan
+
+    # This ignores the numpy warning stemming from A >=0 where A contains NaNs
+    with np.errstate(invalid='ignore'):
+        R[~nan_index & (Ar_max >= 0)] = \
+          (Ar_max[~nan_index & (Ar_max >= 0)] / (a_max*L)) ** (1.0/b)
+        R[~nan_index & (R < R_min)] = 0.0
+    return R
+
+
 def a_b(f_GHz, pol, approx_type='ITU'):
     """Approximation of parameters for A-R relationship
     

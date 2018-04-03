@@ -65,7 +65,8 @@ def aggregate_df_onto_DatetimeIndex(df, new_index, method, label='right',
     df_reindexed = df_temp.groupby('new_time_ix').agg(method)
     # Update name and timezone of new index
     df_reindexed.index.name = df_temp.index.name
-    df_reindexed.index = df_reindexed.index.tz_localize('UTC').tz_convert(
-        df_temp.index.tzinfo)
+    if not df_reindexed.index.tzinfo:
+        df_reindexed.index = df_reindexed.index.tz_localize('UTC').tz_convert(
+            df_temp.index.tzinfo)
 
     return df_reindexed

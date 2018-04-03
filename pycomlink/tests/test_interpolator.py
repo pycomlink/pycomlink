@@ -1,4 +1,5 @@
 import unittest
+import copy
 import numpy as np
 import pandas as pd
 import pycomlink as pycml
@@ -118,3 +119,23 @@ class TestComlinkGridInterpolator(unittest.TestCase):
             np.array([[2.41876631, 3.55747763, 5.21045399],
                       [2.59474309, 3.74337047, 4.95187848],
                       [2.89174467, 3.57024647, 4.49247846]]))
+
+
+class TestGetDataFrameForCmlVariable(unittest.TestCase):
+    def test_cml_id_order(self):
+        cml_list = load_processed_cml_list()
+
+        # Add two CMLs with new fake cml_id (which are very different from
+        # the example cml_ids to cause mixing order of their hashed values)
+        cml_temp = copy.deepcopy(cml_list[0])
+        cml_temp.metadata['cml_id'] = b'some_really_long_cml_id_122334567'
+        cml_list.insert(0, cml_temp)
+
+        cml_temp = copy.deepcopy(cml_list[0])
+        cml_temp.metadata['cml_id'] = b'another_really_long_cml_id_999222123123'
+        cml_list.append(cml_temp)
+
+        df = pycml.spatial.interpolator.get_dataframe_for_cml_variable(
+            cml_list=cml_list)
+        for df_column_name, cml in zip(df.columns.tolist(), cml_list):
+            assert df_column_name == cml.metadata['cml_id']

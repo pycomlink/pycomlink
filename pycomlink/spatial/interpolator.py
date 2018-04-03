@@ -410,6 +410,14 @@ def get_dataframe_for_cml_variable(cml_list,
                 .apply(aggregation_func))
         df = pd.concat(df_dict, axis=1)
 
+    # Assure the correct order of the columns.
+    # Please note that the order of the columns might get mixed up even if a
+    # OrderdDictionary of DataFrames is used for concatenation. Reordering
+    # the columns is computationally cheap compare to the rest of the
+    # interpolation.
+    cml_id_list = [cml.metadata['cml_id'] for cml in cml_list]
+    df = df[cml_id_list]
+
     df *= apply_factor
 
     return df

@@ -128,11 +128,11 @@ class TestGetDataFrameForCmlVariable(unittest.TestCase):
         # Add two CMLs with new fake cml_id (which are very different from
         # the example cml_ids to cause mixing order of their hashed values)
         cml_temp = copy.deepcopy(cml_list[0])
-        cml_temp.metadata['cml_id'] = 'some_really_long_cml_id_122334567'
+        cml_temp.metadata['cml_id'] = u'some_really_long_cml_id_122334567'
         cml_list.insert(0, cml_temp)
 
         cml_temp = copy.deepcopy(cml_list[0])
-        cml_temp.metadata['cml_id'] = 'another_really_long_cml_id_999222123123'
+        cml_temp.metadata['cml_id'] = u'another_really_long_cml_id_999222123123'
         cml_list.append(cml_temp)
 
         df = pycml.spatial.interpolator.get_dataframe_for_cml_variable(

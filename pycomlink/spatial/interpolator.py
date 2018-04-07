@@ -249,7 +249,7 @@ class ComlinkGridInterpolator(object):
         """
         zi_list = []
 
-        for i in tqdm(list(range(len(self.df_cmls.index)))):
+        for i in tqdm(list(range(len(self.df_cmls.index[t_start:t_stop])))):
             try:
                 zi = self.interpolate_for_i(i)
             except (scipy.linalg.LinAlgError, ValueError) as e:

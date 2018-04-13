@@ -1,6 +1,8 @@
 from builtins import zip
 import numpy as np
 import shapely as sh
+import shapely.ops as ops
+from tqdm import tqdm
 
 
 def calc_coverage_mask(cml_list, xgrid, ygrid, max_dist_from_cml):
@@ -46,14 +48,19 @@ def calc_coverage_mask(cml_list, xgrid, ygrid, max_dist_from_cml):
                      cml.metadata['site_b_latitude']]])
                 .buffer(max_dist_from_cml, cap_style=1))
 
+        cml_multi_line = ops.cascaded_union(cml_lines)
+
+        # Generate list of grid points
+        grid_points = []
+        for x_i, y_i in zip(tqdm(xgrid.ravel(), desc='Building grid points'),
+                            ygrid.ravel()):
+            grid_points.append(sh.geometry.Point((x_i, y_i)))
+
         # Get coverage for each grid point
         covered_list = []
-        for i, (x_i, y_i) in enumerate(zip(xgrid.ravel(), ygrid.ravel())):
-            grid_point = sh.geometry.Point((x_i, y_i))
-            for cml_line in cml_lines:
-                if grid_point.intersects(cml_line):
-                    covered_list.append(True)
-                    break
+        for grid_point in tqdm(grid_points, desc='Checking intersections'):
+            if grid_point.intersects(cml_multi_line):
+                covered_list.append(True)
             else:
                 covered_list.append(False)
 

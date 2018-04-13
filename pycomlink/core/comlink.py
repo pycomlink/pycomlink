@@ -29,11 +29,13 @@ from ..processing import Processor
 from ..spatial.helper import distance
 
 
-# Intermediate fix for pandas 0.21
-# https://github.com/pandas-dev/pandas/issues/18283
-# TODO: Remove this when solved via pandas 0.21.1
-from pandas.tseries import converter
-converter.register()
+# Assure that the pandas matplotlib converters are registered,
+# as long as a new matplotlib release does not handle pandas
+# time data (or np.datetime64) automatically
+# TODO: Remove this when solved via new matplotlib, maybe in 2.2.something...
+# here: https://github.com/matplotlib/matplotlib/pull/9779
+import pandas.plotting
+pandas.plotting.register_matplotlib_converters()
 
 Coords = namedtuple('coords', ['lon_a', 'lon_b', 'lat_a', 'lat_b'])
 

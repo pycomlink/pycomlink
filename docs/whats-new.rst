@@ -9,14 +9,40 @@ Enhancements
 
 * Codebase is Python 3 now, keeping backwards compatibility to Python 2.7
   via using the `future` module.
+
 * min-max CML data can now be written to and read from cmlh5. Standard column
   names are `tx_min`, `tx_max`, `rx_min` and `rx_max`. When reading from cmlh5
   without specifying dedicated column names, the function tries out the
   standard column names for min-max and instantaneous. If it does not find any
   match it will print an error message.
+
 * Added example file with min-max data for 75 CMLs. This dataset is derived
   from the existing example dataset of 75 CMLs with instantaneous measurements.
+
 * Added example notebook comparing min-max and instantaneous CML data
+
+* Added TravisCI and Codecov and increased the test coverage a little
+
+* Extended functionality for `append_data`. A maximum length or maximum
+  allowed age for the data can be specified
+
+* More options for interpolation. Added option to pass `max_distance`
+  for IDW and Added option for resampling in `Interpolator`
+  (instead of just doing hourly means of variable `R`)
+
+* Interpolated fields are now always transformed into an `xarray.Dataset`.
+  The `Dataset` is also stored as attribute if the `Interpolator` object
+
+* Improved grid intersection calculation in validator
+
+Bug fixes
+~~~~~~~~~
+
+* `t_start` and `t_stop` have not been taken into account
+  in the main interpolation loop
+
+* Fix: Catching `LinAlgError` in Kriging interpolation
+
 
 v0.2.1
 ------

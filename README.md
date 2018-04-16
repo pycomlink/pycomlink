@@ -18,8 +18,11 @@ To run the example notebooks you will also need the [Jupyter Notebook](https://j
 Usage
 -----
 
- * Jupyter notebook on [how to get started with CML data from a CSV file](http://nbviewer.jupyter.org/github/pycomlink/pycomlink/blob/master/notebooks/Use%20CML%20data%20from%20CSV%20file.ipynb)
- * More examples to come...
+The following jupyter notebooks showcase some use cases of `pycomlink`
+
+ * [How to do baseline determination](http://nbviewer.jupyter.org/github/pycomlink/pycomlink/blob/master/notebooks/Baseline%20determination.ipynb)
+ * [How to do spatial interpolation of CML rainfall](http://nbviewer.jupyter.org/github/pycomlink/pycomlink/blob/master/notebooks/Spatial%20interpolation.ipynb)
+ * [How to get started with your CML data from a CSV file](http://nbviewer.jupyter.org/github/pycomlink/pycomlink/blob/master/notebooks/Use%20CML%20data%20from%20CSV%20file.ipynb)
 
 Features
 --------

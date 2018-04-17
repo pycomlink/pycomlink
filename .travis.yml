@@ -5,7 +5,7 @@ matrix:
     - python: "2.7"
       env: DEPS="numpy
                  scipy
-                 pandas>=0.18
+                 pandas>=0.22
                  matplotlib
                  numba
                  folium
@@ -18,7 +18,7 @@ matrix:
     - python: "3.6"
       env: DEPS="numpy
                  scipy
-                 pandas>=0.18
+                 pandas>=0.22
                  matplotlib
                  numba
                  folium

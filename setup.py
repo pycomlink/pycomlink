@@ -17,7 +17,7 @@ def read(fname):
 
 setup(
     name = "pycomlink",
-    version = "0.2.1",
+    version = "0.2.2",
     author = "Christian Chwala",
     author_email = "christian.chwala@kit.edu",
     description = ("Python tools for MW link data processing"),
@@ -25,7 +25,7 @@ setup(
     keywords = "microwave links precipitation radar",
     url = "https://github.com/pycomlink/pycomlink",
     download_url = (
-        "https://github.com/pycomlink/pycomlink/archive/0.2.1.tar.gz"),
+        "https://github.com/pycomlink/pycomlink/archive/0.2.2.tar.gz"),
     packages=find_packages(exclude=['test']),
     include_package_data=True,
     long_description=read('README.md'),
@@ -34,13 +34,14 @@ setup(
         "Topic :: Scientific/Engineering :: Atmospheric Science",
         "License :: OSI Approved :: BSD License",
         'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.6'
     ],
     # A list of all available classifiers can be found at 
     # https://pypi.python.org/pypi?%3Aaction=list_classifiers
     install_requires=[
         'numpy',
         'scipy',
-        'pandas>=0.18',
+        'pandas>=0.22',
         'matplotlib',
         'numba',
         'folium',

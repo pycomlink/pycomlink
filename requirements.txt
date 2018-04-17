@@ -1,6 +1,6 @@
 numpy
 scipy
-pandas>=0.18
+pandas>=0.22
 matplotlib
 numba
 folium
@@ -10,3 +10,4 @@ shapely
 pyproj
 tqdm
 pykrige
+future

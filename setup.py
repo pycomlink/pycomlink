@@ -34,13 +34,14 @@ setup(
         "Topic :: Scientific/Engineering :: Atmospheric Science",
         "License :: OSI Approved :: BSD License",
         'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.6'
     ],
     # A list of all available classifiers can be found at 
     # https://pypi.python.org/pypi?%3Aaction=list_classifiers
     install_requires=[
         'numpy',
         'scipy',
-        'pandas>=0.18',
+        'pandas>=0.22',
         'matplotlib',
         'numba',
         'folium',

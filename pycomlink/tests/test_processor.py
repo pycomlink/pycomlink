@@ -40,7 +40,7 @@ class TestWetDryStdDev(unittest.TestCase):
 
         # This test only works correctly if the CML uses vertical polarization
         # since the default in the function is 'H'
-        assert cml.channel_1.metadata['polarization'] == 'V'
+        assert cml.channel_1.metadata['polarization'] == b'V'
 
         cml.process.wet_dry.std_dev(window_length=30, threshold=0.8)
         cml.process.baseline.linear()

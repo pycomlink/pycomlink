@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import unittest
 import numpy as np
 from pycomlink.tests.utils import load_and_clean_example_cml
@@ -40,7 +41,7 @@ class TestWetDryStdDev(unittest.TestCase):
 
         # This test only works correctly if the CML uses vertical polarization
         # since the default in the function is 'H'
-        assert cml.channel_1.metadata['polarization'] == b'V'
+        assert cml.channel_1.metadata['polarization'] == 'V'
 
         cml.process.wet_dry.std_dev(window_length=30, threshold=0.8)
         cml.process.baseline.linear()

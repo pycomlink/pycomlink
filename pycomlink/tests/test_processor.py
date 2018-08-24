@@ -50,7 +50,7 @@ class TestWetDryStdDev(unittest.TestCase):
                 A=cml.channel_1.data.A,
                 L=cml.metadata['length'],
                 f_GHz=cml.channel_1.metadata['frequency'] / 1e9,
-                pol=cml.channel_1.metadata['polarizatoin']))
+                pol=cml.channel_1.metadata['polarization']))
 
         np.testing.assert_almost_equal(R_from_processor, R_from_function)
 

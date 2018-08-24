@@ -114,11 +114,15 @@ class TestComlinkGridInterpolator(unittest.TestCase):
         assert ds.R.isel(time=0).values.shape == (16, 23)
 
         # TODO: Check if theses results change when using the 'C' backend
+        #
+        # Note, that the reference values had to be updated after switching
+        # from pykrige version 1.3.1 to version 1.4.0. See this PR
+        # https://github.com/bsmurphy/PyKrige/issues/110
         np.testing.assert_array_almost_equal(
             ds.R.isel(time=24).values[1:4, 1:4],
-            np.array([[2.41876631, 3.55747763, 5.21045399],
-                      [2.59474309, 3.74337047, 4.95187848],
-                      [2.89174467, 3.57024647, 4.49247846]]))
+            np.array([[2.312077, 3.591382, 5.370885],
+                      [2.410231, 3.689951, 4.975776],
+                      [2.661749, 3.460712, 4.415959]]))
 
 
 class TestGetDataFrameForCmlVariable(unittest.TestCase):

@@ -37,6 +37,11 @@ class TestWetDryStdDev(unittest.TestCase):
 
         # Test if the end result, the rain rate, is the same when using the
         # Processor and the functions
+
+        # This test only works correctly if the CML uses vertical polarization
+        # since the default in the function is 'H'
+        assert cml.channel_1.metadata['polarization'] == 'V'
+
         cml.process.wet_dry.std_dev(window_length=30, threshold=0.8)
         cml.process.baseline.linear()
         cml.process.baseline.calc_A()

@@ -1,8 +1,21 @@
 What's New
 ==========
 
-v0.2.2 (not released)
----------------------
+v0.2.3
+------
+
+Bug fixes
+~~~~~~~~~
+
+* Added missing kwarg for polarization in `calc_A` in `Processor`. Before,
+  `calc_A` always used the default polarization for the A-R relation which
+  leads to rain rate overestimation!
+
+* Changed reference values in test for Ordinary Kriging interpolator, because
+  `pykrige v1.4.0` seems to produce slightly different results than `v1.3.1`
+
+v0.2.2
+------
 
 Enhancements
 ~~~~~~~~~~~~

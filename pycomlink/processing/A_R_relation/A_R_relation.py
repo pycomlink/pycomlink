@@ -101,7 +101,7 @@ def a_b(f_GHz, pol, approx_type='ITU'):
             f_a = interp1d(ITU_table[0, :], ITU_table[1, :], kind='cubic')
             f_b = interp1d(ITU_table[0, :], ITU_table[3, :], kind='cubic')
         else:
-            ValueError('Polarization must be V, v, H or h.')
+            raise ValueError('Polarization must be V, v, H or h.')
         a = f_a(f_GHz)
         b = f_b(f_GHz)
     return a, b

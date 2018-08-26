@@ -117,7 +117,8 @@ class A_R(object):
                                   ['A'],
                                   'R',
                                   L=cml.get_length(),
-                                  f_GHz=cml.channel_1.f_GHz)
+                                  f_GHz=cml.channel_1.f_GHz,
+                                  pol=cml.channel_1.metadata['polarization'])
 
 
 def cml_wrapper(cml, func,

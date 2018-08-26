@@ -1,4 +1,3 @@
-from __future__ import unicode_literals
 import unittest
 import numpy as np
 from pycomlink.tests.utils import load_and_clean_example_cml

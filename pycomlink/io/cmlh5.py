@@ -624,6 +624,10 @@ def _read_cml_channel_metadata(cml_ch_g):
     metadata = {}
     for attr_name, attr_options in cml_ch_metadata_dict.items():
         value = cml_ch_g.attrs[attr_name]
+        # This is necessary because of this h5py issue
+        # https://github.com/h5py/h5py/issues/379
+        if isinstance(value, bytes):
+            value = value.decode("utf-8")
         # TODO: Handle NaN values
         metadata[attr_name] = value
     return metadata

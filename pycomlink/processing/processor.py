@@ -12,12 +12,14 @@
 from builtins import object
 from functools import wraps
 from copy import deepcopy
+import numpy as np
 
 from pycomlink.processing.wet_dry import std_dev, stft
 from pycomlink.processing.baseline.baseline import \
     baseline_linear, baseline_constant
 from pycomlink.processing.wet_antenna.wet_antenna import waa_adjust_baseline
-from pycomlink.processing.A_R_relation.A_R_relation import calc_R_from_A
+from pycomlink.processing.A_R_relation.A_R_relation import calc_R_from_A, \
+    calc_R_from_A_min_max
 from pycomlink.processing.quality_control.simple import set_to_nan_if
 
 
@@ -64,7 +66,7 @@ class QualityControl(object):
     def __init__(self, cml):
         self.set_to_nan_if = pass_cml_wrapper(cml, set_to_nan_if)
 
-        
+
 class WetDry(object):
     def __init__(self, cml):
         self.std_dev = cml_wrapper(cml,
@@ -102,11 +104,54 @@ class Baseline(object):
                                   ['txrx', 'baseline'],
                                   'A')
 
+        self.calc_A_min_max = cml_wrapper(cml,
+                                          _calc_A_min_max,
+                                          ['tx_min', 'tx_max', 
+                                           'rx_min', 'rx_max'],
+                                          'Ar_max')
+
 
 # TODO: Integarte this somewhere else, since this
 #       sould be carried out after every baseline determination
 def _calc_A(txrx, baseline):
     return txrx - baseline
+
+
+def _calc_A_min_max(tx_min, tx_max, rx_min, rx_max, gT=1.0, gR=0.6, window=7):
+    """Calculate rain rate from attenuation using the A-R Relationship
+    Parameters
+    ----------
+    gT : float, optional
+        induced bias
+    gR : float, optional
+        induced bias
+    window: int, optional
+        number of previous measurements to use for zero-level calculation
+    Returns
+    -------
+    float or iterable of float
+        Ar_max
+    Note
+    ----
+    Based on: "Empirical Study of the Quantization Bias Effects in
+    Commercial Microwave Links Min/Max Attenuation
+    Measurements for Rain Monitoring" by OSTROMETZKY J., ESHEL A.
+    """
+
+    # quantization bias correction
+    Ac_max = tx_max - rx_min + (gT + gR) / 2
+    Ac_min = tx_min - rx_max - (gT + gR) / 2
+
+    Ac_max[np.isnan(Ac_max)] = np.rint(np.nanmean(Ac_max))
+    Ac_min[np.isnan(Ac_min)] = np.rint(np.nanmean(Ac_min))
+
+    # zero-level calculation
+    Ar_max = np.full(Ac_max.shape, np.nan)
+    for i in range(window,len(Ac_max)):
+        Ar_max[i] = Ac_max[i] - Ac_min[i-window:i+1].min()
+    Ar_max[0:window] = np.nan
+
+    return Ar_max
 
 
 class A_R(object):
@@ -119,6 +164,13 @@ class A_R(object):
                                   L=cml.get_length(),
                                   f_GHz=cml.channel_1.f_GHz,
                                   pol=cml.channel_1.metadata['polarization'])
+
+        self.calc_R_min_max = cml_wrapper(cml,
+                                          calc_R_from_A_min_max,
+                                          ['Ar_max'],
+                                          'R',
+                                          L=cml.get_length(),
+                                          f_GHz=cml.channel_1.f_GHz)
 
 
 def cml_wrapper(cml, func,

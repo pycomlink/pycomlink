@@ -165,12 +165,14 @@ class A_R(object):
                                   f_GHz=cml.channel_1.f_GHz,
                                   pol=cml.channel_1.metadata['polarization'])
 
-        self.calc_R_min_max = cml_wrapper(cml,
-                                          calc_R_from_A_min_max,
-                                          ['Ar_max'],
-                                          'R',
-                                          L=cml.get_length(),
-                                          f_GHz=cml.channel_1.f_GHz)
+        self.calc_R_min_max = \
+            cml_wrapper(cml,
+                        calc_R_from_A_min_max,
+                        ['Ar_max'],
+                        'R',
+                        L=cml.get_length(),
+                        f_GHz=cml.channel_1.f_GHz,
+                        pol=cml.channel_1.metadata['polarization'])
 
 
 def cml_wrapper(cml, func,

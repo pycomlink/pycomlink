@@ -139,8 +139,8 @@ def _calc_A_min_max(tx_min, tx_max, rx_min, rx_max, gT=1.0, gR=0.6, window=7):
     """
 
     # quantization bias correction
-    Ac_max = tx_max - rx_min + (gT + gR) / 2
-    Ac_min = tx_min - rx_max - (gT + gR) / 2
+    Ac_max = tx_max - rx_min - (gT + gR) / 2
+    Ac_min = tx_min - rx_max + (gT + gR) / 2
 
     Ac_max[np.isnan(Ac_max)] = np.rint(np.nanmean(Ac_max))
     Ac_min[np.isnan(Ac_min)] = np.rint(np.nanmean(Ac_min))

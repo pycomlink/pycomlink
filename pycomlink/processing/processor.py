@@ -106,7 +106,7 @@ class Baseline(object):
 
         self.calc_A_min_max = cml_wrapper(cml,
                                           _calc_A_min_max,
-                                          ['tx_min', 'tx_max', 
+                                          ['tx_min', 'tx_max',
                                            'rx_min', 'rx_max'],
                                           'Ar_max')
 
@@ -139,16 +139,17 @@ def _calc_A_min_max(tx_min, tx_max, rx_min, rx_max, gT=1.0, gR=0.6, window=7):
     """
 
     # quantization bias correction
-    Ac_max = tx_max - rx_min + (gT + gR) / 2
-    Ac_min = tx_min - rx_max - (gT + gR) / 2
+    Ac_max = tx_max - rx_min - (gT + gR) / 2
+    Ac_min = tx_min - rx_max + (gT + gR) / 2
 
     Ac_max[np.isnan(Ac_max)] = np.rint(np.nanmean(Ac_max))
     Ac_min[np.isnan(Ac_min)] = np.rint(np.nanmean(Ac_min))
 
     # zero-level calculation
-    Ar_max = np.full(Ac_max.shape, np.nan)
+    Ar_max = np.full(Ac_max.shape, 0.0)
     for i in range(window,len(Ac_max)):
         Ar_max[i] = Ac_max[i] - Ac_min[i-window:i+1].min()
+    Ar_max[Ar_max < 0.0] = 0.0
     Ar_max[0:window] = np.nan
 
     return Ar_max
@@ -165,12 +166,14 @@ class A_R(object):
                                   f_GHz=cml.channel_1.f_GHz,
                                   pol=cml.channel_1.metadata['polarization'])
 
-        self.calc_R_min_max = cml_wrapper(cml,
-                                          calc_R_from_A_min_max,
-                                          ['Ar_max'],
-                                          'R',
-                                          L=cml.get_length(),
-                                          f_GHz=cml.channel_1.f_GHz)
+        self.calc_R_min_max = \
+            cml_wrapper(cml,
+                        calc_R_from_A_min_max,
+                        ['Ar_max'],
+                        'R',
+                        L=cml.get_length(),
+                        f_GHz=cml.channel_1.f_GHz,
+                        pol=cml.channel_1.metadata['polarization'])
 
 
 def cml_wrapper(cml, func,

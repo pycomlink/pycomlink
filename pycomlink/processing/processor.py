@@ -106,7 +106,7 @@ class Baseline(object):
 
         self.calc_A_min_max = cml_wrapper(cml,
                                           _calc_A_min_max,
-                                          ['tx_min', 'tx_max', 
+                                          ['tx_min', 'tx_max',
                                            'rx_min', 'rx_max'],
                                           'Ar_max')
 

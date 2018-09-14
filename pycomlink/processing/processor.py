@@ -149,7 +149,7 @@ def _calc_A_min_max(tx_min, tx_max, rx_min, rx_max, gT=1.0, gR=0.6, window=7):
     Ar_max = np.full(Ac_max.shape, 0.0)
     for i in range(window,len(Ac_max)):
         Ar_max[i] = Ac_max[i] - Ac_min[i-window:i+1].min()
-	Ar_max[Ar_max<0.0] = 0.0
+    Ar_max[Ar_max < 0.0] = 0.0
     Ar_max[0:window] = np.nan
 
     return Ar_max

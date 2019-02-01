@@ -59,7 +59,6 @@ def calc_wet_dry_performance_metrics(reference, predicted):
 
     assert reference.shape == predicted.shape
 
-
     # Remove values pairs if either one or both are NaN and calculate nan metrics
     nan_index = np.isnan(reference) | np.isnan(predicted)
     N_nan_pairs = nan_index.sum()
@@ -88,7 +87,6 @@ def calc_wet_dry_performance_metrics(reference, predicted):
 
     N_wet_reference = (reference == True).sum()
     N_dry_reference = (reference == False).sum()
-
 
     # Then calculate all the metrics
     true_wet_rate = N_tp / N_wet_reference
@@ -157,12 +155,11 @@ def calc_rain_error_performance_metrics(reference, predicted, rainfall_threshold
     if rainfall_threshold_wet is None:
         rainfall_threshold_wet = 0.1
 
-
     # calculate performance metrics: pcc, cv, rmse and mae
     pearson_correlation = np.corrcoef(reference, predicted)
-    coefficient_of_variation = np.std(predicted)/np.std(reference) - np.mean(reference)
+    coefficient_of_variation = np.std(predicted-reference) - np.mean(reference)
     root_mean_square_error = np.sqrt(np.mean((predicted-reference)**2))
-    mean_absolute_error = (np.average(predicted-reference)).mean()
+    mean_absolute_error = (np.abs(predicted-reference)).average()
 
     # calculate the precipitation sums of reference and predicted time series
     R_mean_reference = reference.sum()
@@ -183,22 +180,21 @@ def calc_rain_error_performance_metrics(reference, predicted, rainfall_threshold
     missed_wet_precipitation_rate = predicted[(reference >= rainfall_threshold_wet) &
                                               (predicted < rainfall_threshold_wet)].sum()
 
-
-    return RainError(pearson_correlation = pearson_correlation[0,1],
-                     coefficient_of_variation = coefficient_of_variation,
-                     root_mean_square_error = root_mean_square_error,
-                     mean_absolute_error = mean_absolute_error,
-                     R_mean_reference = R_mean_reference,
-                     R_mean_cml = R_mean_cml,
-                     false_wet_rate = false_wet_rate,
-                     missed_wet_rate = missed_wet_rate,
-                     false_wet_precipitation_rate = false_wet_precipitation_rate,
-                     missed_wet_precipitation_rate = missed_wet_precipitation_rate,
-                     rainfall_threshold_wet = rainfall_threshold_wet,
-                     N_all_pairs = N_all_pairs,
-                     N_nan_pairs = N_nan_pairs,
-                     N_nan_reference_only = N_nan_reference_only,
-                     N_nan_predicted_only = N_nan_predicted_only)
+    return RainError(pearson_correlation=pearson_correlation[0, 1],
+                     coefficient_of_variation=coefficient_of_variation,
+                     root_mean_square_error=root_mean_square_error,
+                     mean_absolute_error=mean_absolute_error,
+                     R_mean_reference=R_mean_reference,
+                     R_mean_cml=R_mean_cml,
+                     false_wet_rate=false_wet_rate,
+                     missed_wet_rate=missed_wet_rate,
+                     false_wet_precipitation_rate=false_wet_precipitation_rate,
+                     missed_wet_precipitation_rate=missed_wet_precipitation_rate,
+                     rainfall_threshold_wet=rainfall_threshold_wet,
+                     N_all_pairs=N_all_pairs,
+                     N_nan_pairs=N_nan_pairs,
+                     N_nan_reference_only=N_nan_reference_only,
+                     N_nan_predicted_only=N_nan_predicted_only)
 
 
 @deprecated('Please use `calc_wet_dry_performance_metrics()`')

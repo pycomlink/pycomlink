@@ -121,7 +121,7 @@ def waa_leijnse_2008(R, f_Hz, T_K=293.0,
     """ Calculate wet antenna attenuation according to Leijnse et al. 2008
 
     Calculate the wet antenna attenuation assuming a rain rate dependent
-    thin flat water film on the antenna.
+    thin flat water film on the antenna following the results from [1].
 
     Water film thickness:
         l = gamma * R ** delta
@@ -146,6 +146,15 @@ def waa_leijnse_2008(R, f_Hz, T_K=293.0,
     -------
     waa : array-like
         Wet antenna attenuation in dB
+
+    References
+    ----------
+
+    ..[1]  H. Leijnse, R. Uijlenhoet, J.N.M. Stricker: "Microwave link rainfall
+           estimation: Effects of link length and frequency, temporal sampling,
+           power resolution, and wet antenna attenuation", Advances in
+           Water Resources, Volume 31, Issue 11, 2008, Pages 1481-1493,
+           https://doi.org/10.1016/j.advwatres.2008.03.004.
 
     """
 

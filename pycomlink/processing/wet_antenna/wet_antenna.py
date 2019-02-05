@@ -1,3 +1,4 @@
+# coding=utf-8
 #----------------------------------------------------------------------------
 # Name:         wet_antenna
 # Purpose:      Estimation and removal of wet antenna effects
@@ -112,3 +113,104 @@ def waa_adjust_baseline(rsl, baseline, wet, waa_max, delta_t, tau):
 
     #return baseline + waa, waa
     return baseline + waa
+
+
+def waa_leijnse_2008(R, f_Hz, T_K=293.0,
+                     gamma=2.06e-5, delta=0.24,
+                     n_antenna=np.complex(1.73, 0.014), l_antenna=0.001):
+    """ Calculate wet antenna attenuation according to Leijnse et al. 2008
+
+    Calculate the wet antenna attenuation assuming a rain rate dependent
+    thin flat water film on the antenna.
+
+    Water film thickness:
+        l = gamma * R ** delta
+
+    Parameters
+    ----------
+    R : array-like or scalar
+        Rain rate in mm/h
+    f_Hz : array-like or scalar (but only either `R` or `f_Hz` can be array)
+        Frequency of CML in Hz
+    gamma : float
+        Parameter that determines the magnitutde of the water film thickness
+    delta : float
+        Parameter that determines the non-linearity of the relation
+        between water film thickness and rain rates
+    n_antenna : float
+        Refractive index of antenna material
+    l_antenna : float
+        Thickness of antenna cover
+
+    Returns
+    -------
+    waa : array-like
+        Wet antenna attenuation in dB
+
+    """
+
+    n_air = 1
+    c = 299792458
+
+    l = gamma * R**delta
+
+    n_water = np.sqrt(eps_water(f_Hz=f_Hz, T_K=T_K))
+
+    expo = 1j * 2 * np.pi * f_Hz / c
+    x1 = ((n_air + n_water) * (n_water + n_antenna) * (n_antenna + n_air)
+          * np.exp(-expo * (n_antenna * l_antenna + n_water * l)))
+    x2 = ((n_air - n_water) * (n_water - n_antenna) * (n_antenna + n_air)
+          * np.exp(-expo * (n_antenna * l_antenna - n_water * l)))
+    x3 = ((n_air + n_water) * (n_water - n_antenna) * (n_antenna - n_air)
+          * np.exp(expo * (n_antenna * l_antenna - n_water * l)))
+    x4 = ((n_air - n_water) * (n_water + n_antenna) * (n_antenna - n_air)
+          * np.exp(expo * (n_antenna * l_antenna + n_water * l)))
+
+    y1 = (n_air + n_antenna)**2 * np.exp(-expo * n_antenna * l_antenna)
+    y2 = (-(n_air - n_antenna)**2 * np.exp(expo * n_antenna * l_antenna))
+
+    waa = (10 * np.log10(np.abs((x1 + x2 + x3 + x4)
+                                / (2 * n_water * (y1 + y2)))**2))
+    return waa
+
+
+def eps_water(f_Hz, T_K):
+    """ Calculate the dielectric permitiviy of water
+
+    Formulas taken from dielectric permittivity of liquid water
+    without salt according to
+    Liebe et al. 1991 Int. J. IR+mm Waves 12(12), 659-675
+
+    Based on MATLAB code by Christian Mätzler, June 2002
+    Cosmetic changes by Christian Chwala, August 2012
+
+    Parameters
+    ----------
+    f_Hz : array-like
+        Frequency in Hz
+    T_K : float
+        Temperature in Kelvin
+
+    Returns
+    -------
+
+    eps : np.complex
+
+    """
+
+    f_GHz = f_Hz*1e-9
+
+    teta = 1 - 300.0 / T_K
+    e0 = 77.66 - 103.3 * teta
+    e1 = 0.0671 * e0
+    f1 = 20.2 + 146.4 * teta + 316 * teta * teta
+    e2 = 3.52 + 7.52 * teta
+    # Note that "Liebe et al 1993, Propagation Modeling of Moist Air and
+    # Suspended Water/Ice Particles at Frequencies Below 1000 GHz,
+    # AGARD Conference Proc. 542" uses just e2 = 3.52. For our frequency
+    # and temperature range the difference is negligible, though.
+
+    f2 = 39.8 * f1
+    eps = (e2 + (e1 - e2) / (1 - 1j * f_GHz / f2) + (e0 - e1)
+           / (1 - 1j * f_GHz / f1))
+    return eps

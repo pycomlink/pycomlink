@@ -29,6 +29,17 @@ class TestWaaLeijnse2008(unittest.TestCase):
             assert_almost_equal(expected, result)
 
 
+class TestWaaLeijnse2008FromAobs(unittest.TestCase):
+    def test_with_R_array(self):
+        expected = np.array([0.0, 0.85081045, 1.2087577, 1.39943582,
+                             1.53099038, 1.63112499, 1.7142827,
+                             1.78122755, 1.84301522, 1.89539232])
+        result = wet_antenna.waa_leijnse_2008_from_A_obs(A_obs=np.arange(10),
+                                                         L_km=10,
+                                                         f_Hz=23e9)
+        assert_almost_equal(expected, result)
+
+
 class TestEpswater(unittest.TestCase):
     def test_with_f_array(self):
         f = np.arange(1, 100, 10) * 1e9

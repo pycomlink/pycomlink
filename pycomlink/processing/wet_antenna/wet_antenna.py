@@ -158,6 +158,8 @@ def waa_leijnse_2008(R, f_Hz, T_K=293.0,
 
     """
 
+    R = np.asanyarray(R)
+
     n_air = 1
     c = 299792458
 
@@ -180,6 +182,10 @@ def waa_leijnse_2008(R, f_Hz, T_K=293.0,
 
     waa = (10 * np.log10(np.abs((x1 + x2 + x3 + x4)
                                 / (2 * n_water * (y1 + y2)))**2))
+
+    # Assure that numeric inaccuracy does not lead to waa > 0 for R == 0
+    waa[R == 0] = 0
+
     return waa
 
 

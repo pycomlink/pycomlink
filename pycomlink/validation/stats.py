@@ -25,8 +25,8 @@ RainError = namedtuple('RainError', ['pearson_correlation',
                                      'coefficient_of_variation',
                                      'root_mean_square_error',
                                      'mean_absolute_error',
-                                     'R_mean_reference',
-                                     'R_mean_cml',
+                                     'R_sum_reference',
+                                     'R_sum_predicted',
                                      'false_wet_rate',
                                      'missed_wet_rate',
                                      'false_wet_precipitation_rate',
@@ -63,8 +63,8 @@ def calc_wet_dry_performance_metrics(reference, predicted):
     nan_index = np.isnan(reference) | np.isnan(predicted)
     N_nan_pairs = nan_index.sum()
     N_all_pairs = len(reference)
-    N_nan_reference_only = len(reference[nan_index])
-    N_nan_predicted_only = len(predicted[nan_index])
+    N_nan_reference_only = np.isnan(reference).sum()
+    N_nan_predicted_only = np.isnan(predicted).sum()
 
     reference = reference[~nan_index]
     predicted = predicted[~nan_index]
@@ -143,8 +143,8 @@ def calc_rain_error_performance_metrics(reference, predicted, rainfall_threshold
     nan_index = np.isnan(reference) | np.isnan(predicted)
     N_nan_pairs = nan_index.sum()
     N_all_pairs = len(reference)
-    N_nan_reference_only = len(reference[nan_index])
-    N_nan_predicted_only = len(predicted[nan_index])
+    N_nan_reference_only = np.isnan(reference).sum()
+    N_nan_predicted_only = np.isnan(predicted).sum()
 
     reference = reference[~nan_index]
     predicted = predicted[~nan_index]
@@ -157,13 +157,13 @@ def calc_rain_error_performance_metrics(reference, predicted, rainfall_threshold
 
     # calculate performance metrics: pcc, cv, rmse and mae
     pearson_correlation = np.corrcoef(reference, predicted)
-    coefficient_of_variation = np.std(predicted-reference) - np.mean(reference)
+    coefficient_of_variation = np.std(predicted-reference) / np.mean(reference)
     root_mean_square_error = np.sqrt(np.mean((predicted-reference)**2))
-    mean_absolute_error = (np.abs(predicted-reference)).average()
+    mean_absolute_error = np.mean(np.abs(predicted-reference))
 
     # calculate the precipitation sums of reference and predicted time series
-    R_mean_reference = reference.sum()
-    R_mean_cml = predicted.sum()
+    R_sum_reference = reference.sum()
+    R_sum_predicted = predicted.sum()
 
     # calculate false and missed wet rates and the precipitation at these times
     N_false_wet = ((reference < rainfall_threshold_wet) & (predicted >= rainfall_threshold_wet)).sum()
@@ -184,8 +184,8 @@ def calc_rain_error_performance_metrics(reference, predicted, rainfall_threshold
                      coefficient_of_variation=coefficient_of_variation,
                      root_mean_square_error=root_mean_square_error,
                      mean_absolute_error=mean_absolute_error,
-                     R_mean_reference=R_mean_reference,
-                     R_mean_cml=R_mean_cml,
+                     R_sum_reference=R_sum_reference,
+                     R_sum_predicted=R_sum_predicted,
                      false_wet_rate=false_wet_rate,
                      missed_wet_rate=missed_wet_rate,
                      false_wet_precipitation_rate=false_wet_precipitation_rate,

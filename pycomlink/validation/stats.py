@@ -27,6 +27,8 @@ RainError = namedtuple('RainError', ['pearson_correlation',
                                      'mean_absolute_error',
                                      'R_sum_reference',
                                      'R_sum_predicted',
+                                     'R_mean_reference',
+                                     'R_mean_predicted',
                                      'false_wet_rate',
                                      'missed_wet_rate',
                                      'false_wet_precipitation_rate',
@@ -51,8 +53,8 @@ WetDryError.__doc__ = """
     N_missed_wet: Number of cml dry events when the reference is wet
     N_all_pairs: Number of all reference-predicted pairs
     N_nan_pairs: Number of  reference-predicted pairs with at least one nan
-    N_nan_reference_only: Number of nan's in reference
-    N_nan_predicted_only: Number of nan's in predicted
+    N_nan_reference_only: Number of nan's in reference array 
+    N_nan_predicted_only: Number of nan's in predicted array 
     """
 
 RainError.__doc__ = """
@@ -60,8 +62,10 @@ RainError.__doc__ = """
     coefficient_of_variation: Coefficient of variation
     root_mean_square_error: Root mean square error
     mean_absolute_error: Mean absolute error
-    R_sum_reference: Precipitation sum of the reference [mm]
-    R_sum_predicted: Precipitation sum of the cml [mm]
+    R_sum_reference: Precipitation sum of the reference array (mm)
+    R_sum_predicted: Precipitation sum of the predicted array (mm)
+    R_mean_reference: Precipitation mean of the reference array (mm)
+    R_mean_predicted: Precipitation mean of the predicted array (mm)
     false_wet_rate: Rate of cml wet events when reference is dry 
     missed_wet_rate: Rate of cml dry events when reference is wet
     false_wet_precipitation_rate: Precipitation sum aggregated over false wet events
@@ -69,8 +73,8 @@ RainError.__doc__ = """
     rainfall_threshold_wet: Threshold separating wet/rain and dry/non-rain periods
     N_all_pairs: Number of all reference-predicted pairs
     N_nan_pairs: Number of  reference-predicted pairs with at least one nan
-    N_nan_reference_only: Number of nan's in the reference
-    N_nan_predicted_only: Number of nan's in predicted
+    N_nan_reference_only: Number of nan's in the reference array
+    N_nan_predicted_only: Number of nan's in predicted array
     """
 
 
@@ -197,9 +201,11 @@ def calc_rain_error_performance_metrics(reference, predicted, rainfall_threshold
     root_mean_square_error = np.sqrt(np.mean((predicted-reference)**2))
     mean_absolute_error = np.mean(np.abs(predicted-reference))
 
-    # calculate the precipitation sums of reference and predicted time series
+    # calculate the precipitation sums and mean of reference and predicted time series
     R_sum_reference = reference.sum()
     R_sum_predicted = predicted.sum()
+    R_mean_reference = reference.mean()
+    R_mean_predicted = predicted.mean()
 
     # calculate false and missed wet rates and the precipitation at these times
     N_false_wet = ((reference < rainfall_threshold_wet) & (predicted >= rainfall_threshold_wet)).sum()
@@ -222,6 +228,8 @@ def calc_rain_error_performance_metrics(reference, predicted, rainfall_threshold
                      mean_absolute_error=mean_absolute_error,
                      R_sum_reference=R_sum_reference,
                      R_sum_predicted=R_sum_predicted,
+                     R_mean_reference=R_mean_reference,
+                     R_mean_predicted=R_mean_predicted,
                      false_wet_rate=false_wet_rate,
                      missed_wet_rate=missed_wet_rate,
                      false_wet_precipitation_rate=false_wet_precipitation_rate,

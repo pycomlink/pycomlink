@@ -37,6 +37,42 @@ RainError = namedtuple('RainError', ['pearson_correlation',
                                      'N_nan_reference_only',
                                      'N_nan_predicted_only'])
 
+WetDryError.__doc__ = """
+    false_wet_rate: Rate of cml wet events when reference is dry
+    missed_wet_rate: Rate of cml dry events when reference is wet
+    matthews_correlation: Matthews Correlation Coefficient 
+    true_wet_rate: Rate of cml wet events when the reference is also wet
+    true_dry_rate: Rate of cml wet events when the reference is also dry
+    N_dry_reference: Number of wet events in the reference
+    N_wet_reference: Number of dry events in the reference 
+    N_true_wet: Number of cml wet events when the reference is also wet
+    N_true_dry: Number of cml dry events when the reference is also dry 
+    N_false_wet: Number of cml wet events when the reference is dry
+    N_missed_wet: Number of cml dry events when the reference is wet
+    N_all_pairs: Number of all reference-predicted pairs
+    N_nan_pairs: Number of  reference-predicted pairs with at least one nan
+    N_nan_reference_only: Number of nan's in reference
+    N_nan_predicted_only: Number of nan's in predicted
+    """
+
+RainError.__doc__ = """
+    pearson_correlation: Pearsons's correlation coefficient
+    coefficient_of_variation: Coefficient of variation
+    root_mean_square_error: Root mean square error
+    mean_absolute_error: Mean absolute error
+    R_sum_reference: Precipitation sum of the reference [mm]
+    R_sum_predicted: Precipitation sum of the cml [mm]
+    false_wet_rate: Rate of cml wet events when reference is dry 
+    missed_wet_rate: Rate of cml dry events when reference is wet
+    false_wet_precipitation_rate: Precipitation sum aggregated over false wet events
+    missed_wet_precipitation_rate: Precipitation sum aggregated over missed wet events
+    rainfall_threshold_wet: Threshold separating wet/rain and dry/non-rain periods
+    N_all_pairs: Number of all reference-predicted pairs
+    N_nan_pairs: Number of  reference-predicted pairs with at least one nan
+    N_nan_reference_only: Number of nan's in the reference
+    N_nan_predicted_only: Number of nan's in predicted
+    """
+
 
 def calc_wet_dry_performance_metrics(reference, predicted):
     """
@@ -208,4 +244,3 @@ def calc_wet_error_rates(df_wet_truth, df_wet):
     missed_wet_rate = N_missed_wet / float(N_wet)
 
     return WetError(false=false_wet_rate, missed=missed_wet_rate)
-

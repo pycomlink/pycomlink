@@ -22,8 +22,8 @@ class TestWetDryandRainErrorfunctions(unittest.TestCase):
                  'N_all_pairs N_nan_pairs N_nan_reference_only ' \
                  'N_nan_predicted_only'
         WetDryError_reference = collections.namedtuple(class_name, fields)
-        ref = WetDryError_reference(2 / 3, 0.25, 0.182574185835055, 0.75,
-                                    1 / 3, 3, 4, 3, 1, 2, 1, 10, 3, 3, 1)
+        ref = WetDryError_reference(0.66666667, 0.25, 0.182574185835055, 0.75,
+                                    0.33333334, 3, 4, 3, 1, 2, 1, 10, 3, 3, 1)
 
         np.testing.assert_array_almost_equal(
             wd_error,
@@ -47,9 +47,9 @@ class TestWetDryandRainErrorfunctions(unittest.TestCase):
                  'rainfall_threshold_wet N_all_pairs N_nan_pairs ' \
                  'N_nan_reference_only N_nan_predicted_only'
         RainError_reference = collections.namedtuple(class_name, fields)
-        ref = RainError_reference(-1 / 6, 1.322875655, 0.755928946, 0.571428571,
-                                  4, 4, 0.571428571, 0.571428571, 2 / 3,
-                                  0.5, 2, 2, 0.1, 10, 3, 3, 1)
+        ref = RainError_reference(- 0.16666667, 1.322875655, 0.755928946,
+                                  0.571428571, 4, 4, 0.571428571, 0.571428571,
+                                  0.666666667, 0.5, 2, 2, 0.1, 10, 3, 3, 1)
 
         np.testing.assert_almost_equal(
             rainerror,

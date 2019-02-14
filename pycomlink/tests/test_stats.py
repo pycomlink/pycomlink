@@ -33,7 +33,8 @@ class TestWetDryandRainErrorfunctions(unittest.TestCase):
 
         rainerror = pycml.validation.stats.calc_rain_error_performance_metrics(
             reference,
-            predicted)
+            predicted,
+            rainfall_threshold_wet=0.1)
 
         class_name = 'RainError_reference'
         fields = 'pearson_correlation coefficient_of_variation root_mean_square_error mean_absolute_error ' \

@@ -70,16 +70,18 @@ class RainError(namedtuple('RainError', ['pearson_correlation',
     :R_mean_predicted: Precipitation mean of the predicted array (mm)
     :false_wet_rate: Rate of cml wet events when reference is dry
     :missed_wet_rate: Rate of cml dry events when reference is wet
-    :false_wet_precipitation_rate: Precipitation sum aggregated over false wet events
-    :missed_wet_precipitation_rate: Precipitation sum aggregated over missed wet events
-    :rainfall_threshold_wet: Threshold separating wet/rain and dry/non-rain periods
+    :false_wet_precipitation_rate: Precipitation sum aggregated over false
+    wet events
+    :missed_wet_precipitation_rate: Precipitation sum aggregated over missed
+     wet events
+    :rainfall_threshold_wet: Threshold separating wet/rain and dry/non-rain
+    periods
     :N_all_pairs: Number of all reference-predicted pairs
     :N_nan_pairs: Number of  reference-predicted pairs with at least one nan
     :N_nan_reference_only: Number of nan's in the reference array
     :N_nan_predicted_only: Number of nan's in predicted array
     """
     __slots__ = ()
-    """
 
 
 def calc_wet_dry_performance_metrics(reference, predicted):
@@ -103,7 +105,7 @@ def calc_wet_dry_performance_metrics(reference, predicted):
 
     assert reference.shape == predicted.shape
 
-    # Remove values pairs if either one or both are NaN and calculate nan metrics
+# Remove values pairs if either one or both are NaN and calculate nan metrics
     nan_index = np.isnan(reference) | np.isnan(predicted)
     N_nan_pairs = nan_index.sum()
     N_all_pairs = len(reference)
@@ -115,7 +117,8 @@ def calc_wet_dry_performance_metrics(reference, predicted):
 
     assert reference.shape == predicted.shape
 
-    # Calculate N_tp, tn, N_fp, N_fn, N_wet_reference (real positive cases) and N_dry_reference (real negative cases)
+    # Calculate N_tp, tn, N_fp, N_fn, N_wet_reference (real positive cases)
+    # and N_dry_reference (real negative cases)
 
     # N_tp is number of true positive wet event (true wet)
     N_tp = ((reference == True) & (predicted == True)).sum()
@@ -138,7 +141,9 @@ def calc_wet_dry_performance_metrics(reference, predicted):
     false_wet_rate = N_fp / N_dry_reference
     missed_wet_rate = N_fn / N_wet_reference
 
-    matthews_correlation = (N_tp*N_tn-N_fp+N_fn) / np.sqrt((N_tp+N_fp)*(N_tp+N_fn)*(N_tn+N_fp)*(N_tn+N_fn))
+    matthews_correlation = (N_tp*N_tn-N_fp+N_fn) / \
+                           np.sqrt((N_tp+N_fp)*(N_tp+N_fn)*
+                                   (N_tn+N_fp)*(N_tn+N_fn))
 
     return WetDryError(false_wet_rate=false_wet_rate,
                        missed_wet_rate=missed_wet_rate,
@@ -157,7 +162,9 @@ def calc_wet_dry_performance_metrics(reference, predicted):
                        N_nan_predicted_only=N_nan_predicted_only)
 
 
-def calc_rain_error_performance_metrics(reference, predicted, rainfall_threshold_wet=None):
+def calc_rain_error_performance_metrics(reference,
+                                        predicted,
+                                        rainfall_threshold_wet=None):
     """
 
     Parameters
@@ -190,7 +197,7 @@ def calc_rain_error_performance_metrics(reference, predicted, rainfall_threshold
     reference[reference < 0.1] = 0
     predicted[predicted < 0.1] = 0
 
-    # Remove values pairs if either one or both are NaN and calculate nan metrics
+    # Remove values pairs if one or both are NaN and calculate nan metrics
     nan_index = np.isnan(reference) | np.isnan(predicted)
     N_nan_pairs = nan_index.sum()
     N_all_pairs = len(reference)
@@ -208,7 +215,8 @@ def calc_rain_error_performance_metrics(reference, predicted, rainfall_threshold
     root_mean_square_error = np.sqrt(np.mean((predicted-reference)**2))
     mean_absolute_error = np.mean(np.abs(predicted-reference))
 
-    # calculate the precipitation sums and mean of reference and predicted time series
+    # calculate the precipitation sums and mean
+    # of reference and predicted time series
     R_sum_reference = reference.sum()
     R_sum_predicted = predicted.sum()
     R_mean_reference = reference.mean()

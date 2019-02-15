@@ -313,3 +313,5 @@ def calc_wet_error_rates(df_wet_truth, df_wet):
     missed_wet_rate = N_missed_wet / float(N_wet)
 
     return WetError(false=false_wet_rate, missed=missed_wet_rate)
+
+WetError = namedtuple('WetError', ['false', 'missed'])

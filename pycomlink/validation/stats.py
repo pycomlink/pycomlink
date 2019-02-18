@@ -20,23 +20,38 @@ class WetDryError(namedtuple('WetDryError', ['false_wet_rate',
                                              'N_nan_pairs',
                                              'N_nan_reference_only',
                                              'N_nan_predicted_only'])):
-    """ This function calculates following wet dry performance measures:
+    """ namedtuple with the following wet-dry performance measures:
 
-    :false_wet_rate: Rate of cml wet events when reference is dry
-    :missed_wet_rate: Rate of cml dry events when reference is wet
-    :matthews_correlation: Matthews Correlation Coefficient
-    :true_wet_rate: Rate of cml wet events when the reference is also wet
-    :true_dry_rate: Rate of cml wet events when the reference is also dry
-    :N_dry_reference: Number of wet events in the reference
-    :N_wet_reference: Number of dry events in the reference
-    :N_true_wet: Number of cml wet events when the reference is also wet
-    :N_true_dry: Number of cml dry events when the reference is also dry
-    :N_false_wet: Number of cml wet events when the reference is dry
-    :N_missed_wet: Number of cml dry events when the reference is wet
-    :N_all_pairs: Number of all reference-predicted pairs
-    :N_nan_pairs: Number of  reference-predicted pairs with at least one nan
-    :N_nan_reference_only: Number of nan's in reference array
-    :N_nan_predicted_only: Number of nan's in predicted array
+    false_wet_rate:
+        Rate of cml wet events when reference is dry
+    missed_wet_rate:
+        Rate of cml dry events when reference is wet
+    matthews_correlation:
+        Matthews correlation coefficient
+    true_wet_rate:
+        Rate of cml wet events when the reference is also wet
+    true_dry_rate:
+        Rate of cml dry events when the reference is also dry
+    N_dry_reference:
+        Number of dry events in the reference
+    N_wet_reference:
+        Number of wet events in the reference
+    N_true_wet:
+        Number of cml wet events when the reference is also wet
+    N_true_dry:
+        Number of cml dry events when the reference is also dry
+    N_false_wet:
+        Number of cml wet events when the reference is dry
+    N_missed_wet:
+        Number of cml dry events when the reference is wet
+    N_all_pairs:
+        Number of all reference-predicted pairs
+    N_nan_pairs:
+        Number of reference-predicted pairs with at least one NaN
+    N_nan_reference_only:
+        Number of NaN values in reference array
+    N_nan_predicted_only:
+        Number of NaN values in predicted array
     """
     __slots__ = ()
 
@@ -58,54 +73,74 @@ class RainError(namedtuple('RainError', ['pearson_correlation',
                                          'N_nan_pairs',
                                          'N_nan_reference_only',
                                          'N_nan_predicted_only'])):
-    """ This function calculates following rain performance measures:
+    """ namedtuple with the following rainfall performance measures:
 
-    :pearson_correlation: Pearsons's correlation coefficient
-    :coefficient_of_variation: Coefficient of variation
-    :root_mean_square_error: Root mean square error
-    :mean_absolute_error: Mean absolute error
-    :R_sum_reference: Precipitation sum of the reference array (mm)
-    :R_sum_predicted: Precipitation sum of the predicted array (mm)
-    :R_mean_reference: Precipitation mean of the reference array (mm)
-    :R_mean_predicted: Precipitation mean of the predicted array (mm)
-    :false_wet_rate: Rate of cml wet events when reference is dry
-    :missed_wet_rate: Rate of cml dry events when reference is wet
-    :false_wet_precipitation_rate: Precipitation sum aggregated over false
-    wet events
-    :missed_wet_precipitation_rate: Precipitation sum aggregated over missed
-     wet events
-    :rainfall_threshold_wet: Threshold separating wet/rain and dry/non-rain
-    periods
-    :N_all_pairs: Number of all reference-predicted pairs
-    :N_nan_pairs: Number of  reference-predicted pairs with at least one nan
-    :N_nan_reference_only: Number of nan's in the reference array
-    :N_nan_predicted_only: Number of nan's in predicted array
+    pearson_correlation:
+        Pearson correlation coefficient
+    coefficient_of_variation:
+        Coefficient of variation following the definition in[1]
+    root_mean_square_error:
+        Root mean square error
+    mean_absolute_error:
+        Mean absolute error
+    R_sum_reference:
+        Precipitation sum of the reference array (mm)
+    R_sum_predicted:
+        Precipitation sum of the predicted array (mm)
+    R_mean_reference:
+        Precipitation mean of the reference array (mm)
+    R_mean_predicted:
+        Precipitation mean of the predicted array (mm)
+    false_wet_rate:
+        Rate of cml wet events when reference is dry
+    missed_wet_rate:
+        Rate of cml dry events when reference is wet
+    false_wet_precipitation_rate:
+        Precipitation sum aggregated over false wet events
+    missed_wet_precipitation_rate:
+        Precipitation sum aggregated over missed wet events
+    rainfall_threshold_wet:
+        Threshold separating wet/rain and dry/non-rain periods
+    N_all_pairs:
+        Number of all reference-predicted pairs
+    N_nan_pairs:
+        Number of reference-predicted pairs with at least one NaN
+    N_nan_reference_only:
+        Number of NaN values in the reference array
+    N_nan_predicted_only:
+        Number of NaN values in predicted array
+
+    References
+    -------
+    .. [1] Overeem et al. 2013: www.pnas.org/cgi/doi/10.1073/pnas.1217961110
+
     """
     __slots__ = ()
 
 
 def calc_wet_dry_performance_metrics(reference, predicted):
-    """
+    """ Calculate performance metrics for a wet-dry classification
+
+    This function calculates metrics and statistics relevant to judge
+    the performance of a wet-dry classification. The calculation is based on
+    two boolean arrays, where `wet` is True and `dry` is False.
 
     Parameters
     ----------
     reference : boolean array-like
+        Reference values, with `wet` being True
     predicted : boolean array-like
+        Predicted values, with `wet` being True
 
     Returns
     -------
-
     WetDryError : named tuple
-
-    References
-    -------
-    https://en.wikipedia.org/wiki/Matthews_correlation_coefficient
 
     """
 
     assert reference.shape == predicted.shape
 
-# Remove values pairs if either one or both are NaN and calculate nan metrics
+    # Remove values pairs if either one or both are NaN and calculate nan metrics
     nan_index = np.isnan(reference) | np.isnan(predicted)
     N_nan_pairs = nan_index.sum()
     N_all_pairs = len(reference)
@@ -141,9 +176,9 @@ def calc_wet_dry_performance_metrics(reference, predicted):
     false_wet_rate = N_fp / N_dry_reference
     missed_wet_rate = N_fn / N_wet_reference
 
-    matthews_correlation = (N_tp*N_tn-N_fp+N_fn) / \
-                           np.sqrt((N_tp+N_fp)*(N_tp+N_fn)*
-                                   (N_tn+N_fp)*(N_tn+N_fn))
+    matthews_correlation = ((N_tp*N_tn-N_fp+N_fn) /
+                            np.sqrt((N_tp+N_fp)*(N_tp+N_fn) *
+                                    (N_tn+N_fp)*(N_tn+N_fn)))
 
     return WetDryError(false_wet_rate=false_wet_rate,
                        missed_wet_rate=missed_wet_rate,
@@ -165,18 +200,29 @@ def calc_wet_dry_performance_metrics(reference, predicted):
 def calc_rain_error_performance_metrics(reference,
                                         predicted,
                                         rainfall_threshold_wet=None):
-    """
+    """ Calculate performance metrics for rainfall estimation
+
+    This function calculates metrics and statistics relevant to judge
+    the performance of rainfall estimation. The calculation is based on
+    two arrays with rainfall values, which should contain rain rates or
+    rainfall sums. Beware that the units of `R_sum...` und `R_mean...` will
+    depend on your input. The calculation does not take any information on
+    temporal resolution or aggregation into account!
 
     Parameters
     ----------
     reference : float array-like
+        Rainfall reference
     predicted : float array-like
+        Predicted rainfall
     rainfall_threshold_wet : float (optional)
-    threshold separating wet/rain and dry/non-rain periods
+        Rainfall threshold above which the values in `reference` and `predicted`
+        are considered `wet`. This threshold impacts the results of the
+        performance metrics which are based on the differentiation between
+        `wet` and `dry` periods
 
     Returns
     -------
-
     RainError : named tuple
 
     References
@@ -186,7 +232,7 @@ def calc_rain_error_performance_metrics(reference,
     https://github.com/scikit-learn/scikit-learn/blob/7389dba/sklearn/metrics/regression.py#L112
     Overeem et al. 2013: www.pnas.org/cgi/doi/10.1073/pnas.1217961110
 
-        """
+    """
 
     assert reference.shape == predicted.shape
 
@@ -267,3 +313,5 @@ def calc_wet_error_rates(df_wet_truth, df_wet):
     missed_wet_rate = N_missed_wet / float(N_wet)
 
     return WetError(false=false_wet_rate, missed=missed_wet_rate)
+
+WetError = namedtuple('WetError', ['false', 'missed'])

@@ -54,3 +54,12 @@ class TestWetDryandRainErrorfunctions(unittest.TestCase):
         np.testing.assert_almost_equal(
             rainerror,
             ref)
+
+        # Test that the calculatoin does not change the input arrays
+        np.testing.assert_almost_equal(
+            reference,
+            np.array([1, 0, 1, 1, 0, 1, 0, np.nan, np.nan, np.nan]))
+
+        np.testing.assert_almost_equal(
+            predicted,
+            np.array([1, 0, 0, 1, 1, 0.01, 1, 1, 0, np.nan]))

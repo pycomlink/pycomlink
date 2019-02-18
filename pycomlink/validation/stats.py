@@ -96,9 +96,9 @@ class RainError(namedtuple('RainError', ['pearson_correlation',
     missed_wet_rate:
         Rate of cml dry events when reference is wet
     false_wet_precipitation_rate:
-        Precipitation sum aggregated over false wet events
+        Mean precipitation rate of false wet events
     missed_wet_precipitation_rate:
-        Precipitation sum aggregated over missed wet events
+        Mean precipitation rate of missed wet events
     rainfall_threshold_wet:
         Threshold separating wet/rain and dry/non-rain periods
     N_all_pairs:

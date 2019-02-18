@@ -47,15 +47,16 @@ class TestWetDryandRainErrorfunctions(unittest.TestCase):
                  'rainfall_threshold_wet N_all_pairs N_nan_pairs ' \
                  'N_nan_reference_only N_nan_predicted_only'
         RainError_reference = collections.namedtuple(class_name, fields)
-        ref = RainError_reference(- 0.16666667, 1.322875655, 0.755928946,
-                                  0.571428571, 4, 4, 0.571428571, 0.571428571,
-                                  0.666666667, 0.5, 2, 2, 0.1, 10, 3, 3, 1)
+        ref = RainError_reference(-0.164712494, 1.319578531, 0.754046228,
+                                  0.570000000, 4, 4.01, 0.571428571,
+                                  0.572857142, 0.666666667, 0.666666666,
+                                  1, 1, 0.1, 10, 3, 3, 1)
 
         np.testing.assert_almost_equal(
             rainerror,
             ref)
 
-        # Test that the calculatoin does not change the input arrays
+        # Test that the calculation does not change the input arrays
         np.testing.assert_almost_equal(
             reference,
             np.array([1, 0, 1, 1, 0, 1, 0, np.nan, np.nan, np.nan]))

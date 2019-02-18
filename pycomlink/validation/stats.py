@@ -199,7 +199,7 @@ def calc_wet_dry_performance_metrics(reference, predicted):
 
 def calc_rain_error_performance_metrics(reference,
                                         predicted,
-                                        rainfall_threshold_wet=None):
+                                        rainfall_threshold_wet):
     """ Calculate performance metrics for rainfall estimation
 
     This function calculates metrics and statistics relevant to judge
@@ -215,11 +215,11 @@ def calc_rain_error_performance_metrics(reference,
         Rainfall reference
     predicted : float array-like
         Predicted rainfall
-    rainfall_threshold_wet : float (optional)
-        Rainfall threshold above which the values in `reference` and `predicted`
-        are considered `wet`. This threshold impacts the results of the
-        performance metrics which are based on the differentiation between
-        `wet` and `dry` periods
+    rainfall_threshold_wet : float
+        Rainfall threshold for which `reference` and `predicted` are considered
+        `wet` if value >= threshold. This threshold only impacts the results
+        of the performance metrics which are based on the differentiation
+        between `wet` and `dry` periods.
 
     Returns
     -------
@@ -235,13 +235,6 @@ def calc_rain_error_performance_metrics(reference,
     """
 
     assert reference.shape == predicted.shape
-
-    # threshold separating wet/rain and dry/non-rain periods
-    if rainfall_threshold_wet is None:
-        rainfall_threshold_wet = 0.1
-    # set values below threshold to 0
-    reference[reference < 0.1] = 0
-    predicted[predicted < 0.1] = 0
 
     # Remove values pairs if one or both are NaN and calculate nan metrics
     nan_index = np.isnan(reference) | np.isnan(predicted)
@@ -269,19 +262,24 @@ def calc_rain_error_performance_metrics(reference,
     R_mean_predicted = predicted.mean()
 
     # calculate false and missed wet rates and the precipitation at these times
-    N_false_wet = ((reference <= 0) & (predicted > 0)).sum()
-    N_dry = (reference <= 0).sum()
+    reference_wet = reference >= rainfall_threshold_wet
+    reference_dry = ~reference_wet
+    predicted_wet = predicted >= rainfall_threshold_wet
+    predicted_dry = ~predicted_wet
+
+    N_false_wet = (reference_dry & predicted_wet).sum()
+    N_dry = reference_dry.sum()
     false_wet_rate = N_false_wet / float(N_dry)
 
-    N_missed_wet = ((reference > 0) & (predicted <= 0)).sum()
-    N_wet = (reference > 0).sum()
+    N_missed_wet = (reference_wet & predicted_dry).sum()
+    N_wet = reference_dry.sum()
     missed_wet_rate = N_missed_wet / float(N_wet)
 
-    false_wet_precipitation_rate = predicted[(reference <= 0) &
-                                             (predicted > 0)].sum()
+    false_wet_precipitation_rate = predicted[reference_dry &
+                                             predicted_wet].mean()
 
-    missed_wet_precipitation_rate = reference[(reference > 0) &
-                                              (predicted <= 0)].sum()
+    missed_wet_precipitation_rate = reference[reference_wet &
+                                              predicted_dry].mean()
 
     return RainError(pearson_correlation=pearson_correlation[0, 1],
                      coefficient_of_variation=coefficient_of_variation,

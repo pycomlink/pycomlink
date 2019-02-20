@@ -30,8 +30,8 @@ class TestWetDryandRainErrorfunctions(unittest.TestCase):
             ref)
 
     def test_RainError_with_simple_arrays(self):
-        reference = np.array([1, 0, 1, 1, 0, 1, 0, np.nan, np.nan, np.nan])
-        predicted = np.array([1, 0, 0, 1, 1, 0.01, 1, 1, 0, np.nan])
+        reference = np.array([1, 0, 1, 1, 1, 0, 1, 0, np.nan, np.nan, np.nan])
+        predicted = np.array([1, 0, 0, 0, 1, 1, 0.01, 1, 1, 0, np.nan])
 
         rainerror = pycml.validation.stats.calc_rain_error_performance_metrics(
             reference,
@@ -47,10 +47,9 @@ class TestWetDryandRainErrorfunctions(unittest.TestCase):
                  'rainfall_threshold_wet N_all_pairs N_nan_pairs ' \
                  'N_nan_reference_only N_nan_predicted_only'
         RainError_reference = collections.namedtuple(class_name, fields)
-        ref = RainError_reference(-0.164712494, 1.319578531, 0.754046228,
-                                  0.570000000, 4, 4.01, 0.571428571,
-                                  0.572857142, 0.666666667, 0.666666666,
-                                  1, 1, 0.1, 10, 3, 3, 1)
+        ref = RainError_reference(-0.256899818, 1.246767019, 0.788994613,
+                                  .62375, 5, 4.01, 0.625, 0.50125, 0.666666666,
+                                  0.6, 1, 1, 0.1, 11, 3, 3, 1)
 
         np.testing.assert_almost_equal(
             rainerror,
@@ -59,8 +58,8 @@ class TestWetDryandRainErrorfunctions(unittest.TestCase):
         # Test that the calculation does not change the input arrays
         np.testing.assert_almost_equal(
             reference,
-            np.array([1, 0, 1, 1, 0, 1, 0, np.nan, np.nan, np.nan]))
+            np.array([1, 0, 1, 1, 1, 0, 1, 0, np.nan, np.nan, np.nan]))
 
         np.testing.assert_almost_equal(
             predicted,
-            np.array([1, 0, 0, 1, 1, 0.01, 1, 1, 0, np.nan]))
+            np.array([1, 0, 0, 0, 1, 1, 0.01, 1, 1, 0, np.nan]))

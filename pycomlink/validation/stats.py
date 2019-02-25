@@ -272,7 +272,7 @@ def calc_rain_error_performance_metrics(reference,
     false_wet_rate = N_false_wet / float(N_dry)
 
     N_missed_wet = (reference_wet & predicted_dry).sum()
-    N_wet = reference_dry.sum()
+    N_wet = reference_wet.sum()
     missed_wet_rate = N_missed_wet / float(N_wet)
 
     false_wet_precipitation_rate = predicted[reference_dry &

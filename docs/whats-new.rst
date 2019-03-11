@@ -1,6 +1,28 @@
 What's New
 ==========
 
+v0.2.4
+------
+
+* Added WAA calculation and test for method proposed by Leijnse et al 2008
+
+* Added function to calculate WAA directly from A_obs for Leijnse et al 2008
+  method.
+
+* Added WAA example notebook
+
+* Added function to derive attenuation value `A_min_max` from min/max CML
+  measurements (these measurements periodically provide the min and max
+  value over a defined time period, typically 15 minutes).
+  (by DanSereb in PR #37 and #45)
+
+* Added function to derive rain rate `R` from `A_min_max`
+  (by DanSereb in PR #37 and #45)
+
+* Added example notebook with simple comparison of processing of
+  "instantaneous" and "min-max" CML data  (by DanSereb in PR #37 and #45)
+
+
 v0.2.3
 ------
 

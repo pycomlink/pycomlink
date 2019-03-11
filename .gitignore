@@ -10,3 +10,6 @@ docs/_templates/
 build/
 __pycache__/
 *.py~
+.DS_Store
+.cache/
+.pytest_cache/

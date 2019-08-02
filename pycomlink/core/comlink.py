@@ -18,7 +18,7 @@ from builtins import str
 from builtins import object
 import warnings
 from copy import deepcopy
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -104,7 +104,7 @@ class Comlink(object):
                               'has no effect, since they are already '
                               'contained in the supplied ComlinkChannel')
 
-        self.channels = _channels_list_to_dict(channels)
+        self.channels = _channels_list_to_ordered_dict(channels)
 
         self.metadata = {'site_a_latitude': metadata['site_a_latitude'],
                          'site_a_longitude': metadata['site_a_longitude'],
@@ -359,7 +359,7 @@ class Comlink(object):
                 max_age=max_age)
 
 
-def _channels_list_to_dict(channels):
+def _channels_list_to_ordered_dict(channels):
     """ Helper function to parse a list of channels to a dict of channels
 
     The keys will be `channel_(i+1)`, where i is the index of the list of
@@ -378,7 +378,7 @@ def _channels_list_to_dict(channels):
     channel_dict : dict
 
     """
-    channel_dict = {}
+    channel_dict = OrderedDict()
     for i, channel in enumerate(channels):
         channel_dict['channel_' + str(i+1)] = channel
     return channel_dict

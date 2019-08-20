@@ -55,6 +55,22 @@ class PointsToGridInterpolator(with_metaclass(abc.ABCMeta, object)):
                                                     xgrid=xgrid,
                                                     ygrid=ygrid,
                                                     resolution=resolution)
+hier wie in 217
+
+    z = self.df_cmls.iloc[i, :]
+
+    if (~pd.isnull(z)).sum() == 0:
+        # print('%s: Returning NaNs because data contains only NaNs' %
+        #      self.df_cmls.index[i])
+        zgrid = np.zeros_like(self.xgrid)
+        zgrid[:] = np.nan
+    else:
+        zgrid = self._interpolator(x=self.x,
+                                   y=self.y,
+                                   z=z,
+                                   xgrid=self.xgrid,
+                                   ygrid=self.ygrid)
+    return zgrid
 
         zi = self._interpol_func(x=x,
                                  y=y,

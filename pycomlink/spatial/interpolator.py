@@ -45,6 +45,8 @@ class PointsToGridInterpolator(with_metaclass(abc.ABCMeta, object)):
 
         assert(len(x) == len(y) == len(z))
 
+        z = z.astype('float')
+
         self.xgrid, self.ygrid = _parse_grid_kwargs(x_list=x,
                                                     y_list=y,
                                                     xgrid=xgrid,

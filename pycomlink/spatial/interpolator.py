@@ -26,12 +26,10 @@ class PointsToGridInterpolator(with_metaclass(abc.ABCMeta, object)):
 
     def __call__(self, x, y, z, xgrid=None, ygrid=None, resolution=None):
         """ Perform interpolation
-
         This calls the actual internal interpolation function. Passing `x` and
         `y` every time is not optimal for performance, but subclasses might
         be implemented to reuse precalculated information of `x` and `y` have
         not change comapred to last call to interpolation function.
-
         Parameters
         ----------
         x : array-like
@@ -40,12 +38,9 @@ class PointsToGridInterpolator(with_metaclass(abc.ABCMeta, object)):
         xgrid : 2D array
         ygrid : 2D array
         resolution : float
-
         Returns
         -------
-
         zgrid : interpolated data with shape of `xgrid` and `ygrid`
-
         """
 
         assert(len(x) == len(y) == len(z))
@@ -55,31 +50,21 @@ class PointsToGridInterpolator(with_metaclass(abc.ABCMeta, object)):
                                                     xgrid=xgrid,
                                                     ygrid=ygrid,
                                                     resolution=resolution)
-hier wie in 217
+        if (~pd.isnull(z)).sum() == 0:
+            zgrid = np.zeros_like(self.xgrid)
+            zgrid[:] = np.nan
+            self.zgrid = zgrid
 
-    z = self.df_cmls.iloc[i, :]
+        else:
+            zi = self._interpol_func(x=x,
+                                     y=y,
+                                     z=z,
+                                     xi=self.xgrid.ravel(),
+                                     yi=self.ygrid.ravel())
 
-    if (~pd.isnull(z)).sum() == 0:
-        # print('%s: Returning NaNs because data contains only NaNs' %
-        #      self.df_cmls.index[i])
-        zgrid = np.zeros_like(self.xgrid)
-        zgrid[:] = np.nan
-    else:
-        zgrid = self._interpolator(x=self.x,
-                                   y=self.y,
-                                   z=z,
-                                   xgrid=self.xgrid,
-                                   ygrid=self.ygrid)
-    return zgrid
+            self.x, self.y, self.z = x, y, z
+            self.zgrid = np.reshape(zi, self.xgrid.shape)
 
-        zi = self._interpol_func(x=x,
-                                 y=y,
-                                 z=z,
-                                 xi=self.xgrid.ravel(),
-                                 yi=self.ygrid.ravel())
-
-        self.x, self.y, self.z = x, y, z
-        self.zgrid = np.reshape(zi, self.xgrid.shape)
         return self.zgrid
 
 
@@ -214,54 +199,39 @@ class ComlinkGridInterpolator(object):
 
     def interpolate_for_i(self, i):
         """ Interpolate CML data for one specific time index
-
         Parameters
         ----------
         i : int
             Integer refering to time index in `DataFrame` of the aggregated CML
             data
-
         Returns
         -------
-
         zgrid : numpy.array
             Array of interpolated field
-
         """
         z = self.df_cmls.iloc[i, :]
 
-        if (~pd.isnull(z)).sum() == 0:
-            # print('%s: Returning NaNs because data contains only NaNs' %
-            #      self.df_cmls.index[i])
-            zgrid = np.zeros_like(self.xgrid)
-            zgrid[:] = np.nan
-        else:
-            zgrid = self._interpolator(x=self.x,
-                                       y=self.y,
-                                       z=z,
-                                       xgrid=self.xgrid,
-                                       ygrid=self.ygrid)
+        zgrid = self._interpolator(x=self.x,
+                                   y=self.y,
+                                   z=z,
+                                   xgrid=self.xgrid,
+                                   ygrid=self.ygrid)
         return zgrid
 
     def loop_over_time(self, t_start=None, t_stop=None):
         """ Do interpolation for many time steps
-
         Note: This function also updates the attribute `ds_gridded`.
-
         Parameters
         ----------
         t_start : str, optional
             Starting time for interpolation loop
         t_stop : str, optional
             Stop time for interpolation loop
-
         Returns
         -------
-
         ds_gridded : xarray.Dataset
             Dataset of the gridded fields, including x- and y-grid and
             timestamps
-
         """
         zi_list = []
 
@@ -307,11 +277,9 @@ class ComlinkGridInterpolator(object):
 
 def _parse_grid_kwargs(x_list, y_list, xgrid, ygrid, resolution):
     """ Generate grids if None is supplied
-
     If `xgrid` and `ygrid` are None, a grid with a spatial resolution of
     `resolution` is generated using the bounding box defined by the minima
     and maxima of `x_list` and `y_list`.
-
     Parameters
     ----------
     x_list
@@ -319,10 +287,8 @@ def _parse_grid_kwargs(x_list, y_list, xgrid, ygrid, resolution):
     xgrid
     ygrid
     resolution
-
     Returns
     -------
-
     """
 
     if (xgrid is None) or (ygrid is None):
@@ -363,11 +329,9 @@ def get_dataframe_for_cml_variable(cml_list,
                                    aggregation_func=np.mean,
                                    apply_factor=1):
     """ Build a DataFrame for a certain variable for all CMLs
-
     The column names of the resulting `DataFrame` are the `cml_id`s of
     each CML. The temporal aggregation of the CML data contained in the
     `ComlinkChannel.data` `DataFrame`.
-
     Parameters
     ----------
     cml_list : iterable of `Comlink` objects
@@ -390,13 +354,10 @@ def get_dataframe_for_cml_variable(cml_list,
         List of the channel names to use for
     aggregation_func
     apply_factor
-
     Returns
     -------
-
     df : pandas.DataFrame
         DataFrame with one column for each CML
-
     """
 
     # TODO: Extend the code to be able to average over two channels if desired

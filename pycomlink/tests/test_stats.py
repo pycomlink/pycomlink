@@ -31,8 +31,8 @@ class TestWetDryandRainErrorfunctions(unittest.TestCase):
 
     # the mcc should be zero, when predicted only contains false/zeros
     def test_mcc_with_zero_wet_prediction(self):
-        reference = np.array(True,False,False)
-        predicted = np.array(False,False,False)
+        reference = np.array([True,False,False])
+        predicted = np.array([False,False,False])
 
         wd_error = pycml.validation.stats.calc_wet_dry_performance_metrics(
             reference,

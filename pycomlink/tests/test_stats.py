@@ -29,6 +29,19 @@ class TestWetDryandRainErrorfunctions(unittest.TestCase):
             wd_error,
             ref)
 
+    # the mcc should be zero, when predicted only contains false/zeros
+    def test_mcc_with_zero_wet_prediction(self):
+        reference = np.array([True, False, False])
+        predicted = np.array([False, False, False])
+
+        wd_error = pycml.validation.stats.calc_wet_dry_performance_metrics(
+            reference,
+            predicted)
+
+        np.testing.assert_array_almost_equal(
+            wd_error.matthews_correlation,
+            0)
+
     def test_RainError_with_simple_arrays(self):
         reference = np.array([1, 0, 1, 1, 1, 0, 1, 0, np.nan, np.nan, np.nan])
         predicted = np.array([1, 0, 0, 0, 1, 1, 0.01, 1, 1, 0, np.nan])

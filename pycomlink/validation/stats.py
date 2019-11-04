@@ -181,7 +181,7 @@ def calc_wet_dry_performance_metrics(reference, predicted):
                                     (N_tn+N_fp)*(N_tn+N_fn)))
     # if predicted has zero/false values only
     # 'inf' would be returned, but 0 is more favorable
-    if matthews_correlation == float("inf"):
+    if np.isinf(matthews_correlation):
         matthews_correlation = 0
 
     return WetDryError(false_wet_rate=false_wet_rate,

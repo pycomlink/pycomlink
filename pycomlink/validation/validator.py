@@ -248,6 +248,8 @@ def calc_intersect_weights(x1_line,
     # of each grid cell
     if grid_point_location == 'center':
         grid_corners = _calc_grid_corners_for_center_location(grid)
+    elif grid_point_location == 'lower_left':
+        grid_corners = _calc_grid_corners_for_lower_left_location(grid)
     else:
         raise ValueError('`grid_point_location` = %s not implemented' %
                          grid_point_location)
@@ -288,8 +290,8 @@ def _calc_grid_corners_for_center_location(grid):
     Returns
     -------
 
-    namedtuple with the grids for the four corners around the
-    central grid points
+    namedtuple with the grids for the four corners of the grid defined
+    by points at the lower left corner
 
     """
 
@@ -332,6 +334,62 @@ def _calc_grid_corners_for_center_location(grid):
                        lr_grid=lr_grid,
                        ll_grid=ll_grid)
 
+
+def _calc_grid_corners_for_lower_left_location(grid):
+    """
+
+    Parameters
+    ----------
+    grid : array
+        3D matrix holding x and y grids. Shape of `grid` must be
+        (height, width, 2).
+
+    Returns
+    -------
+
+    namedtuple with the grids for the four corners around the
+    central grid points
+
+    """
+
+    grid = grid.astype('float64')
+
+    if (np.diff(grid[:, :, 0], axis=1) < 0).any():
+        raise ValueError("x values must be ascending along axis 1")
+    if (np.diff(grid[:, :, 1], axis=0) < 0).any():
+        raise ValueError("y values must be ascending along axis 0")
+
+    # Upper right
+    ur_grid = np.zeros_like(grid)
+    ur_grid[0:-1, 0:-1, :] = grid[1:, 1:, :]
+    ur_grid[-1, :, :] = (ur_grid[-2, :, :]
+                         + (ur_grid[-2, :, :] - ur_grid[-3, :, :]))
+    ur_grid[:, -1, :] = (ur_grid[:, -2, :]
+                         + (ur_grid[:, -2, :] - ur_grid[:, -3, :]))
+    # Upper left
+    ul_grid = np.zeros_like(grid)
+    ul_grid[0:-1, 0:-1, :] = grid[1:, 0:-1, :]
+    ul_grid[-1, :, :] = (ul_grid[-2, :, :]
+                         + (ul_grid[-2, :, :] - ul_grid[-3, :, :]))
+    ul_grid[:, -1, :] = (ul_grid[:, -2, :]
+                         + (ul_grid[:, -2, :] - ul_grid[:, -3, :]))
+    # Lower right
+    lr_grid = np.zeros_like(grid)
+    lr_grid[0:-1, 0:-1, :] = grid[0:-1, 1:, :]
+    lr_grid[-1, :, :] = (lr_grid[-2, :, :]
+                         + (lr_grid[-2, :, :] - lr_grid[-3, :, :]))
+    lr_grid[:, -1, :] = (lr_grid[:, -2, :]
+                         + (lr_grid[:, -2, :] - lr_grid[:, -3, :]))
+    # Lower left
+    ll_grid = grid.copy()
+
+    GridCorners = namedtuple('GridCorners',
+                             ['ur_grid', 'ul_grid', 'lr_grid', 'll_grid'])
+
+    return GridCorners(ur_grid=ur_grid,
+                       ul_grid=ul_grid,
+                       lr_grid=lr_grid,
+                       ll_grid=ll_grid)
 
 @deprecated('Use `pycomlink.validation.stats.calc_wet_error_rates()` '
             'instead since the `dry_error` here makes no sense.')

@@ -152,6 +152,10 @@ def calc_wet_dry_performance_metrics(reference, predicted):
 
     assert reference.shape == predicted.shape
 
+    # force bool type
+    reference = (reference > 0)
+    predicted = (predicted > 0)
+    
     # Calculate N_tp, tn, N_fp, N_fn, N_wet_reference (real positive cases)
     # and N_dry_reference (real negative cases)
 
@@ -273,9 +277,9 @@ def calc_rain_error_performance_metrics(reference,
     R_mean_predicted = predicted.mean()
 
     # calculate false and missed wet rates and the precipitation at these times
-    reference_wet = reference >= rainfall_threshold_wet
+    reference_wet = reference > rainfall_threshold_wet
     reference_dry = ~reference_wet
-    predicted_wet = predicted >= rainfall_threshold_wet
+    predicted_wet = predicted > rainfall_threshold_wet
     predicted_dry = ~predicted_wet
 
     N_false_wet = (reference_dry & predicted_wet).sum()

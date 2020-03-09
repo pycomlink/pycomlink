@@ -176,12 +176,19 @@ def calc_wet_dry_performance_metrics(reference, predicted):
     false_wet_rate = N_fp / N_dry_reference
     missed_wet_rate = N_fn / N_wet_reference
 
-    matthews_correlation = ((N_tp*N_tn-N_fp+N_fn) /
-                            np.sqrt((N_tp+N_fp)*(N_tp+N_fn) *
-                                    (N_tn+N_fp)*(N_tn+N_fn)))
+    a = np.sqrt(N_tp + N_fp)
+    b = np.sqrt(N_tp + N_fn)
+    c = np.sqrt(N_tn + N_fp)
+    d = np.sqrt(N_tn + N_fn)
+
+    matthews_correlation = (((N_tp * N_tn) - (N_fp * N_fn)) /
+                            (a * b * c * d))
+
     # if predicted has zero/false values only
     # 'inf' would be returned, but 0 is more favorable
     if np.isinf(matthews_correlation):
+        matthews_correlation = 0
+    if np.nansum(predicted) == 0:
         matthews_correlation = 0
 
     return WetDryError(false_wet_rate=false_wet_rate,

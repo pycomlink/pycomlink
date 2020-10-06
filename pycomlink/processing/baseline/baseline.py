@@ -2,7 +2,7 @@ from builtins import range
 import numpy as np
 import pandas as pd
 
-from numba.decorators import jit
+from numba import jit
 
 ################################################
 # Functions for setting the RSL baseline level #

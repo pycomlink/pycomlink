@@ -3,7 +3,7 @@ from builtins import range
 from builtins import object
 import numpy as np
 from scipy.spatial import cKDTree as KDTree
-from numba.decorators import jit
+from numba import jit
 
 
 class Invdisttree(object):

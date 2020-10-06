@@ -16,7 +16,7 @@ import pandas as pd
 from pycomlink.processing.A_R_relation import A_R_relation
 import scipy.interpolate
 
-from numba.decorators import jit
+from numba import jit
 
 
 ########################################

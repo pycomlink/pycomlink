@@ -17,7 +17,7 @@ def read(fname):
 
 setup(
     name = "pycomlink",
-    version = "0.2.4",
+    version = "0.2.5",
     author = "Christian Chwala",
     author_email = "christian.chwala@kit.edu",
     description = ("Python tools for MW link data processing"),

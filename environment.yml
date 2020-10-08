@@ -16,3 +16,5 @@ dependencies:
  - pykrige
  - future
  - pytest
+ -pip:
+   -git+https://github.com/jpolz/pycomlink.git#egg=pycomlink

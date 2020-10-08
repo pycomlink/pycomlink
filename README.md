@@ -1,5 +1,7 @@
 [![Build Status](https://travis-ci.org/pycomlink/pycomlink.svg?branch=master)](https://travis-ci.org/pycomlink/pycomlink)
 
+**INFO: THIS IS A WIP BRANCH, DO NOT USE**
+
 pycomlink
 =========
 

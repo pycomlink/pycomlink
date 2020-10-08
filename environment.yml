@@ -1,0 +1,21 @@
+name: pycomlink-dev
+channels:
+  - conda-forge
+dependencies:
+ - numpy
+ - scipy
+ - pandas>=0.22
+ - matplotlib
+ - numba
+ - folium
+ - h5py
+ - xarray
+ - shapely
+ - pyproj
+ - tqdm
+ - pykrige
+ - future
+ - pytest
+ - pip
+ - pip:
+   - git+https://github.com/pycomlink/pycomlink.git#egg=pycomlink

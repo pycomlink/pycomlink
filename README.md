@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/pycomlink/pycomlink.svg?branch=master)](https://travis-ci.org/pycomlink/pycomlink)
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/jpolz/pycomlink/add_my_binder)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/pycomlink/pycomlink/v0.3alpha)
 
 **INFO: THIS IS A WIP BRANCH, DO NOT USE**
 

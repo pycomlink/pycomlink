@@ -1,13 +1,13 @@
-#----------------------------------------------------------------------------
-# Name:         
-# Purpose:      
+# ----------------------------------------------------------------------------
+# Name:
+# Purpose:
 #
-# Authors:      
+# Authors:
 #
-# Created:      
+# Created:
 # Copyright:    (c) Christian Chwala 2014
 # Licence:      The MIT License
-#----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 
 from builtins import object
 from functools import wraps
@@ -15,17 +15,18 @@ from copy import deepcopy
 import numpy as np
 
 from pycomlink.processing.wet_dry import std_dev, stft
-from pycomlink.processing.baseline.baseline import \
-    baseline_linear, baseline_constant
+from pycomlink.processing.baseline.baseline import baseline_linear, baseline_constant
 from pycomlink.processing.wet_antenna.wet_antenna import waa_adjust_baseline
-from pycomlink.processing.A_R_relation.A_R_relation import calc_R_from_A, \
-    calc_R_from_A_min_max
+from pycomlink.processing.A_R_relation.A_R_relation import (
+    calc_R_from_A,
+    calc_R_from_A_min_max,
+)
 from pycomlink.processing.quality_control.simple import set_to_nan_if
 
 
 class Processor(object):
     def __init__(self, cml):
-        #self.cml = deepcopy(cml)
+        # self.cml = deepcopy(cml)
         self.cml = cml
 
         self.quality_control = QualityControl(self.cml)
@@ -55,10 +56,10 @@ class Processor(object):
             copy_again = False
 
         if not copy_again:
-            #print '### NOT COPYING'
+            # print '### NOT COPYING'
             return self
         else:
-            #print '### COPYING'
+            # print '### COPYING'
             return Processor(deepcopy(self.cml, memo=memo))
 
 
@@ -69,46 +70,34 @@ class QualityControl(object):
 
 class WetDry(object):
     def __init__(self, cml):
-        self.std_dev = cml_wrapper(cml,
-                                   std_dev.std_dev_classification,
-                                   'txrx',
-                                   'wet',
-                                   returns_temp_results=True)
+        self.std_dev = cml_wrapper(
+            cml,
+            std_dev.std_dev_classification,
+            "txrx",
+            "wet",
+            returns_temp_results=True,
+        )
 
-        self.stft = cml_wrapper(cml,
-                                stft.stft_classification,
-                                'txrx',
-                                'wet',
-                                returns_temp_results=True)
+        self.stft = cml_wrapper(
+            cml, stft.stft_classification, "txrx", "wet", returns_temp_results=True
+        )
 
 
 class Baseline(object):
     def __init__(self, cml):
         self._cml = cml
-        self.linear = cml_wrapper(cml,
-                                  baseline_linear,
-                                  ['txrx', 'wet'],
-                                  'baseline')
-        self.constant = cml_wrapper(cml,
-                                    baseline_constant,
-                                    ['txrx', 'wet'],
-                                    'baseline')
+        self.linear = cml_wrapper(cml, baseline_linear, ["txrx", "wet"], "baseline")
+        self.constant = cml_wrapper(cml, baseline_constant, ["txrx", "wet"], "baseline")
 
-        self.waa_schleiss = cml_wrapper(cml,
-                                        waa_adjust_baseline,
-                                        ['txrx', 'baseline', 'wet'],
-                                        'baseline')
+        self.waa_schleiss = cml_wrapper(
+            cml, waa_adjust_baseline, ["txrx", "baseline", "wet"], "baseline"
+        )
 
-        self.calc_A = cml_wrapper(cml,
-                                  _calc_A,
-                                  ['txrx', 'baseline'],
-                                  'A')
+        self.calc_A = cml_wrapper(cml, _calc_A, ["txrx", "baseline"], "A")
 
-        self.calc_A_min_max = cml_wrapper(cml,
-                                          _calc_A_min_max,
-                                          ['tx_min', 'tx_max',
-                                           'rx_min', 'rx_max'],
-                                          'Ar_max')
+        self.calc_A_min_max = cml_wrapper(
+            cml, _calc_A_min_max, ["tx_min", "tx_max", "rx_min", "rx_max"], "Ar_max"
+        )
 
 
 # TODO: Integarte this somewhere else, since this
@@ -147,8 +136,8 @@ def _calc_A_min_max(tx_min, tx_max, rx_min, rx_max, gT=1.0, gR=0.6, window=7):
 
     # zero-level calculation
     Ar_max = np.full(Ac_max.shape, 0.0)
-    for i in range(window,len(Ac_max)):
-        Ar_max[i] = Ac_max[i] - Ac_min[i-window:i+1].min()
+    for i in range(window, len(Ac_max)):
+        Ar_max[i] = Ac_max[i] - Ac_min[i - window : i + 1].min()
     Ar_max[Ar_max < 0.0] = 0.0
     Ar_max[0:window] = np.nan
 
@@ -158,38 +147,42 @@ def _calc_A_min_max(tx_min, tx_max, rx_min, rx_max, gT=1.0, gR=0.6, window=7):
 class A_R(object):
     def __init__(self, cml):
         # TODO: Make it possible to use individual f_GHz from each channel
-        self.calc_R = cml_wrapper(cml,
-                                  calc_R_from_A,
-                                  ['A'],
-                                  'R',
-                                  L=cml.get_length(),
-                                  f_GHz=cml.channel_1.f_GHz,
-                                  pol=cml.channel_1.metadata['polarization'])
+        self.calc_R = cml_wrapper(
+            cml,
+            calc_R_from_A,
+            ["A"],
+            "R",
+            L=cml.get_length(),
+            f_GHz=cml.channel_1.f_GHz,
+            pol=cml.channel_1.metadata["polarization"],
+        )
 
-        self.calc_R_min_max = \
-            cml_wrapper(cml,
-                        calc_R_from_A_min_max,
-                        ['Ar_max'],
-                        'R',
-                        L=cml.get_length(),
-                        f_GHz=cml.channel_1.f_GHz,
-                        pol=cml.channel_1.metadata['polarization'])
+        self.calc_R_min_max = cml_wrapper(
+            cml,
+            calc_R_from_A_min_max,
+            ["Ar_max"],
+            "R",
+            L=cml.get_length(),
+            f_GHz=cml.channel_1.f_GHz,
+            pol=cml.channel_1.metadata["polarization"],
+        )
 
 
-def cml_wrapper(cml, func,
-                vars_in, var_out,
-                returns_temp_results=False,
-                **additional_kwargs):
+def cml_wrapper(
+    cml, func, vars_in, var_out, returns_temp_results=False, **additional_kwargs
+):
     @wraps(func)
     def func_wrapper(*args, **kwargs):
         # Make sure that we have a list of vars_in
         if type(vars_in) == str:
-            vars_in_list = [vars_in, ]
+            vars_in_list = [
+                vars_in,
+            ]
         else:
             vars_in_list = vars_in
 
-        t_start = kwargs.pop('t_start', None)
-        t_stop = kwargs.pop('t_stop', None)
+        t_start = kwargs.pop("t_start", None)
+        t_stop = kwargs.pop("t_stop", None)
 
         # Iterate over channels
         args_initial = deepcopy(args)
@@ -200,8 +193,7 @@ def cml_wrapper(cml, func,
             # Go through list in reverse to have the correct order
             for var_in in reversed(vars_in_list):
                 if (t_start is not None) and (t_stop is not None):
-                    t_ix = ((cml_ch.data.index > t_start) &
-                            (cml_ch.data.index < t_stop))
+                    t_ix = (cml_ch.data.index > t_start) & (cml_ch.data.index < t_stop)
                 elif t_start is not None:
                     t_ix = cml_ch.data.index > t_start
                 elif t_stop is not None:
@@ -235,8 +227,9 @@ def cml_wrapper(cml, func,
                 cml_ch.data.loc[t_ix, var_out] = ts
             else:
                 cml_ch.data.loc[:, var_out] = ts
-        
+
         return cml
+
     return func_wrapper
 
 
@@ -245,4 +238,5 @@ def pass_cml_wrapper(cml, func):
     def func_wrapper(*args, **kwargs):
         func(cml, *args, **kwargs)
         return cml
+
     return func_wrapper

@@ -1,8 +1,9 @@
 import pandas as pd
 
 
-def aggregate_df_onto_DatetimeIndex(df, new_index, method, label='right',
-                                    new_index_tz='utc'):
+def aggregate_df_onto_DatetimeIndex(
+    df, new_index, method, label="right", new_index_tz="utc"
+):
     """
     Aggregate a DataFrame or Series using a given DatetimeIndex
 
@@ -29,10 +30,10 @@ def aggregate_df_onto_DatetimeIndex(df, new_index, method, label='right',
 
     """
 
-    if label == 'right':
-        fill_method = 'bfill'
-    elif label == 'left':
-        fill_method = 'ffill'
+    if label == "right":
+        fill_method = "bfill"
+    elif label == "left":
+        fill_method = "ffill"
     else:
         raise NotImplementedError('`label` must be "left" or "right"')
 
@@ -41,7 +42,7 @@ def aggregate_df_onto_DatetimeIndex(df, new_index, method, label='right',
 
     # Generate DataFrame with desired DatetimeIndex as data,
     # which will later be reindexed by DatetimeIndex of original DataFrame
-    df_new_t = pd.DataFrame(index=new_index, data={'time': new_index})
+    df_new_t = pd.DataFrame(index=new_index, data={"time": new_index})
 
     # Update time zone info if there is none
     if not df_new_t.index.tzinfo:
@@ -61,12 +62,13 @@ def aggregate_df_onto_DatetimeIndex(df, new_index, method, label='right',
     df_new_t = df_new_t.reindex(df_temp.index, method=fill_method)
 
     # Aggregate data onto new DatetimeIndex
-    df_temp['new_time_ix'] = df_new_t.time
-    df_reindexed = df_temp.groupby('new_time_ix').agg(method)
+    df_temp["new_time_ix"] = df_new_t.time
+    df_reindexed = df_temp.groupby("new_time_ix").agg(method)
     # Update name and timezone of new index
     df_reindexed.index.name = df_temp.index.name
     if not df_reindexed.index.tzinfo:
-        df_reindexed.index = df_reindexed.index.tz_localize('UTC').tz_convert(
-            df_temp.index.tzinfo)
+        df_reindexed.index = df_reindexed.index.tz_localize("UTC").tz_convert(
+            df_temp.index.tzinfo
+        )
 
     return df_reindexed

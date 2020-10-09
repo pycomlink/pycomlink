@@ -46,11 +46,11 @@ def baseline_constant(rsl, wet):
 def _numba_baseline_constant(rsl, wet):
     baseline = np.zeros_like(rsl, dtype=np.float64)
     baseline[0] = rsl[0]
-    for i in range(1,len(rsl)):
+    for i in range(1, len(rsl)):
         if np.isnan(wet[i]):
             baseline[i] = np.NaN
         elif wet[i]:
-            baseline[i] = baseline[i-1]
+            baseline[i] = baseline[i - 1]
         else:
             baseline[i] = rsl[i]
     return baseline
@@ -110,7 +110,7 @@ def _numba_baseline_linear(rsl, wet, ignore_nan=False):
                 is_wet = last_i_is_wet
             else:
                 found_nan = True
-                #raise ValueError('There must not be `NaN`s in `wet` if '
+                # raise ValueError('There must not be `NaN`s in `wet` if '
                 #                 '`ignore_nan` is set to `True`.')
 
         # at the beginning of a wet period
@@ -122,13 +122,13 @@ def _numba_baseline_linear(rsl, wet, ignore_nan=False):
         # at the end of a wet period, do the baseline interpolation
         elif last_i_is_wet and not is_wet:
             if found_nan:
-                baseline[last_dry_i:i+1] = np.NaN
+                baseline[last_dry_i : i + 1] = np.NaN
             else:
                 # !! Only works correctly with 'i+1'. With 'i' the first dry
                 # !! baseline value is kept at 0. No clue why we need the '+1'
-                baseline[last_dry_i:i+1] = np.linspace(last_dry_rsl,
-                                                       rsl_i,
-                                                       i-last_dry_i+1)
+                baseline[last_dry_i : i + 1] = np.linspace(
+                    last_dry_rsl, rsl_i, i - last_dry_i + 1
+                )
             found_nan = False
             last_i_is_wet = False
             last_dry_i = i
@@ -144,8 +144,6 @@ def _numba_baseline_linear(rsl, wet, ignore_nan=False):
             last_dry_i = i
             last_dry_rsl = rsl_i
         else:
-            #print('This should be impossible')
+            # print('This should be impossible')
             raise
     return baseline
-
-

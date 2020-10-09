@@ -1,27 +1,29 @@
-#----------------------------------------------------------------------------
-# Name:         
-# Purpose:      
+# ----------------------------------------------------------------------------
+# Name:
+# Purpose:
 #
-# Authors:      
+# Authors:
 #
-# Created:      
+# Created:
 # Copyright:    (c) Christian Chwala 2016
 # Licence:      The MIT License
-#----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 
 import matplotlib.pyplot as plt
 import numpy as np
 
 
-def xarray_pcolor(data_array,
-                  ax=None,
-                  mask_nan=False,
-                  mask_smaller_than=None,
-                  mask_larger_than=None,
-                  vmin=None,
-                  vmax=None,
-                  cmap=plt.cm.viridis,
-                  **kwargs):
+def xarray_pcolor(
+    data_array,
+    ax=None,
+    mask_nan=False,
+    mask_smaller_than=None,
+    mask_larger_than=None,
+    vmin=None,
+    vmax=None,
+    cmap=plt.cm.viridis,
+    **kwargs
+):
 
     if ax is None:
         fig, ax = plt.subplots(**kwargs)
@@ -40,20 +42,16 @@ def xarray_pcolor(data_array,
 
     values = np.ma.array(values, mask=mask)
 
-    p_cml = ax.pcolormesh(data_array.lon,
-                          data_array.lat,
-                          values,
-                          vmin=vmin, vmax=vmax,
-                          cmap=cmap)
+    p_cml = ax.pcolormesh(
+        data_array.lon, data_array.lat, values, vmin=vmin, vmax=vmax, cmap=cmap
+    )
 
     return p_cml
 
 
-def xarray_update_pcolor(pc,
-                         data_array,
-                         mask_nan=False,
-                         mask_smaller_than=None,
-                         mask_larger_than=None):
+def xarray_update_pcolor(
+    pc, data_array, mask_nan=False, mask_smaller_than=None, mask_larger_than=None
+):
 
     values = data_array.values
 

@@ -1,4 +1,7 @@
 [![Build Status](https://travis-ci.org/pycomlink/pycomlink.svg?branch=master)](https://travis-ci.org/pycomlink/pycomlink)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/pycomlink/pycomlink/v0.3alpha)
+
+**INFO: THIS IS A WIP BRANCH, DO NOT USE**
 
 pycomlink
 =========
@@ -11,16 +14,16 @@ Installation
 `pycomlink` works with Python 2.7, Python 3.6 and Python 3.7. It can be installed via [`conda-forge`](https://conda-forge.org/):
 
     $ conda install -c conda-forge pycomlink
-    
+
 If you are new to `conda` or if you are unsure, it is recommended to [create a new conda environment, activate it](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#creating-an-environment-with-commands), [add the conda-forge channel](https://conda-forge.org/) and then install.
 
 Installation via `pip` is also possible:
 
     $ pip install pycomlink
 
-If you install via `pip`, there might be problems with some dependencies, though. Currently the dependency `pykrige` only installs if `scipy`, `numpy` and `matplotlib` have been installed before. 
+If you install via `pip`, there might be problems with some dependencies, though. Currently the dependency `pykrige` only installs if `scipy`, `numpy` and `matplotlib` have been installed before.
 
-To run the example notebooks you will also need the [Jupyter Notebook](https://jupyter.org/) 
+To run the example notebooks you will also need the [Jupyter Notebook](https://jupyter.org/)
 and `ipython`, both also available via `conda` or `pip`.
 
 Usage

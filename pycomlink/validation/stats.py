@@ -5,22 +5,29 @@ import numpy as np
 from pycomlink.util.maintenance import deprecated
 
 
-class WetDryError(namedtuple('WetDryError', ['false_wet_rate',
-                                             'missed_wet_rate',
-                                             'matthews_correlation',
-                                             'true_wet_rate',
-                                             'true_dry_rate',
-                                             'N_dry_reference',
-                                             'N_wet_reference',
-                                             'N_true_wet',
-                                             'N_true_dry',
-                                             'N_false_wet',
-                                             'N_missed_wet',
-                                             'N_all_pairs',
-                                             'N_nan_pairs',
-                                             'N_nan_reference_only',
-                                             'N_nan_predicted_only'])):
-    """ namedtuple with the following wet-dry performance measures:
+class WetDryError(
+    namedtuple(
+        "WetDryError",
+        [
+            "false_wet_rate",
+            "missed_wet_rate",
+            "matthews_correlation",
+            "true_wet_rate",
+            "true_dry_rate",
+            "N_dry_reference",
+            "N_wet_reference",
+            "N_true_wet",
+            "N_true_dry",
+            "N_false_wet",
+            "N_missed_wet",
+            "N_all_pairs",
+            "N_nan_pairs",
+            "N_nan_reference_only",
+            "N_nan_predicted_only",
+        ],
+    )
+):
+    """namedtuple with the following wet-dry performance measures:
 
     false_wet_rate:
         Rate of cml wet events when reference is dry
@@ -53,27 +60,35 @@ class WetDryError(namedtuple('WetDryError', ['false_wet_rate',
     N_nan_predicted_only:
         Number of NaN values in predicted array
     """
+
     __slots__ = ()
 
 
-class RainError(namedtuple('RainError', ['pearson_correlation',
-                                         'coefficient_of_variation',
-                                         'root_mean_square_error',
-                                         'mean_absolute_error',
-                                         'R_sum_reference',
-                                         'R_sum_predicted',
-                                         'R_mean_reference',
-                                         'R_mean_predicted',
-                                         'false_wet_rate',
-                                         'missed_wet_rate',
-                                         'false_wet_precipitation_rate',
-                                         'missed_wet_precipitation_rate',
-                                         'rainfall_threshold_wet',
-                                         'N_all_pairs',
-                                         'N_nan_pairs',
-                                         'N_nan_reference_only',
-                                         'N_nan_predicted_only'])):
-    """ namedtuple with the following rainfall performance measures:
+class RainError(
+    namedtuple(
+        "RainError",
+        [
+            "pearson_correlation",
+            "coefficient_of_variation",
+            "root_mean_square_error",
+            "mean_absolute_error",
+            "R_sum_reference",
+            "R_sum_predicted",
+            "R_mean_reference",
+            "R_mean_predicted",
+            "false_wet_rate",
+            "missed_wet_rate",
+            "false_wet_precipitation_rate",
+            "missed_wet_precipitation_rate",
+            "rainfall_threshold_wet",
+            "N_all_pairs",
+            "N_nan_pairs",
+            "N_nan_reference_only",
+            "N_nan_predicted_only",
+        ],
+    )
+):
+    """namedtuple with the following rainfall performance measures:
 
     pearson_correlation:
         Pearson correlation coefficient
@@ -115,11 +130,12 @@ class RainError(namedtuple('RainError', ['pearson_correlation',
     .. [1] Overeem et al. 2013: www.pnas.org/cgi/doi/10.1073/pnas.1217961110
 
     """
+
     __slots__ = ()
 
 
 def calc_wet_dry_performance_metrics(reference, predicted):
-    """ Calculate performance metrics for a wet-dry classification
+    """Calculate performance metrics for a wet-dry classification
 
     This function calculates metrics and statistics relevant to judge
     the performance of a wet-dry classification. The calculation is based on
@@ -153,9 +169,9 @@ def calc_wet_dry_performance_metrics(reference, predicted):
     assert reference.shape == predicted.shape
 
     # force bool type
-    reference = (reference > 0)
-    predicted = (predicted > 0)
-    
+    reference = reference > 0
+    predicted = predicted > 0
+
     # Calculate N_tp, tn, N_fp, N_fn, N_wet_reference (real positive cases)
     # and N_dry_reference (real negative cases)
 
@@ -185,8 +201,7 @@ def calc_wet_dry_performance_metrics(reference, predicted):
     c = np.sqrt(N_tn + N_fp)
     d = np.sqrt(N_tn + N_fn)
 
-    matthews_correlation = (((N_tp * N_tn) - (N_fp * N_fn)) /
-                            (a * b * c * d))
+    matthews_correlation = ((N_tp * N_tn) - (N_fp * N_fn)) / (a * b * c * d)
 
     # if predicted has zero/false values only
     # 'inf' would be returned, but 0 is more favorable
@@ -195,27 +210,27 @@ def calc_wet_dry_performance_metrics(reference, predicted):
     if np.nansum(predicted) == 0:
         matthews_correlation = 0
 
-    return WetDryError(false_wet_rate=false_wet_rate,
-                       missed_wet_rate=missed_wet_rate,
-                       matthews_correlation=matthews_correlation,
-                       true_wet_rate=true_wet_rate,
-                       true_dry_rate=true_dry_rate,
-                       N_dry_reference=N_dry_reference,
-                       N_wet_reference=N_wet_reference,
-                       N_true_wet=N_tp,
-                       N_true_dry=N_tn,
-                       N_false_wet=N_fp,
-                       N_missed_wet=N_fn,
-                       N_all_pairs=N_all_pairs,
-                       N_nan_pairs=N_nan_pairs,
-                       N_nan_reference_only=N_nan_reference_only,
-                       N_nan_predicted_only=N_nan_predicted_only)
+    return WetDryError(
+        false_wet_rate=false_wet_rate,
+        missed_wet_rate=missed_wet_rate,
+        matthews_correlation=matthews_correlation,
+        true_wet_rate=true_wet_rate,
+        true_dry_rate=true_dry_rate,
+        N_dry_reference=N_dry_reference,
+        N_wet_reference=N_wet_reference,
+        N_true_wet=N_tp,
+        N_true_dry=N_tn,
+        N_false_wet=N_fp,
+        N_missed_wet=N_fn,
+        N_all_pairs=N_all_pairs,
+        N_nan_pairs=N_nan_pairs,
+        N_nan_reference_only=N_nan_reference_only,
+        N_nan_predicted_only=N_nan_predicted_only,
+    )
 
 
-def calc_rain_error_performance_metrics(reference,
-                                        predicted,
-                                        rainfall_threshold_wet):
-    """ Calculate performance metrics for rainfall estimation
+def calc_rain_error_performance_metrics(reference, predicted, rainfall_threshold_wet):
+    """Calculate performance metrics for rainfall estimation
 
     This function calculates metrics and statistics relevant to judge
     the performance of rainfall estimation. The calculation is based on
@@ -265,9 +280,9 @@ def calc_rain_error_performance_metrics(reference,
 
     # calculate performance metrics: pcc, cv, rmse and mae
     pearson_correlation = np.corrcoef(reference, predicted)
-    coefficient_of_variation = np.std(predicted-reference) / np.mean(reference)
-    root_mean_square_error = np.sqrt(np.mean((predicted-reference)**2))
-    mean_absolute_error = np.mean(np.abs(predicted-reference))
+    coefficient_of_variation = np.std(predicted - reference) / np.mean(reference)
+    root_mean_square_error = np.sqrt(np.mean((predicted - reference) ** 2))
+    mean_absolute_error = np.mean(np.abs(predicted - reference))
 
     # calculate the precipitation sums and mean
     # of reference and predicted time series
@@ -290,32 +305,32 @@ def calc_rain_error_performance_metrics(reference,
     N_wet = reference_wet.sum()
     missed_wet_rate = N_missed_wet / float(N_wet)
 
-    false_wet_precipitation_rate = predicted[reference_dry &
-                                             predicted_wet].mean()
+    false_wet_precipitation_rate = predicted[reference_dry & predicted_wet].mean()
 
-    missed_wet_precipitation_rate = reference[reference_wet &
-                                              predicted_dry].mean()
+    missed_wet_precipitation_rate = reference[reference_wet & predicted_dry].mean()
 
-    return RainError(pearson_correlation=pearson_correlation[0, 1],
-                     coefficient_of_variation=coefficient_of_variation,
-                     root_mean_square_error=root_mean_square_error,
-                     mean_absolute_error=mean_absolute_error,
-                     R_sum_reference=R_sum_reference,
-                     R_sum_predicted=R_sum_predicted,
-                     R_mean_reference=R_mean_reference,
-                     R_mean_predicted=R_mean_predicted,
-                     false_wet_rate=false_wet_rate,
-                     missed_wet_rate=missed_wet_rate,
-                     false_wet_precipitation_rate=false_wet_precipitation_rate,
-                     missed_wet_precipitation_rate=missed_wet_precipitation_rate,
-                     rainfall_threshold_wet=rainfall_threshold_wet,
-                     N_all_pairs=N_all_pairs,
-                     N_nan_pairs=N_nan_pairs,
-                     N_nan_reference_only=N_nan_reference_only,
-                     N_nan_predicted_only=N_nan_predicted_only)
+    return RainError(
+        pearson_correlation=pearson_correlation[0, 1],
+        coefficient_of_variation=coefficient_of_variation,
+        root_mean_square_error=root_mean_square_error,
+        mean_absolute_error=mean_absolute_error,
+        R_sum_reference=R_sum_reference,
+        R_sum_predicted=R_sum_predicted,
+        R_mean_reference=R_mean_reference,
+        R_mean_predicted=R_mean_predicted,
+        false_wet_rate=false_wet_rate,
+        missed_wet_rate=missed_wet_rate,
+        false_wet_precipitation_rate=false_wet_precipitation_rate,
+        missed_wet_precipitation_rate=missed_wet_precipitation_rate,
+        rainfall_threshold_wet=rainfall_threshold_wet,
+        N_all_pairs=N_all_pairs,
+        N_nan_pairs=N_nan_pairs,
+        N_nan_reference_only=N_nan_reference_only,
+        N_nan_predicted_only=N_nan_predicted_only,
+    )
 
 
-@deprecated('Please use `calc_wet_dry_performance_metrics()`')
+@deprecated("Please use `calc_wet_dry_performance_metrics()`")
 def calc_wet_error_rates(df_wet_truth, df_wet):
     N_false_wet = ((df_wet_truth == False) & (df_wet == True)).sum()
     N_dry = (df_wet_truth == False).sum()
@@ -327,4 +342,5 @@ def calc_wet_error_rates(df_wet_truth, df_wet):
 
     return WetError(false=false_wet_rate, missed=missed_wet_rate)
 
-WetError = namedtuple('WetError', ['false', 'missed'])
+
+WetError = namedtuple("WetError", ["false", "missed"])

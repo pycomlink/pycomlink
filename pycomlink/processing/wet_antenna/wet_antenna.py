@@ -1,5 +1,5 @@
 # coding=utf-8
-#----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Name:         wet_antenna
 # Purpose:      Estimation and removal of wet antenna effects
 #
@@ -8,7 +8,7 @@
 # Created:      01.12.2014
 # Copyright:    (c) Christian Chwala 2014
 # Licence:      The MIT License
-#----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 
 from builtins import range
 import numpy as np
@@ -22,6 +22,7 @@ from numba import jit
 ########################################
 # Functions for wet antenna estimation #
 ########################################
+
 
 @jit(nopython=True)
 def _numba_waa_schleiss(rsl, baseline, waa_max, delta_t, tau, wet):
@@ -61,45 +62,44 @@ def _numba_waa_schleiss(rsl, baseline, waa_max, delta_t, tau, wet):
     waa = np.zeros_like(rsl, dtype=np.float64)
     A = rsl - baseline
 
-    for i in range(1,len(rsl)):
+    for i in range(1, len(rsl)):
         if wet[i] == True:
-            waa[i] = min(A[i],
-                         waa_max,
-                         waa[i-1] + (waa_max-waa[i-1])*3*delta_t/tau)
+            waa[i] = min(
+                A[i], waa_max, waa[i - 1] + (waa_max - waa[i - 1]) * 3 * delta_t / tau
+            )
         else:
-            waa[i] = min(A[i],
-                         waa_max)
+            waa[i] = min(A[i], waa_max)
     return waa
 
 
 def waa_adjust_baseline(rsl, baseline, wet, waa_max, delta_t, tau):
-    
+
     """Calculate baseline adjustion due to wet antenna
-        
+
     Parameters
     ----------
         rsl : iterable of float
                 Time series of received signal level
         baseline : iterable of float
-                Time series of baseline for rsl        
+                Time series of baseline for rsl
         waa_max : float
-                  Maximum value of wet antenna attenuation   
+                  Maximum value of wet antenna attenuation
         delta_t : float
-                  Parameter for wet antnenna attenation model    
+                  Parameter for wet antnenna attenation model
         tau : float
-              Parameter for wet antnenna attenation model         
+              Parameter for wet antnenna attenation model
         wet : iterable of int or iterable of float
-               Time series with wet/dry classification information. 
-               
+               Time series with wet/dry classification information.
+
     Returns
     -------
        iterable of float
            Adjusted time series of baseline
        iterable of float
            Time series of wet antenna attenuation
-        
-    """     
-    
+
+    """
+
     if type(rsl) == pd.Series:
         rsl = rsl.values
     if type(baseline) == pd.Series:
@@ -113,15 +113,21 @@ def waa_adjust_baseline(rsl, baseline, wet, waa_max, delta_t, tau):
 
     waa = _numba_waa_schleiss(rsl, baseline, waa_max, delta_t, tau, wet)
 
-    #return baseline + waa, waa
+    # return baseline + waa, waa
     return baseline + waa
 
 
-def waa_leijnse_2008_from_A_obs(A_obs, f_Hz, L_km, T_K=293.0,
-                                gamma=2.06e-5, delta=0.24,
-                                n_antenna=np.complex(1.73, 0.014),
-                                l_antenna=0.001):
-    """ Calculate wet antenna attenuation according to Leijnse et al. 2008
+def waa_leijnse_2008_from_A_obs(
+    A_obs,
+    f_Hz,
+    L_km,
+    T_K=293.0,
+    gamma=2.06e-5,
+    delta=0.24,
+    n_antenna=np.complex(1.73, 0.014),
+    l_antenna=0.001,
+):
+    """Calculate wet antenna attenuation according to Leijnse et al. 2008
 
     Calculate the wet antenna attenuation from observed attenuation,
     using the method proposed in [1], assuming a rain rate dependent
@@ -172,20 +178,34 @@ def waa_leijnse_2008_from_A_obs(A_obs, f_Hz, L_km, T_K=293.0,
     A_rain = np.logspace(-10, 3, 100)
     A_rain[0] = 0
 
-    R = A_R_relation.calc_R_from_A(A_rain, L=L_km, f_GHz=f_Hz/1e9, R_min=0)
-    waa = waa_leijnse_2008(f_Hz=f_Hz, R=R, gamma=gamma, delta=delta, T_K=T_K,
-                           n_antenna=n_antenna, l_antenna=l_antenna)
+    R = A_R_relation.calc_R_from_A(A_rain, L=L_km, f_GHz=f_Hz / 1e9, R_min=0)
+    waa = waa_leijnse_2008(
+        f_Hz=f_Hz,
+        R=R,
+        gamma=gamma,
+        delta=delta,
+        T_K=T_K,
+        n_antenna=n_antenna,
+        l_antenna=l_antenna,
+    )
     A_obs_theoretical = A_rain + waa
 
-    mapping = scipy.interpolate.interp1d(A_obs_theoretical, waa,
-                                         assume_sorted=True, kind='linear')
+    mapping = scipy.interpolate.interp1d(
+        A_obs_theoretical, waa, assume_sorted=True, kind="linear"
+    )
     return mapping(A_obs)
 
 
-def waa_leijnse_2008(R, f_Hz, T_K=293.0,
-                     gamma=2.06e-5, delta=0.24,
-                     n_antenna=np.complex(1.73, 0.014), l_antenna=0.001):
-    """ Calculate wet antenna attenuation according to Leijnse et al. 2008
+def waa_leijnse_2008(
+    R,
+    f_Hz,
+    T_K=293.0,
+    gamma=2.06e-5,
+    delta=0.24,
+    n_antenna=np.complex(1.73, 0.014),
+    l_antenna=0.001,
+):
+    """Calculate wet antenna attenuation according to Leijnse et al. 2008
 
     Calculate the wet antenna attenuation assuming a rain rate dependent
     thin flat water film on the antenna following the results from [1].
@@ -230,25 +250,40 @@ def waa_leijnse_2008(R, f_Hz, T_K=293.0,
     n_air = 1
     c = 299792458
 
-    l = gamma * R**delta
+    l = gamma * R ** delta
 
     n_water = np.sqrt(eps_water(f_Hz=f_Hz, T_K=T_K))
 
     expo = 1j * 2 * np.pi * f_Hz / c
-    x1 = ((n_air + n_water) * (n_water + n_antenna) * (n_antenna + n_air)
-          * np.exp(-expo * (n_antenna * l_antenna + n_water * l)))
-    x2 = ((n_air - n_water) * (n_water - n_antenna) * (n_antenna + n_air)
-          * np.exp(-expo * (n_antenna * l_antenna - n_water * l)))
-    x3 = ((n_air + n_water) * (n_water - n_antenna) * (n_antenna - n_air)
-          * np.exp(expo * (n_antenna * l_antenna - n_water * l)))
-    x4 = ((n_air - n_water) * (n_water + n_antenna) * (n_antenna - n_air)
-          * np.exp(expo * (n_antenna * l_antenna + n_water * l)))
+    x1 = (
+        (n_air + n_water)
+        * (n_water + n_antenna)
+        * (n_antenna + n_air)
+        * np.exp(-expo * (n_antenna * l_antenna + n_water * l))
+    )
+    x2 = (
+        (n_air - n_water)
+        * (n_water - n_antenna)
+        * (n_antenna + n_air)
+        * np.exp(-expo * (n_antenna * l_antenna - n_water * l))
+    )
+    x3 = (
+        (n_air + n_water)
+        * (n_water - n_antenna)
+        * (n_antenna - n_air)
+        * np.exp(expo * (n_antenna * l_antenna - n_water * l))
+    )
+    x4 = (
+        (n_air - n_water)
+        * (n_water + n_antenna)
+        * (n_antenna - n_air)
+        * np.exp(expo * (n_antenna * l_antenna + n_water * l))
+    )
 
-    y1 = (n_air + n_antenna)**2 * np.exp(-expo * n_antenna * l_antenna)
-    y2 = (-(n_air - n_antenna)**2 * np.exp(expo * n_antenna * l_antenna))
+    y1 = (n_air + n_antenna) ** 2 * np.exp(-expo * n_antenna * l_antenna)
+    y2 = -((n_air - n_antenna) ** 2) * np.exp(expo * n_antenna * l_antenna)
 
-    waa = (10 * np.log10(np.abs((x1 + x2 + x3 + x4)
-                                / (2 * n_water * (y1 + y2)))**2))
+    waa = 10 * np.log10(np.abs((x1 + x2 + x3 + x4) / (2 * n_water * (y1 + y2))) ** 2)
 
     # Assure that numeric inaccuracy does not lead to waa > 0 for R == 0
     waa[R == 0] = 0
@@ -257,7 +292,7 @@ def waa_leijnse_2008(R, f_Hz, T_K=293.0,
 
 
 def eps_water(f_Hz, T_K):
-    """ Calculate the dielectric permitiviy of water
+    """Calculate the dielectric permitiviy of water
 
     Formulas taken from dielectric permittivity of liquid water
     without salt according to
@@ -280,7 +315,7 @@ def eps_water(f_Hz, T_K):
 
     """
 
-    f_GHz = f_Hz*1e-9
+    f_GHz = f_Hz * 1e-9
 
     teta = 1 - 300.0 / T_K
     e0 = 77.66 - 103.3 * teta
@@ -293,6 +328,5 @@ def eps_water(f_Hz, T_K):
     # and temperature range the difference is negligible, though.
 
     f2 = 39.8 * f1
-    eps = (e2 + (e1 - e2) / (1 - 1j * f_GHz / f2) + (e0 - e1)
-           / (1 - 1j * f_GHz / f1))
+    eps = e2 + (e1 - e2) / (1 - 1j * f_GHz / f2) + (e0 - e1) / (1 - 1j * f_GHz / f1)
     return eps

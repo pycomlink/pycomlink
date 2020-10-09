@@ -1,15 +1,16 @@
 from __future__ import print_function
 from __future__ import division
-#----------------------------------------------------------------------------
-# Name:         
-# Purpose:      
+
+# ----------------------------------------------------------------------------
+# Name:
+# Purpose:
 #
-# Authors:      
+# Authors:
 #
-# Created:      
+# Created:
 # Copyright:    (c) Christian Chwala 2016
 # Licence:      The MIT License
-#----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 
 
 from builtins import range
@@ -20,10 +21,20 @@ from matplotlib.mlab import specgram as specg
 from pycomlink.processing.wet_dry.std_dev import rolling_std_dev
 
 
-def stft_classification(rsl, window_length, threshold, f_divide,
-                        t_dry_start=None, t_dry_stop=None, dry_length=None,
-                        mirror=False,
-                        window=None, Pxx=None, f=None, f_sampling=1/60):
+def stft_classification(
+    rsl,
+    window_length,
+    threshold,
+    f_divide,
+    t_dry_start=None,
+    t_dry_stop=None,
+    dry_length=None,
+    mirror=False,
+    window=None,
+    Pxx=None,
+    f=None,
+    f_sampling=1 / 60,
+):
 
     """Perform wet/dry classification with Rolling Fourier-transform method
 
@@ -90,7 +101,7 @@ def stft_classification(rsl, window_length, threshold, f_divide,
             if window_length % 2 == 0:
                 NFFT = window_length
             else:
-                NFFT = window_length+1
+                NFFT = window_length + 1
         else:
             NFFT = window_length
 
@@ -98,22 +109,20 @@ def stft_classification(rsl, window_length, threshold, f_divide,
             window = np.hamming(window_length)
 
         # Calculate spectrogram using STFT
-        Pxx, f, t = specg(rsl,
-                          NFFT=NFFT,
-                          Fs=f_sampling,
-                          noverlap=NFFT-1,
-                          window=window)
+        Pxx, f, t = specg(
+            rsl, NFFT=NFFT, Fs=f_sampling, noverlap=NFFT - 1, window=window
+        )
 
     elif Pxx is not None and f is not None:
-        print('Skipping spectrogram calculation and using supplied Pxx')
+        print("Skipping spectrogram calculation and using supplied Pxx")
         #
         # TODO: check that Pxx has the correct size
         #
-        #..... assert len(Pxx[0]) == len(rsl) - window_length
+        # ..... assert len(Pxx[0]) == len(rsl) - window_length
     elif Pxx is not None and f is None:
-        raise ValueError('You have to supply f if you supply Pxx')
+        raise ValueError("You have to supply f if you supply Pxx")
     else:
-        raise ValueError('This should be impossible')
+        raise ValueError("This should be impossible")
 
     # Add NaNs as the missing spectral data at the beginning and end of
     # the time series (stemming from the window length)
@@ -121,43 +130,40 @@ def stft_classification(rsl, window_length, threshold, f_divide,
     N_missing_start = np.floor(N_diff / 2)
 
     if mirror:
-        for i in range((len(rsl)-1)-(NFFT/2 - 1), len(rsl)):
-            rsl_mirr = np.concatenate((rsl[i-(NFFT/2 - 1):i],
-                                       rsl[i-(NFFT/2 - 1):i][::-1]))
-            Pxx_mirr, f, t = specg(rsl_mirr,
-                                   NFFT=NFFT,
-                                   Fs=f_sampling,
-                                   noverlap=NFFT-1,
-                                   window=window)
+        for i in range((len(rsl) - 1) - (NFFT / 2 - 1), len(rsl)):
+            rsl_mirr = np.concatenate(
+                (rsl[i - (NFFT / 2 - 1) : i], rsl[i - (NFFT / 2 - 1) : i][::-1])
+            )
+            Pxx_mirr, f, t = specg(
+                rsl_mirr, NFFT=NFFT, Fs=f_sampling, noverlap=NFFT - 1, window=window
+            )
 
-            if i == (len(rsl)-1)-(NFFT/2 - 1):
+            if i == (len(rsl) - 1) - (NFFT / 2 - 1):
                 Pxx_end = Pxx_mirr
             else:
-                Pxx_end = np.append(Pxx_end,Pxx_mirr,1)
-        Pxx_extended = np.concatenate((nans([len(Pxx),N_missing_start]),
-                                      Pxx,
-                                      Pxx_end),
-                                      1)
+                Pxx_end = np.append(Pxx_end, Pxx_mirr, 1)
+        Pxx_extended = np.concatenate(
+            (nans([len(Pxx), N_missing_start]), Pxx, Pxx_end), 1
+        )
     else:
         N_missing_end = N_diff - N_missing_start
-        Pxx_extended = np.concatenate((nans([len(Pxx), N_missing_start]),
-                                       Pxx,
-                                       nans([len(Pxx), N_missing_end])),
-                                      1)
+        Pxx_extended = np.concatenate(
+            (nans([len(Pxx), N_missing_start]), Pxx, nans([len(Pxx), N_missing_end])), 1
+        )
 
-    if ((t_dry_start is None)
-            and (t_dry_stop is None)
-            and (dry_length is not None)):
+    if (t_dry_start is None) and (t_dry_stop is None) and (dry_length is not None):
         # Find dry period
         t_dry_start, t_dry_stop = find_lowest_std_dev_period(rsl, dry_length)
-    elif ((t_dry_start is not None)
-            and (t_dry_stop is not None)
-            and (dry_length is None)):
+    elif (
+        (t_dry_start is not None) and (t_dry_stop is not None) and (dry_length is None)
+    ):
         # Do nothing, since t_dry_start and t_dry_stop are defined
         pass
     else:
-        raise AttributeError('Either `t_dry_start` and `t_dry_stop` or '
-                             '`dry_length` have to be supplied.')
+        raise AttributeError(
+            "Either `t_dry_start` and `t_dry_stop` or "
+            "`dry_length` have to be supplied."
+        )
 
     # Calculate mean dry spectrum
     P_dry_mean = np.nanmean(Pxx_extended[:, t_dry_start:t_dry_stop], axis=1)
@@ -174,14 +180,19 @@ def stft_classification(rsl, window_length, threshold, f_divide,
 
     P_norm_low = np.mean(P_norm[i_f_divide_low], axis=0)
     P_norm_high = np.mean(P_norm[i_f_divide_high], axis=0)
-    P_sum_diff = P_norm_low/N_f_divide_low - P_norm_high/N_f_divide_high
+    P_sum_diff = P_norm_low / N_f_divide_low - P_norm_high / N_f_divide_high
 
     nan_index = np.isnan(P_sum_diff)
     wet = np.zeros_like(P_sum_diff, dtype=np.bool)
     wet[~nan_index] = P_sum_diff[~nan_index] > threshold
 
-    info = {'P_norm': P_norm, 'P_sum_diff': P_sum_diff,
-            'Pxx': Pxx_extended, 'P_dry_mean': P_dry_mean, 'f': f}
+    info = {
+        "P_norm": P_norm,
+        "P_sum_diff": P_sum_diff,
+        "Pxx": Pxx_extended,
+        "P_dry_mean": P_dry_mean,
+        "f": f,
+    }
 
     return wet, info
 
@@ -220,9 +231,9 @@ def find_lowest_std_dev_period(rsl, window_length=600):
 # Helper functions #
 ####################
 
+
 def nans(shape, dtype=float):
-    """Helper function for wet/dry classification
-    """
+    """Helper function for wet/dry classification"""
     a = np.empty(np.asarray(shape, dtype=int), dtype)
     a.fill(np.nan)
     return a

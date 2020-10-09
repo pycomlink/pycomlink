@@ -1,13 +1,13 @@
-#----------------------------------------------------------------------------
-# Name:         
-# Purpose:      
+# ----------------------------------------------------------------------------
+# Name:
+# Purpose:
 #
-# Authors:      
+# Authors:
 #
-# Created:      
+# Created:
 # Copyright:    (c) Christian Chwala 2016
 # Licence:      The MIT License
-#----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 
 import numpy as np
 
@@ -48,7 +48,7 @@ def std_dev_classification(data, window_length, threshold):
     wet = np.zeros_like(roll_std_dev, dtype=np.bool)
     wet[~nan_index] = roll_std_dev[~nan_index] > threshold
 
-    return wet, {'roll_std_dev': roll_std_dev}
+    return wet, {"roll_std_dev": roll_std_dev}
 
 
 def rolling_window(a, window):
@@ -89,17 +89,18 @@ def rolling_std_dev(x, window_length, pad_only_left=False):
     """
 
     import numpy as np
+
     roll_std_dev = np.std(rolling_window(x, window_length), 1)
-    pad_nan = np.zeros(window_length-1)
+    pad_nan = np.zeros(window_length - 1)
     pad_nan[:] = np.NaN
     # add NaN to start and end of array
     ix_mid = len(pad_nan) // 2
     if pad_only_left == False:
-        roll_std_dev = np.concatenate((pad_nan[:ix_mid],
-                                       roll_std_dev,
-                                       pad_nan[ix_mid:]))
+        roll_std_dev = np.concatenate(
+            (pad_nan[:ix_mid], roll_std_dev, pad_nan[ix_mid:])
+        )
     elif pad_only_left == True:
         roll_std_dev = np.concatenate((pad_nan, roll_std_dev))
     else:
-        ValueError('pad_only_left must be either True or False')
+        ValueError("pad_only_left must be either True or False")
     return roll_std_dev

@@ -7,7 +7,7 @@ from numba import jit
 
 
 class Invdisttree(object):
-    """ inverse-distance-weighted interpolation using KDTree:
+    """inverse-distance-weighted interpolation using KDTree:
 
     Copied from http://stackoverflow.com/questions/3104781/
     inverse-distance-weighted-idw-interpolation-with-python
@@ -62,6 +62,7 @@ class Invdisttree(object):
     is exceedingly sensitive to distance and to h.
 
     """
+
     # anykernel( dj / av dj ) is also scale-free
     # error analysis, |f(x) - idw(x)| ? todo: regular grid, nnear ndim+1, 2*ndim
 
@@ -73,14 +74,7 @@ class Invdisttree(object):
         self.wsum = None
         self.q = None
 
-    def __call__(self,
-                 q,
-                 z,
-                 nnear=6,
-                 eps=0,
-                 p=1,
-                 weights=None,
-                 max_distance=None):
+    def __call__(self, q, z, nnear=6, eps=0, p=1, weights=None, max_distance=None):
         # nnear nearest neighbours of each query point --
         assert len(self.X) == len(z), "len(X) %d != len(z) %d" % (len(self.X), len(z))
 
@@ -88,7 +82,7 @@ class Invdisttree(object):
             max_distance = np.inf
 
         if nnear <= 1:
-            raise ValueError('`nnear` must be greater than 1')
+            raise ValueError("`nnear` must be greater than 1")
 
         q = np.asarray(q)
         z = np.asarray(z)
@@ -100,19 +94,21 @@ class Invdisttree(object):
 
         # Do not recalculate the distance matrix if it has already
         # been calculated for the same parameters
-        if (hasattr(self, 'q') and np.array_equal(q, self.q) and
-            hasattr(self, 'nnear') and np.array_equal(nnear, self.nnear) and
-            hasattr(self, 'eps') and np.array_equal(eps, self.eps)
-            ):
+        if (
+            hasattr(self, "q")
+            and np.array_equal(q, self.q)
+            and hasattr(self, "nnear")
+            and np.array_equal(nnear, self.nnear)
+            and hasattr(self, "eps")
+            and np.array_equal(eps, self.eps)
+        ):
             # Do nothing here
             # print 'reuse `distances`'
             pass
         else:
             self.distances, self.ix = self.tree.query(
-                q,
-                k=nnear,
-                eps=eps,
-                distance_upper_bound=max_distance)
+                q, k=nnear, eps=eps, distance_upper_bound=max_distance
+            )
             self.q = q
             self.nnear = nnear
             self.eps = eps
@@ -130,7 +126,8 @@ class Invdisttree(object):
             p=p,
             weights=weights,
             wn=self.wn,
-            wsum=self.wsum)
+            wsum=self.wsum,
+        )
 
         return interpol if qdim > 1 else interpol[0]
 
@@ -145,7 +142,7 @@ def _numba_idw_loop(distances, ixs, z, z_shape, p, weights, wn, wsum):
         if dist[0] < 1e-10:
             wz = z[ix[0]]
         else:  # weight z s by 1/dist --
-            w = 1 / dist**p
+            w = 1 / dist ** p
             w *= weights[ix]  # >= 0
             w /= np.sum(w)
             wz = np.dot(w, z[ix])

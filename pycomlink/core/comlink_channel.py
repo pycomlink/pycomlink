@@ -24,10 +24,18 @@ import copy
 class ComlinkChannel(object):
     """A class for holding CML channel data and metadata"""
 
-    def __init__(self, data=None, metadata=None,
-                 t=None, rx=None, tx=None,
-                 frequency=None, polarization=None,
-                 atpc=None, channel_id=None):
+    def __init__(
+        self,
+        data=None,
+        metadata=None,
+        t=None,
+        rx=None,
+        tx=None,
+        frequency=None,
+        polarization=None,
+        atpc=None,
+        channel_id=None,
+    ):
         """
 
         Parameters
@@ -80,21 +88,23 @@ class ComlinkChannel(object):
         # Handle the different arguments and build a DataFrame from them
         # if it has not been supplied as `data`
         self.data = copy.deepcopy(
-            _parse_kwargs_to_dataframe(data=data, t=t, rx=rx, tx=tx))
+            _parse_kwargs_to_dataframe(data=data, t=t, rx=rx, tx=tx)
+        )
 
         # TODO: Sanely parse metadata
         if metadata is not None:
             self.metadata = metadata
         else:
             self.metadata = {
-                'frequency': frequency,
-                'polarization': polarization,
-                'channel_id': channel_id,
-                'atpc': atpc}
+                "frequency": frequency,
+                "polarization": polarization,
+                "channel_id": channel_id,
+                "atpc": atpc,
+            }
 
         # TODO: Remove this
         # Keeping this for now for backwards compatibility
-        self.f_GHz = self.metadata['frequency'] / 1e9
+        self.f_GHz = self.metadata["frequency"] / 1e9
 
     def __eq__(self):
         pass
@@ -108,16 +118,17 @@ class ComlinkChannel(object):
         return len(self.data)
 
     def __str__(self, *args, **kwargs):
-        print('f_GHz: ', self.f_GHz)
+        print("f_GHz: ", self.f_GHz)
         print(self.data.__str__())
 
     def __getattr__(self, item):
         try:
             return self.data.__getattr__(item)
         except:
-            raise AttributeError('Neither \'ComlinkChannel\' nor its '
-                                 '\'DataFrame\' have the attribute \'%s\''
-                                 % item)
+            raise AttributeError(
+                "Neither 'ComlinkChannel' nor its "
+                "'DataFrame' have the attribute '%s'" % item
+            )
 
     def __getstate__(self):
         return self.__dict__
@@ -140,12 +151,12 @@ class ComlinkChannel(object):
         return new_cml_ch
 
     def _repr_html_(self):
-        metadata_str = ''
+        metadata_str = ""
         for key, value in self.metadata.items():
-            if key == 'frequency':
-                metadata_str += (str(key) + ': ' + str(value / 1e9) + ' GHz<br/>')
+            if key == "frequency":
+                metadata_str += str(key) + ": " + str(value / 1e9) + " GHz<br/>"
             else:
-                metadata_str += (str(key) + ': ' + str(value) + '<br/>')
+                metadata_str += str(key) + ": " + str(value) + "<br/>"
         return metadata_str + self.data._repr_html_()
 
     def copy(self):
@@ -153,7 +164,7 @@ class ComlinkChannel(object):
         return self.__deepcopy__()
 
     def resample(self, resampling_time, how=np.mean, inplace=False):
-        """ Resample channel data
+        """Resample channel data
 
         Parameters
         ----------
@@ -188,10 +199,10 @@ class ComlinkChannel(object):
             new_cml_ch.data = self.data.resample(resampling_time).apply(how)
             return new_cml_ch
         else:
-            raise ValueError('`inplace` must be either True or False')
+            raise ValueError("`inplace` must be either True or False")
 
     def append_data(self, cml_ch, max_length=None, max_age=None):
-        """ Append data to the current channel
+        """Append data to the current channel
 
         Parameters
         ----------
@@ -206,14 +217,14 @@ class ComlinkChannel(object):
 
         for key in self.metadata.keys():
             if self.metadata[key] != cml_ch.metadata[key]:
-                raise ValueError('ComlinkChannel metadata `%s` is different'
-                                 'for the two channels: %s vs. %s' %
-                                 (key,
-                                  self.metadata[key],
-                                  cml_ch.metadata[key]))
+                raise ValueError(
+                    "ComlinkChannel metadata `%s` is different"
+                    "for the two channels: %s vs. %s"
+                    % (key, self.metadata[key], cml_ch.metadata[key])
+                )
 
         self.data = self.data.append(cml_ch.data)
-        self.data = self.data[~self.data.index.duplicated(keep='first')]
+        self.data = self.data[~self.data.index.duplicated(keep="first")]
         self.data = self.data.sort_index()
 
         if max_length is not None:
@@ -221,16 +232,15 @@ class ComlinkChannel(object):
                 self.data = self.data.iloc[-max_length:, :]
 
         if max_age is not None:
-            min_allowed_timestamp = (self.data.index[-1] -
-                                     pd.Timedelta(max_age))
+            min_allowed_timestamp = self.data.index[-1] - pd.Timedelta(max_age)
             self.data = self.data.loc[self.data.index > min_allowed_timestamp]
 
 
 def _parse_kwargs_to_dataframe(data, t, rx, tx):
     # The case where only `t`, `rx` and `tx` are supplied
     if data is None:
-        df = pd.DataFrame(index=t, data={'rx': rx})
-        df['tx'] = tx
+        df = pd.DataFrame(index=t, data={"rx": rx})
+        df["tx"] = tx
 
     # The case where `data` has been supplied.
     # We check that `data` is a DataFrame and that the DataFrame has the
@@ -239,31 +249,32 @@ def _parse_kwargs_to_dataframe(data, t, rx, tx):
         if isinstance(data, pd.DataFrame):
             # `data` is what we want, so return it
             df = data
-            #try:
+            # try:
             #    df.tx
-            #except AttributeError:
+            # except AttributeError:
             #    raise AttributeError('DataFrame `data` must have a column `tx`')
-            #try:
+            # try:
             #    df.rx
-            #except AttributeError:
+            # except AttributeError:
             #    raise AttributeError('DataFrame `data` must have a column `tx`')
         else:
-            raise ValueError('type of `data` is %s, '
-                             'but must be pandas.DataFrame' % type(data))
+            raise ValueError(
+                "type of `data` is %s, " "but must be pandas.DataFrame" % type(data)
+            )
 
     else:
-        raise ValueError('Could not parse the supplied arguments')
+        raise ValueError("Could not parse the supplied arguments")
 
     # Quick fix to make this work for instantaneous and min-max data
     try:
-        df['txrx'] = df.tx - df.rx
+        df["txrx"] = df.tx - df.rx
     except AttributeError:
         pass
     try:
-        df['txrx_max'] = df.tx_max - df.rx_min
-        df['txrx_min'] = df.tx_min - df.rx_max
+        df["txrx_max"] = df.tx_max - df.rx_min
+        df["txrx_min"] = df.tx_min - df.rx_max
     except AttributeError:
         pass
 
-    df.index.name = 'time'
+    df.index.name = "time"
     return df

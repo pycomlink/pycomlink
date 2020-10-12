@@ -1,5 +1,4 @@
 import unittest
-from pycomlink.io.cmlh5 import read_from_cmlh5
 from pycomlink.io.cmlh5_to_netcdf import read_cmlh5_file_to_xarray
 import numpy as np
 import pkg_resources
@@ -14,9 +13,6 @@ testdata_fn = str(get_test_data_path() + "/75_cmls_processed.h5")
 
 class Testcmlh5tonetcdf(unittest.TestCase):
     def test_cmlh5_to_netcdf_fun(self):
-
-        # open cmlh5
-        cmlh5_file = read_from_cmlh5(testdata_fn)
 
         # convert to netcdf
         cml_xr_file = read_cmlh5_file_to_xarray(testdata_fn)

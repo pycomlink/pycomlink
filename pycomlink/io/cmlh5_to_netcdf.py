@@ -35,8 +35,8 @@ def read_cmlh5_file_to_xarray(filename):
             cml_ch_g = cml_g[channel_name]
             ds_temp = xr.Dataset(
                 data_vars={
-                    'tx': ('time', cml_ch_g['tx'][:]),
-                    'rx': ('time', cml_ch_g['rx'][:]),
+                    'tsl': ('time', cml_ch_g['tx'][:]),
+                    'rsl': ('time', cml_ch_g['rx'][:]),
                 },
                 coords={
                     'time': cml_ch_g['time'][:],

@@ -11,12 +11,13 @@
 # ----------------------------------------------------------------------------
 
 from builtins import range
+
 import numpy as np
 import pandas as pd
-from pycomlink.processing.A_R_relation import A_R_relation
 import scipy.interpolate
-
 from numba import jit
+
+from pycomlink.processing import k_R_relation
 
 
 ########################################
@@ -178,7 +179,7 @@ def waa_leijnse_2008_from_A_obs(
     A_rain = np.logspace(-10, 3, 100)
     A_rain[0] = 0
 
-    R = A_R_relation.calc_R_from_A(A_rain, L=L_km, f_GHz=f_Hz / 1e9, R_min=0)
+    R = k_R_relation.calc_R_from_A(A_rain, L=L_km, f_GHz=f_Hz / 1e9, R_min=0)
     waa = waa_leijnse_2008(
         f_Hz=f_Hz,
         R=R,

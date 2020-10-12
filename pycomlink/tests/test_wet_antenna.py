@@ -1,7 +1,9 @@
 import unittest
+
 import numpy as np
 from numpy.testing import assert_almost_equal
-from pycomlink.processing.wet_antenna import wet_antenna
+
+from pycomlink.processing import wet_antenna
 
 
 class TestWaaLeijnse2008(unittest.TestCase):

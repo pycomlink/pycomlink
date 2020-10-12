@@ -3,7 +3,7 @@ import numpy as np
 
 
 ############################################
-# Functions for A-R power law calculatoins #
+# Functions for k-R power law calculations #
 ############################################
 
 
@@ -15,9 +15,11 @@ def calc_R_from_A(A, L, f_GHz=None, a=None, b=None, pol="H", R_min=0.1):
     A : float or iterable of float
         Attenuation of microwave signal
     f_GHz : float, optional
-        Frequency in GHz
+        Frequency in GHz. If provided together with `pol`, it will be used to
+        derive the parameters a and b for the k-R power law.
     pol : string
-        Polarization, default is 'H'
+        Polarization, default is 'H'. If provided together with `f_GHz`, it
+        will be used to derive the parameters a and b for the k-R power law.
     a : float, optional
         Parameter of A-R relationship
     b : float, optional

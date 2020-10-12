@@ -10,18 +10,19 @@
 # ----------------------------------------------------------------------------
 
 from builtins import object
-from functools import wraps
 from copy import deepcopy
+from functools import wraps
+
 import numpy as np
 
-from pycomlink.processing.wet_dry import std_dev, stft
-from pycomlink.processing.baseline.baseline import baseline_linear, baseline_constant
-from pycomlink.processing.wet_antenna.wet_antenna import waa_adjust_baseline
-from pycomlink.processing.A_R_relation.A_R_relation import (
+from pycomlink.processing.baseline import baseline_linear, baseline_constant
+from pycomlink.processing.k_R_relation import (
     calc_R_from_A,
     calc_R_from_A_min_max,
 )
 from pycomlink.processing.quality_control.simple import set_to_nan_if
+from pycomlink.processing.wet_antenna import waa_adjust_baseline
+from pycomlink.processing.wet_dry import std_dev, stft
 
 
 class Processor(object):

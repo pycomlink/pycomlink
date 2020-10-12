@@ -1,5 +1,5 @@
 import unittest
-from pycomlink.io.cmlh5_to_netcdf import read_cmlh5_file_to_xarray
+from pycomlink.io.cmlh5_to_xarray import read_cmlh5_file_to_xarray
 import numpy as np
 import pkg_resources
 
@@ -19,7 +19,7 @@ class Testcmlh5tonetcdf(unittest.TestCase):
 
         # compare h5 data to netcdf data
         np.testing.assert_array_almost_equal(
-            np.array([13., 14., 14., 15., 15., 15.]),
+            np.array([13.0, 14.0, 14.0, 15.0, 15.0, 15.0]),
             cml_xr_file[19].isel(channel_id=0).tsl.values[1300:1306],
         )
         np.testing.assert_array_almost_equal(

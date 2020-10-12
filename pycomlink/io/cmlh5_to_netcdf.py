@@ -3,8 +3,9 @@ import xarray as xr
 from tqdm import tqdm
 from pycomlink.spatial.helper import haversine
 
+
 def read_cmlh5_file_to_xarray(filename):
-    """read a cmlh5 file and parse data from each cml_id to a xarray dataset 
+    """read a cmlh5 file and parse data from each cml_id to a xarray dataset
 
     Parameters
     ----------
@@ -18,8 +19,7 @@ def read_cmlh5_file_to_xarray(filename):
 
     """
 
-    fh = h5py.File(name=filename,
-                   mode='r')
+    fh = h5py.File(name=filename, mode="r")
 
     id_list = list(fh.keys())
 
@@ -35,26 +35,27 @@ def read_cmlh5_file_to_xarray(filename):
             cml_ch_g = cml_g[channel_name]
             ds_temp = xr.Dataset(
                 data_vars={
-                    'tsl': ('time', cml_ch_g['tx'][:]),
-                    'rsl': ('time', cml_ch_g['rx'][:]),
+                    "tsl": ("time", cml_ch_g["tx"][:]),
+                    "rsl": ("time", cml_ch_g["rx"][:]),
                 },
                 coords={
-                    'time': cml_ch_g['time'][:],
-                    'channel_id': channel_name,
-                    'cml_id': cml_g.attrs['cml_id'],
-                    'site_a_latitude': cml_g.attrs['site_a_latitude'],
-                    'site_b_latitude': cml_g.attrs['site_b_latitude'],
-                    'site_a_longitude': cml_g.attrs['site_a_longitude'],
-                    'site_b_longitude': cml_g.attrs['site_b_latitude'],
-                    'frequency': cml_ch_g.attrs['frequency'] / 1e9,
-                    'polarization': cml_ch_g.attrs['polarization'],
-                    'length': haversine(
-                        cml_g.attrs['site_a_latitude'],
-                        cml_g.attrs['site_a_longitude'],
-                        cml_g.attrs['site_b_latitude'],
-                        cml_g.attrs['site_b_longitude'])
+                    "time": cml_ch_g["time"][:],
+                    "channel_id": channel_name,
+                    "cml_id": cml_g.attrs["cml_id"],
+                    "site_a_latitude": cml_g.attrs["site_a_latitude"],
+                    "site_b_latitude": cml_g.attrs["site_b_latitude"],
+                    "site_a_longitude": cml_g.attrs["site_a_longitude"],
+                    "site_b_longitude": cml_g.attrs["site_b_latitude"],
+                    "frequency": cml_ch_g.attrs["frequency"] / 1e9,
+                    "polarization": cml_ch_g.attrs["polarization"],
+                    "length": haversine(
+                        cml_g.attrs["site_a_latitude"],
+                        cml_g.attrs["site_a_longitude"],
+                        cml_g.attrs["site_b_latitude"],
+                        cml_g.attrs["site_b_longitude"],
+                    ),
                 },
             )
             ds_channel_list.append(ds_temp)
-        ds_list.append(xr.concat(ds_channel_list, dim='channel_id'))
+        ds_list.append(xr.concat(ds_channel_list, dim="channel_id"))
     return ds_list

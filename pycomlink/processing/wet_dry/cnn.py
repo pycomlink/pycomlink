@@ -4,11 +4,16 @@ from tensorflow.keras.models import model_from_json
 from tensorflow.keras.optimizers import SGD
 import pkg_resources
 
+
 def get_test_data_path():
-    return pkg_resources.resource_filename("pycomlink", "/processing/wet_dry/cnn_model_files")
+    return pkg_resources.resource_filename(
+        "pycomlink", "/processing/wet_dry/cnn_model_files"
+    )
+
 
 modelh5_fn = str(get_test_data_path() + "/model_2020.002.180m.h5")
 modeljson_fn = str(get_test_data_path() + "/model_2020.002.180m.json")
+
 
 def _rolling_window(a, window):
     shape = a.shape[:-1] + (a.shape[-1] - window + 1, window)
@@ -30,6 +35,11 @@ def cnn_wet_dry(trsl_channel_1, trsl_channel_2, threshold, batch_size=100, verbo
          Time series of received signal level of channel 2
     threshold : float
          Threshold between 0 and 1 which has to be surpassed to classifiy a period as 'wet'
+    batch_size : int
+        Batch size for parallel computing. Set to 1 when using a CPU!
+    verbose : int
+        Toggles Keras text output during prediction. Default is off.
+
 
     Returns
     -------
@@ -78,7 +88,7 @@ def cnn_wet_dry(trsl_channel_1, trsl_channel_2, threshold, batch_size=100, verbo
     # generate numpy arrays #
     #########################
 
-    X_fts = np.moveaxis(
+    x_fts = np.moveaxis(
         np.array(
             [
                 _rolling_window(df["trsl1"].values, 180),
@@ -88,12 +98,12 @@ def cnn_wet_dry(trsl_channel_1, trsl_channel_2, threshold, batch_size=100, verbo
         0,
         -1,
     )
-    cnn_pred = np.ravel(model.predict(X_fts, batch_size=batch_size, verbose=verbose))
+    cnn_pred = np.ravel(model.predict(x_fts, batch_size=batch_size, verbose=verbose))
 
     for i in range(len(cnn_pred)):
         if (
-                -9999 in df["trsl1"].values[i - 151: i + 31]
-                or -9999 in df["trsl2"].values[i - 151: i + 31]
+            -9999 in df["trsl1"].values[i - 151 : i + 31]
+            or -9999 in df["trsl2"].values[i - 151 : i + 31]
         ):
             cnn_pred[i] = np.nan
 

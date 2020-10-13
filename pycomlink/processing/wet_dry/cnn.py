@@ -2,7 +2,13 @@ import pandas as pd
 import numpy as np
 from tensorflow.keras.models import model_from_json
 from tensorflow.keras.optimizers import SGD
+import pkg_resources
 
+def get_test_data_path():
+    return pkg_resources.resource_filename("pycomlink", "/processing/wet_dry/cnn_model_files")
+
+modelh5_fn = str(get_test_data_path() + "/model_2020.002.180m.h5")
+modeljson_fn = str(get_test_data_path() + "/model_2020.002.180m.json")
 
 def _rolling_window(a, window):
     shape = a.shape[:-1] + (a.shape[-1] - window + 1, window)
@@ -42,13 +48,12 @@ def cnn_wet_dry(trsl_channel_1, trsl_channel_2, threshold, batch_size=100, verbo
     """
 
     # load json and create model
-    json_file = open("cnn_model_files/model_2020.002.180m.json", "r")
+    json_file = open(modeljson_fn, "r")
     loaded_model_json = json_file.read()
     json_file.close()
     model = model_from_json(loaded_model_json)
     # load weights into new model
-    model.load_weights("cnn_model_files/model_2020.002.180m.h5")
-    print("Loaded model from disk")
+    model.load_weights(modelh5_fn)
     model.compile(
         loss="binary_crossentropy",
         optimizer=SGD(lr=0.01, decay=1e-3, momentum=0.9, nesterov=True),
@@ -76,8 +81,8 @@ def cnn_wet_dry(trsl_channel_1, trsl_channel_2, threshold, batch_size=100, verbo
     X_fts = np.moveaxis(
         np.array(
             [
-                _rolling_window(df["txrx1"].values, 180),
-                _rolling_window(df["txrx2"].values, 180),
+                _rolling_window(df["trsl1"].values, 180),
+                _rolling_window(df["trsl2"].values, 180),
             ]
         ),
         0,
@@ -87,8 +92,8 @@ def cnn_wet_dry(trsl_channel_1, trsl_channel_2, threshold, batch_size=100, verbo
 
     for i in range(len(cnn_pred)):
         if (
-                -9999 in df["txrx1"].values[i - 151: i + 31]
-                or -9999 in df["txrx2"].values[i - 151: i + 31]
+                -9999 in df["trsl1"].values[i - 151: i + 31]
+                or -9999 in df["trsl2"].values[i - 151: i + 31]
         ):
             cnn_pred[i] = np.nan
 

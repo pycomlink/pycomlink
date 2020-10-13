@@ -5,14 +5,27 @@ from tensorflow.keras.optimizers import SGD
 import pkg_resources
 
 
-def get_test_data_path():
+def get_model_file_path():
     return pkg_resources.resource_filename(
         "pycomlink", "/processing/wet_dry/cnn_model_files"
     )
 
 
-modelh5_fn = str(get_test_data_path() + "/model_2020.002.180m.h5")
-modeljson_fn = str(get_test_data_path() + "/model_2020.002.180m.json")
+modelh5_fn = str(get_model_file_path() + "/model_2020.002.180m.h5")
+modeljson_fn = str(get_model_file_path() + "/model_2020.002.180m.json")
+
+# load json and create model
+json_file = open(modeljson_fn, "r")
+loaded_model_json = json_file.read()
+json_file.close()
+model = model_from_json(loaded_model_json)
+# load weights into new model
+model.load_weights(modelh5_fn)
+model.compile(
+    loss="binary_crossentropy",
+    optimizer=SGD(lr=0.01, decay=1e-3, momentum=0.9, nesterov=True),
+    metrics=["accuracy"],
+)
 
 
 def _rolling_window(a, window):
@@ -23,7 +36,7 @@ def _rolling_window(a, window):
     )
 
 
-def cnn_wet_dry(trsl_channel_1, trsl_channel_2, threshold, batch_size=100, verbose=0):
+def cnn_wet_dry(trsl_channel_1, trsl_channel_2, threshold, batch_size=100, verbose=0, return_raw_predictions=False):
     """
     Wet dry classification using the CNN based on channel 1 and channel 2 of a CML
 
@@ -34,11 +47,13 @@ def cnn_wet_dry(trsl_channel_1, trsl_channel_2, threshold, batch_size=100, verbo
     trsl_channel_2 : iterable of float
          Time series of received signal level of channel 2
     threshold : float
-         Threshold between 0 and 1 which has to be surpassed to classifiy a period as 'wet'
+         Threshold between 0 and 1 which has to be surpassed to classify a period as 'wet'.
     batch_size : int
         Batch size for parallel computing. Set to 1 when using a CPU!
     verbose : int
         Toggles Keras text output during prediction. Default is off.
+    return_raw_predictions : boolean
+        If True, then no threshold is applied and raw wet probabilities in the range of [0,1] are returned.
 
 
     Returns
@@ -57,18 +72,6 @@ def cnn_wet_dry(trsl_channel_1, trsl_channel_2, threshold, batch_size=100, verbo
     https://doi.org/10.5194/amt-13-3835-2020, 2020.
     """
 
-    # load json and create model
-    json_file = open(modeljson_fn, "r")
-    loaded_model_json = json_file.read()
-    json_file.close()
-    model = model_from_json(loaded_model_json)
-    # load weights into new model
-    model.load_weights(modelh5_fn)
-    model.compile(
-        loss="binary_crossentropy",
-        optimizer=SGD(lr=0.01, decay=1e-3, momentum=0.9, nesterov=True),
-        metrics=["accuracy"],
-    )
     #################
     # Normalization #
     #################
@@ -81,6 +84,7 @@ def cnn_wet_dry(trsl_channel_1, trsl_channel_2, threshold, batch_size=100, verbo
     df["med2"] = df["trsl2"].rolling(72 * 60, min_periods=2 * 60, center=False).median()
     df["trsl1"] = df["trsl1"].sub(df["med1"])
     df["trsl2"] = df["trsl2"].sub(df["med2"])
+    # replace NaN by -9999 during processing
     df = df.dropna()
     df = df.reindex(idx, fill_value=-9999)
 
@@ -95,21 +99,29 @@ def cnn_wet_dry(trsl_channel_1, trsl_channel_2, threshold, batch_size=100, verbo
                 _rolling_window(df["trsl2"].values, 180),
             ]
         ),
-        0,
-        -1,
+        source=0,
+        destination=-1,
     )
     cnn_pred = np.ravel(model.predict(x_fts, batch_size=batch_size, verbose=verbose))
 
+    # set prediction to NaN whenever -9999 occurs in the moving window of one channel
     for i in range(len(cnn_pred)):
         if (
-            -9999 in df["trsl1"].values[i - 151 : i + 31]
-            or -9999 in df["trsl2"].values[i - 151 : i + 31]
+            -9999 in df["trsl1"].values[i-151:i+31]
+            or -9999 in df["trsl2"].values[i-151:i+31]
         ):
             cnn_pred[i] = np.nan
 
+    # Due to the moving window approach predictions can only be made for minutes 151 to -30.
+    # The following line fills beginning and end of the prediction array with NaN.
     df["prediction"] = np.concatenate(
         (np.repeat(np.nan, 150), cnn_pred, np.repeat(np.nan, 29)), axis=0
     )
 
     df = df.reindex(idx, fill_value=np.nan)
-    return df.prediction.values > threshold
+
+    if return_raw_predictions:
+        return df.prediction.values
+
+    else:
+        return df.prediction.values > threshold

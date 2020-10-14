@@ -1,8 +1,18 @@
 import pandas as pd
 import numpy as np
+import tensorflow as tf
 from tensorflow.keras.models import model_from_json
 from tensorflow.keras.optimizers import SGD
+from tensorflow.compat.v1.keras.backend import set_session
 import pkg_resources
+
+
+# Limit GPU memory usage to avoid processes to run out of memory.
+# For a list of processes blocking GPU memory on an nvidia GPU type 'nvidia-smi' in the terminal.
+config = tf.compat.v1.ConfigProto()
+config.gpu_options.per_process_gpu_memory_fraction = 0.4
+config.gpu_options.visible_device_list = "0"
+set_session(tf.compat.v1.Session(config=config))
 
 
 def get_model_file_path():
@@ -36,7 +46,14 @@ def _rolling_window(a, window):
     )
 
 
-def cnn_wet_dry(trsl_channel_1, trsl_channel_2, threshold, batch_size=100, verbose=0, return_raw_predictions=False):
+def cnn_wet_dry(
+    trsl_channel_1,
+    trsl_channel_2,
+    threshold,
+    batch_size=100,
+    verbose=0,
+    return_raw_predictions=False,
+):
     """
     Wet dry classification using the CNN based on channel 1 and channel 2 of a CML
 
@@ -107,8 +124,8 @@ def cnn_wet_dry(trsl_channel_1, trsl_channel_2, threshold, batch_size=100, verbo
     # set prediction to NaN whenever -9999 occurs in the moving window of one channel
     for i in range(len(cnn_pred)):
         if (
-            -9999 in df["trsl1"].values[i-151:i+31]
-            or -9999 in df["trsl2"].values[i-151:i+31]
+            -9999 in df["trsl1"].values[i - 151 : i + 31]
+            or -9999 in df["trsl2"].values[i - 151 : i + 31]
         ):
             cnn_pred[i] = np.nan
 
@@ -121,7 +138,7 @@ def cnn_wet_dry(trsl_channel_1, trsl_channel_2, threshold, batch_size=100, verbo
     df = df.reindex(idx, fill_value=np.nan)
 
     if return_raw_predictions:
-        return df.prediction.values
+        return df.prediction.values.reshape(len(trsl_channel_1))
 
     else:
         return df.prediction.values > threshold

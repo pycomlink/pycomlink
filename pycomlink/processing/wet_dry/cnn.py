@@ -96,14 +96,12 @@ def cnn_wet_dry(
     df = pd.DataFrame()
     df["trsl1"] = trsl_channel_1
     df["trsl2"] = trsl_channel_2
-    idx = df.index
     df["med1"] = df["trsl1"].rolling(72 * 60, min_periods=2 * 60, center=False).median()
     df["med2"] = df["trsl2"].rolling(72 * 60, min_periods=2 * 60, center=False).median()
     df["trsl1"] = df["trsl1"].sub(df["med1"])
     df["trsl2"] = df["trsl2"].sub(df["med2"])
     # replace NaN by -9999 during processing
-    df = df.dropna()
-    df = df.reindex(idx, fill_value=-9999)
+    df = df.fillna(value=-9999)
 
     #########################
     # generate numpy arrays #
@@ -134,8 +132,6 @@ def cnn_wet_dry(
     df["prediction"] = np.concatenate(
         (np.repeat(np.nan, 150), cnn_pred, np.repeat(np.nan, 29)), axis=0
     )
-
-    df = df.reindex(idx, fill_value=np.nan)
 
     if return_raw_predictions:
         return df.prediction.values.reshape(len(trsl_channel_1))

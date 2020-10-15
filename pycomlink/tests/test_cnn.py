@@ -34,11 +34,40 @@ class Testcnnpred(unittest.TestCase):
 
         # check if array is as expected
         truth_raw = np.array(
-            [0.7035, 0.7027, 0.7016, 0.7007, 0.6999, 0.6994, 0.6984, 0.6961,
-             0.6934, 0.6907, 0.688, np.nan, np.nan, ]
+            [
+                0.7035,
+                0.7027,
+                0.7016,
+                0.7007,
+                0.6999,
+                0.6994,
+                0.6984,
+                0.6961,
+                0.6934,
+                0.6907,
+                0.688,
+                np.nan,
+                np.nan,
+            ]
         )
         truth = np.array(
-            [1.,  1.,  1.,  1.,  0.,  0.,  0.,  0.,  0.,  0.,  0., np.nan, np.nan,]
+            [
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                np.nan,
+                np.nan,
+            ]
         )
         np.testing.assert_almost_equal(pred[280:293], truth)
-        np.testing.assert_almost_equal(np.round(pred_raw, decimals=4)[280:293], truth_raw)
+        np.testing.assert_almost_equal(
+            np.round(pred_raw, decimals=4)[280:293], truth_raw
+        )

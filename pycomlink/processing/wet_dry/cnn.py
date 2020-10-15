@@ -49,10 +49,9 @@ def _rolling_window(a, window):
 def cnn_wet_dry(
     trsl_channel_1,
     trsl_channel_2,
-    threshold,
+    threshold=None,
     batch_size=100,
     verbose=0,
-    return_raw_predictions=False,
 ):
     """
     Wet dry classification using the CNN based on channel 1 and channel 2 of a CML
@@ -63,14 +62,13 @@ def cnn_wet_dry(
          Time series of received signal level of channel 1
     trsl_channel_2 : iterable of float
          Time series of received signal level of channel 2
-    threshold : float
+    threshold : float or None
          Threshold between 0 and 1 which has to be surpassed to classify a period as 'wet'.
+         If None, then no threshold is applied and raw wet probabilities in the range of [0,1] are returned.
     batch_size : int
         Batch size for parallel computing. Set to 1 when using a CPU!
     verbose : int
         Toggles Keras text output during prediction. Default is off.
-    return_raw_predictions : boolean
-        If True, then no threshold is applied and raw wet probabilities in the range of [0,1] are returned.
 
 
     Returns
@@ -122,8 +120,8 @@ def cnn_wet_dry(
     # set prediction to NaN whenever -9999 occurs in the moving window of one channel
     for i in range(len(cnn_pred)):
         if (
-            -9999 in df["trsl1"].values[i - 151 : i + 31]
-            or -9999 in df["trsl2"].values[i - 151 : i + 31]
+            -9999 in df["trsl1"].values[i : i + 180]
+            or -9999 in df["trsl2"].values[i : i + 180]
         ):
             cnn_pred[i] = np.nan
 
@@ -133,8 +131,11 @@ def cnn_wet_dry(
         (np.repeat(np.nan, 150), cnn_pred, np.repeat(np.nan, 29)), axis=0
     )
 
-    if return_raw_predictions:
+    if threshold is None:
         return df.prediction.values.reshape(len(trsl_channel_1))
 
     else:
-        return df.prediction.values > threshold
+        # only apply threshold to non NaN values
+        pred = df.prediction.values
+        pred[~np.isnan(pred)] = pred[~np.isnan(pred)] > threshold
+        return pred

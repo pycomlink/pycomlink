@@ -14,7 +14,9 @@ matrix:
                  shapely
                  pyproj
                  tqdm
-                 pykrige"
+                 pykrige
+                 tensorflow
+                 tensorflow-gpu"
     - python: "3.6"
       env: DEPS="numpy
                  scipy
@@ -27,7 +29,9 @@ matrix:
                  shapely
                  pyproj
                  tqdm
-                 pykrige"
+                 pykrige
+                 tensorflow
+                 tensorflow-gpu"
 
 # setup adapted from https://github.com/bsmurphy/PyKrige/blob/master/.travis.yml
 before_install:

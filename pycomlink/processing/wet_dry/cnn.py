@@ -92,8 +92,8 @@ def cnn_wet_dry(
     #################
 
     df = pd.DataFrame()
-    df["trsl1"] = trsl_channel_1
-    df["trsl2"] = trsl_channel_2
+    df["trsl1"] = trsl_channel_1.copy()
+    df["trsl2"] = trsl_channel_2.copy()
     df["med1"] = df["trsl1"].rolling(72 * 60, min_periods=2 * 60, center=False).median()
     df["med2"] = df["trsl2"].rolling(72 * 60, min_periods=2 * 60, center=False).median()
     df["trsl1"] = df["trsl1"].sub(df["med1"])

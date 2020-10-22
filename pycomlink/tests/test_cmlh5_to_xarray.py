@@ -1,0 +1,49 @@
+import unittest
+from pycomlink.io.cmlh5_to_xarray import read_cmlh5_file_to_xarray
+import numpy as np
+import pkg_resources
+
+
+def get_test_data_path():
+    return pkg_resources.resource_filename("pycomlink", "tests/test_data")
+
+
+testdata_fn = str(get_test_data_path() + "/75_cmls_processed.h5")
+
+
+class Testcmlh5tonetcdf(unittest.TestCase):
+    def test_cmlh5_to_xarray_fun(self):
+
+        # read to xarray
+        cml_xr_file = read_cmlh5_file_to_xarray(testdata_fn)
+
+        # check selected parts of time series
+        np.testing.assert_array_almost_equal(
+            np.array([13.0, 14.0, 14.0, 15.0, 15.0, 15.0]),
+            cml_xr_file[19].isel(channel_id=0).tsl.values[1300:1306],
+        )
+        np.testing.assert_almost_equal(
+            np.array([-47.6, -47.9, -47.9, -47.6, -47.9, -47.9]),
+            cml_xr_file[11].isel(channel_id=1).rsl.values[1100:1106],
+        )
+        np.testing.assert_almost_equal(
+            np.array([-47.3, -47.3, -47. , -47.3, -47. , -47.3]),
+            cml_xr_file[52].isel(channel_id=1).rsl.values[1100:1106],
+        )
+
+        # Test some metadata
+        np.testing.assert_array_almost_equal(
+            24.913,
+            cml_xr_file[3].sel(channel_id="channel_1").frequency.values,
+        )
+        np.testing.assert_array_almost_equal(
+            18.085,
+            cml_xr_file[42].sel(channel_id="channel_1").frequency.values,
+        )
+        np.testing.assert_array_almost_equal(
+            19.095,
+            cml_xr_file[42].sel(channel_id="channel_2").frequency.values,
+        )
+
+
+

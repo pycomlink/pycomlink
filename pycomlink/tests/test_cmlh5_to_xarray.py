@@ -27,7 +27,7 @@ class Testcmlh5tonetcdf(unittest.TestCase):
             cml_xr_file[11].isel(channel_id=1).rsl.values[1100:1106],
         )
         np.testing.assert_almost_equal(
-            np.array([-47.3, -47.3, -47. , -47.3, -47. , -47.3]),
+            np.array([-47.3, -47.3, -47.0, -47.3, -47.0, -47.3]),
             cml_xr_file[52].isel(channel_id=1).rsl.values[1100:1106],
         )
 
@@ -45,5 +45,32 @@ class Testcmlh5tonetcdf(unittest.TestCase):
             cml_xr_file[42].sel(channel_id="channel_2").frequency.values,
         )
 
-
-
+        # test correction conversion of timestamps
+        np.testing.assert_array_almost_equal(
+            np.array(
+                [
+                    "2017-06-28T18:46:10.226388992",
+                    "2017-06-28T18:47:10.222681088",
+                    "2017-06-28T18:48:10.229869056",
+                    "2017-06-28T18:49:10.166190080",
+                    "2017-06-28T18:51:10.229346048",
+                    "2017-06-28T18:52:10.227350016",
+                ],
+                dtype="datetime64[ns]",
+            ),
+            cml_xr_file[13].isel(channel_id=1).time.values[1100:1106],
+        )
+        np.testing.assert_array_almost_equal(
+            np.array(
+                [
+                    "2017-06-28T19:30:08.294352896",
+                    "2017-06-28T19:31:08.274571008",
+                    "2017-06-28T19:32:08.295169024",
+                    "2017-06-28T19:34:08.278542080",
+                    "2017-06-28T19:35:08.276589056",
+                    "2017-06-28T19:36:08.277197056",
+                ],
+                dtype="datetime64[ns]",
+            ),
+            cml_xr_file[52].isel(channel_id=1).time.values[1100:1106],
+        )

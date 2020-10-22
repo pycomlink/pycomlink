@@ -46,7 +46,7 @@ class Testcmlh5tonetcdf(unittest.TestCase):
         )
 
         # test correction conversion of timestamps
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_array_equal(
             np.array(
                 [
                     "2017-06-28T18:46:10.226388992",
@@ -60,7 +60,7 @@ class Testcmlh5tonetcdf(unittest.TestCase):
             ),
             cml_xr_file[13].isel(channel_id=1).time.values[1100:1106],
         )
-        np.testing.assert_array_almost_equal(
+        np.testing.assert_array_equal(
             np.array(
                 [
                     "2017-06-28T19:30:08.294352896",

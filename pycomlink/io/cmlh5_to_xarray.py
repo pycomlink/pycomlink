@@ -39,7 +39,7 @@ def read_cmlh5_file_to_xarray(filename):
                     "rsl": ("time", cml_ch_g["rx"][:]),
                 },
                 coords={
-                    "time": cml_ch_g["time"][:],
+                    "time": (cml_ch_g["time"][:] * 1e9).astype("datetime64[ns]"),
                     "channel_id": channel_name,
                     "cml_id": cml_g.attrs["cml_id"],
                     "site_a_latitude": cml_g.attrs["site_a_latitude"],

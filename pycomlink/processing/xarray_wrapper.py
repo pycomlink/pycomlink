@@ -7,11 +7,18 @@ def xarray_loop_vars_over_dim(vars_to_loop, loop_dim):
     def decorator(func):
         @wraps(func)
         def inner(*args, **kwargs):
+            # TODO: Maybe check if all args or kwargs are the same type
+            # The case with numpy array as arg
             if len(args) > 0 and isinstance(args[0], np.ndarray):
                 return func(*args, **kwargs)
+            # The case with numpy array as kwarg
             if len(kwargs.keys()) > 0 and isinstance(
                 kwargs[vars_to_loop[0]], np.ndarray
             ):
+                return func(*args, **kwargs)
+            # The dummy case where nothing is passed. This is just to get the
+            # functions error message here instead of continuing to the loop below
+            if len(args) == 0 and len(kwargs) == 0:
                 return func(*args, **kwargs)
 
             loop_dim_id_list = list(

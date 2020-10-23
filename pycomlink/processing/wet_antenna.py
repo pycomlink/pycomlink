@@ -1,7 +1,7 @@
 # coding=utf-8
 # ----------------------------------------------------------------------------
 # Name:         wet_antenna
-# Purpose:      Estimation and removal of wet antenna effects
+# Purpose:      Estimation of wet antenna effects
 #
 # Authors:      Christian Chwala
 #
@@ -26,38 +26,28 @@ from .xarray_wrapper import xarray_loop_vars_over_dim
 
 
 @jit(nopython=True)
-def _numba_waa_schleiss(rsl, baseline, waa_max, delta_t, tau, wet):
-    """Calculate wet antenna attenuation
+def _numba_waa_schleiss_2013(rsl, baseline, wet, waa_max, delta_t, tau):
+    """Fast loop using numba to calculate WAA according to Schleiss et al 2013
 
     Parameters
     ----------
-        A : float
-              Attenuation value
-        waa : float
-              Value of wet antenna attenuation at the preceding timestep
+        rsl : iterable of float
+                Time series of received signal level
+        baseline : iterable of float
+                Time series of baseline for rsl
+        wet : iterable of int or iterable of float
+               Time series with wet/dry classification information.
         waa_max : float
-               Maximum value of wet antenna attenuation
+                  Maximum value of wet antenna attenuation
         delta_t : float
-               Parameter for wet antnenna attenation model
+                  Parameter for wet antnenna attenation model
         tau : float
               Parameter for wet antnenna attenation model
-        wet : int or float
-               Wet/dry classification information.
 
     Returns
     -------
-       float
-           Value of wet antenna attenuation
-
-    Note
-    ----
-        The wet antenna adjusting is based on a peer-reviewed publication [3]_
-
-    References
-    ----------
-    .. [3] Schleiss, M., Rieckermann, J. and Berne, A.: "Quantification and
-                modeling of wet-antenna attenuation for commercial microwave
-                links", IEEE Geoscience and Remote Sensing Letters, 10, 2013
+       iterable of float
+           Time series of wet antenna attenuation
     """
 
     waa = np.zeros_like(rsl, dtype=np.float64)
@@ -73,10 +63,11 @@ def _numba_waa_schleiss(rsl, baseline, waa_max, delta_t, tau, wet):
     return waa
 
 
-@xarray_loop_vars_over_dim(vars_to_loop=['rsl', 'baseline', 'wet'], loop_dim='channel_id')
+@xarray_loop_vars_over_dim(
+    vars_to_loop=["rsl", "baseline", "wet"], loop_dim="channel_id"
+)
 def waa_schleiss_2013(rsl, baseline, wet, waa_max, delta_t, tau):
-
-    """Calculate baseline adjustion due to wet antenna
+    """Calculate WAA according to Schleiss et al 2013
 
     Parameters
     ----------
@@ -84,25 +75,32 @@ def waa_schleiss_2013(rsl, baseline, wet, waa_max, delta_t, tau):
                 Time series of received signal level
         baseline : iterable of float
                 Time series of baseline for rsl
+        wet : iterable of int or iterable of float
+               Time series with wet/dry classification information.
         waa_max : float
                   Maximum value of wet antenna attenuation
         delta_t : float
                   Parameter for wet antnenna attenation model
         tau : float
               Parameter for wet antnenna attenation model
-        wet : iterable of int or iterable of float
-               Time series with wet/dry classification information.
 
     Returns
     -------
        iterable of float
-           Adjusted time series of baseline
-       iterable of float
            Time series of wet antenna attenuation
 
+    Note
+    ----
+        The wet antenna adjusting is based on a peer-reviewed publication [1]_
+
+    References
+    ----------
+    .. [1[ Schleiss, M., Rieckermann, J. and Berne, A.: "Quantification and
+                modeling of wet-antenna attenuation for commercial microwave
+                links", IEEE Geoscience and Remote Sensing Letters, 10, 2013
     """
 
-    waa = _numba_waa_schleiss(
+    waa = _numba_waa_schleiss_2013(
         rsl=np.asarray(rsl, dtype=np.float64),
         baseline=np.asarray(baseline, dtype=np.float64),
         wet=np.asarray(wet, dtype=np.float64),
@@ -111,8 +109,7 @@ def waa_schleiss_2013(rsl, baseline, wet, waa_max, delta_t, tau):
         tau=tau,
     )
 
-    # TODO only return waa here
-    return baseline + waa
+    return waa
 
 
 def waa_leijnse_2008_from_A_obs(
@@ -128,10 +125,10 @@ def waa_leijnse_2008_from_A_obs(
     """Calculate wet antenna attenuation according to Leijnse et al. 2008
 
     Calculate the wet antenna attenuation from observed attenuation,
-    using the method proposed in [1], assuming a rain rate dependent
+    using the method proposed in [1]_, assuming a rain rate dependent
     thin flat water film on the antenna.
 
-    The equations proposed in [1] calculate the WAA from the rain rate R.
+    The equations proposed in [1]_ calculate the WAA from the rain rate R.
     With CML data the rain rates is not directly available. We need to use
     the observed attenuation to derive the WAA. This is done here by building
     a look-up-table for the relation between A_obs and WAA, where A_obs is

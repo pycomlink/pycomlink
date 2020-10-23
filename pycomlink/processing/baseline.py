@@ -11,7 +11,8 @@ from .xarray_wrapper import xarray_loop_vars_over_dim
 # Functions for setting the RSL baseline level #
 ################################################
 
-@xarray_loop_vars_over_dim(vars_to_loop=['rsl', 'wet'], loop_dim='channel_id')
+
+@xarray_loop_vars_over_dim(vars_to_loop=["rsl", "wet"], loop_dim="channel_id")
 def baseline_constant(rsl, wet):
     """
     Build baseline with constant level during a `wet` period
@@ -38,6 +39,7 @@ def baseline_constant(rsl, wet):
         np.asarray(rsl, dtype=np.float64),
         np.asarray(wet, dtype=np.float64),
     )
+
 
 @jit(nopython=True)
 def _numba_baseline_constant(rsl, wet):

@@ -13,11 +13,11 @@
 from builtins import range
 
 import numpy as np
-import pandas as pd
 import scipy.interpolate
 from numba import jit
 
 from pycomlink.processing import k_R_relation
+from .xarray_wrapper import xarray_loop_vars_over_dim
 
 
 ########################################
@@ -73,7 +73,8 @@ def _numba_waa_schleiss(rsl, baseline, waa_max, delta_t, tau, wet):
     return waa
 
 
-def waa_adjust_baseline(rsl, baseline, wet, waa_max, delta_t, tau):
+@xarray_loop_vars_over_dim(vars_to_loop=['rsl', 'baseline', 'wet'], loop_dim='channel_id')
+def waa_schleiss_2013(rsl, baseline, wet, waa_max, delta_t, tau):
 
     """Calculate baseline adjustion due to wet antenna
 
@@ -101,20 +102,16 @@ def waa_adjust_baseline(rsl, baseline, wet, waa_max, delta_t, tau):
 
     """
 
-    if type(rsl) == pd.Series:
-        rsl = rsl.values
-    if type(baseline) == pd.Series:
-        baseline = baseline.values
-    if type(wet) == pd.Series:
-        wet = wet.values
+    waa = _numba_waa_schleiss(
+        rsl=np.asarray(rsl, dtype=np.float64),
+        baseline=np.asarray(baseline, dtype=np.float64),
+        wet=np.asarray(wet, dtype=np.float64),
+        waa_max=waa_max,
+        delta_t=delta_t,
+        tau=tau,
+    )
 
-    rsl = rsl.astype(np.float64)
-    baseline = baseline.astype(np.float64)
-    wet = wet.astype(np.float64)
-
-    waa = _numba_waa_schleiss(rsl, baseline, waa_max, delta_t, tau, wet)
-
-    # return baseline + waa, waa
+    # TODO only return waa here
     return baseline + waa
 
 

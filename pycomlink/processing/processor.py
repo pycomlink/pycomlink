@@ -21,7 +21,7 @@ from pycomlink.processing.k_R_relation import (
     calc_R_from_A_min_max,
 )
 from pycomlink.processing.quality_control.simple import set_to_nan_if
-from pycomlink.processing.wet_antenna import waa_adjust_baseline
+from pycomlink.processing.wet_antenna import waa_schleiss_2013
 from pycomlink.processing.wet_dry import std_dev, stft
 
 
@@ -91,7 +91,7 @@ class Baseline(object):
         self.constant = cml_wrapper(cml, baseline_constant, ["txrx", "wet"], "baseline")
 
         self.waa_schleiss = cml_wrapper(
-            cml, waa_adjust_baseline, ["txrx", "baseline", "wet"], "baseline"
+            cml, waa_schleiss_2013, ["txrx", "baseline", "wet"], "baseline"
         )
 
         self.calc_A = cml_wrapper(cml, _calc_A, ["txrx", "baseline"], "A")

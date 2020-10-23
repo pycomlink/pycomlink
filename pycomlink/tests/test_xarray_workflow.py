@@ -22,14 +22,48 @@ def test_baseline_constant_kwarg():
         rsl=cml.trsl,
         wet=cml.wet,
     )
-    baseline_ch0 = pycml.processing.baseline.baseline_constant(
-        rsl=cml.trsl.isel(channel_id=0).values,
-        wet=cml.wet.isel(channel_id=0).values,
-    )
-    baseline_ch1 = pycml.processing.baseline.baseline_constant(
-        rsl=cml.trsl.isel(channel_id=1).values,
-        wet=cml.wet.isel(channel_id=1).values,
+
+    for channel_id in range(len(cml.channel_id)):
+        baseline_np = pycml.processing.baseline.baseline_constant(
+            rsl=cml.trsl.isel(channel_id=channel_id).values,
+            wet=cml.wet.isel(channel_id=channel_id).values,
+        )
+    np.testing.assert_almost_equal(
+        baseline_np, baseline_da.isel(channel_id=channel_id).values
     )
 
-    np.testing.assert_almost_equal(baseline_ch0, baseline_da.isel(channel_id=0).values)
-    np.testing.assert_almost_equal(baseline_ch1, baseline_da.isel(channel_id=1).values)
+
+def test_waa_schleiss_kwarg():
+    cml = init_data()
+    # first do simple wet-dry classification
+    # TODO add other methods, maybe sftf when it works with new xarray interface
+    cml["wet"] = cml.trsl.rolling(time=60, center=True).std()
+
+    # call baseline function using kwargs
+    cml["baseline"] = pycml.processing.baseline.baseline_constant(
+        rsl=cml.trsl,
+        wet=cml.wet,
+    )
+
+    waa_da = pycml.processing.wet_antenna.waa_schleiss_2013(
+        rsl=cml.trsl,
+        baseline=cml.baseline,
+        wet=cml.wet,
+        waa_max=2.3,
+        delta_t=1,
+        tau=15,
+    )
+
+    for channel_id in range(len(cml.channel_id)):
+        waa_np = pycml.processing.wet_antenna.waa_schleiss_2013(
+            rsl=cml.trsl.isel(channel_id=channel_id).values,
+            baseline=cml.baseline.isel(channel_id=channel_id).values,
+            wet=cml.wet.isel(channel_id=channel_id).values,
+            waa_max=2.3,
+            delta_t=1,
+            tau=15,
+        )
+    np.testing.assert_almost_equal(waa_np, waa_da.isel(channel_id=channel_id).values)
+
+
+# TODO Add test for using positional args

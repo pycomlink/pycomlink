@@ -22,7 +22,7 @@ from pycomlink.processing.k_R_relation import (
 )
 from pycomlink.processing.quality_control.simple import set_to_nan_if
 from pycomlink.processing.wet_antenna import waa_schleiss_2013
-from pycomlink.processing.wet_dry import std_dev, stft
+from pycomlink.processing.wet_dry import stft
 
 
 class Processor(object):
@@ -71,14 +71,6 @@ class QualityControl(object):
 
 class WetDry(object):
     def __init__(self, cml):
-        self.std_dev = cml_wrapper(
-            cml,
-            std_dev.std_dev_classification,
-            "txrx",
-            "wet",
-            returns_temp_results=True,
-        )
-
         self.stft = cml_wrapper(
             cml, stft.stft_classification, "txrx", "wet", returns_temp_results=True
         )

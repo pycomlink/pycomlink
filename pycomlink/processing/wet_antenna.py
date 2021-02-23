@@ -80,9 +80,9 @@ def waa_schleiss_2013(rsl, baseline, wet, waa_max, delta_t, tau):
         waa_max : float
                   Maximum value of wet antenna attenuation
         delta_t : float
-                  Parameter for wet antnenna attenation model
+                  Parameter for wet antenna attention model
         tau : float
-              Parameter for wet antnenna attenation model
+              Parameter for wet antenna attenuation model
 
     Returns
     -------

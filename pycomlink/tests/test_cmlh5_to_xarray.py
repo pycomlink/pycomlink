@@ -74,3 +74,18 @@ class Testcmlh5tonetcdf(unittest.TestCase):
             ),
             cml_xr_file[52].isel(channel_id=1).time.values[1100:1106],
         )
+
+        np.testing.assert_array_equal(
+            np.array(
+                [51.0909, 51.1271, 50.8026, 50.738299999999995]
+            ),
+            np.array(
+                [
+                    cml_xr_file[12].site_a_longitude.values,
+                    cml_xr_file[12].site_b_longitude.values,
+                    cml_xr_file[12].site_a_latitude.values,
+                    cml_xr_file[12].site_b_latitude.values,
+                ],
+            )
+        )
+

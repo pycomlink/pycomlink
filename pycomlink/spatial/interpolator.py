@@ -59,8 +59,6 @@ class PointsToGridInterpolator(with_metaclass(abc.ABCMeta, object)):
             zi = self._interpol_func(
                 x=x, y=y, z=z, xi=self.xgrid.ravel(), yi=self.ygrid.ravel()
             )
-
-            self.x, self.y, self.z = x, y, z
             self.zgrid = np.reshape(zi, self.xgrid.shape)
 
         return self.zgrid
@@ -96,9 +94,10 @@ class IdwKdtreeInterpolator(PointsToGridInterpolator):
         self.z = z
 
         if np.array_equal(x, self.x) and np.array_equal(y, self.y):
-            # print 'Reusing old `Invdisttree`'
+            #print('Reusing old `Invdisttree`')
             idw = self.idw
         else:
+            #print('Building new `Invdistree`')
             idw = Invdisttree(X=list(zip(x, y)))
             self.idw = idw
             self.x = x

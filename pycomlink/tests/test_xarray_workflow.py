@@ -19,13 +19,13 @@ def test_baseline_constant_kwarg():
 
     # call baseline function using kwargs
     baseline_da = pycml.processing.baseline.baseline_constant(
-        rsl=cml.trsl,
+        trsl=cml.trsl,
         wet=cml.wet,
     )
 
     for channel_id in range(len(cml.channel_id)):
         baseline_np = pycml.processing.baseline.baseline_constant(
-            rsl=cml.trsl.isel(channel_id=channel_id).values,
+            trsl=cml.trsl.isel(channel_id=channel_id).values,
             wet=cml.wet.isel(channel_id=channel_id).values,
         )
     np.testing.assert_almost_equal(
@@ -41,7 +41,7 @@ def test_waa_schleiss_kwarg():
 
     # call baseline function using kwargs
     cml["baseline"] = pycml.processing.baseline.baseline_constant(
-        rsl=cml.trsl,
+        trsl=cml.trsl,
         wet=cml.wet,
     )
 

@@ -17,8 +17,7 @@ from builtins import range
 import numpy as np
 from matplotlib import mlab
 from matplotlib.mlab import specgram as specg
-
-from pycomlink.processing.wet_dry.std_dev import rolling_std_dev
+import pandas as pd
 
 
 def stft_classification(
@@ -217,10 +216,7 @@ def find_lowest_std_dev_period(rsl, window_length=600):
 
     """
 
-    # pad_only_left was added to be backwards compatible with the
-    # old rolling_std_dev function which only padded with NaN on the
-    # left side of the time series. Now symmetric padding is default!!!
-    roll_std_dev = rolling_std_dev(rsl, window_length, pad_only_left=True)
+    roll_std_dev = pd.DataFrame(rsl).rolling(window_length).std()
     dry_stop = mlab.find(roll_std_dev == np.nanmin(roll_std_dev))
     dry_stop = dry_stop[0]
     dry_start = dry_stop - window_length

@@ -1,13 +1,15 @@
 from __future__ import division
 import numpy as np
 
+from .xarray_wrapper import xarray_loop_vars_over_dim
+
 
 ############################################
-# Functions for A-R power law calculatoins #
+# Functions for k-R power law calculations #
 ############################################
 
-
-def calc_R_from_A(A, L, f_GHz=None, a=None, b=None, pol="H", R_min=0.1):
+@xarray_loop_vars_over_dim(vars_to_loop=["A", "f_GHz"], loop_dim="channel_id")
+def calc_R_from_A(A, L_km, f_GHz=None, a=None, b=None, pol="H", R_min=0.1):
     """Calculate rain rate from attenuation using the A-R Relationship
 
     Parameters
@@ -15,14 +17,16 @@ def calc_R_from_A(A, L, f_GHz=None, a=None, b=None, pol="H", R_min=0.1):
     A : float or iterable of float
         Attenuation of microwave signal
     f_GHz : float, optional
-        Frequency in GHz
+        Frequency in GHz. If provided together with `pol`, it will be used to
+        derive the parameters a and b for the k-R power law.
     pol : string
-        Polarization, default is 'H'
+        Polarization, default is 'H'. If provided together with `f_GHz`, it
+        will be used to derive the parameters a and b for the k-R power law.
     a : float, optional
         Parameter of A-R relationship
     b : float, optional
         Parameter of A-R relationship
-    L : float
+    L_km : float
         length of the link
     R_min : float
         Minimal rain rate in mm/h. Everything below will be set to zero.
@@ -49,7 +53,7 @@ def calc_R_from_A(A, L, f_GHz=None, a=None, b=None, pol="H", R_min=0.1):
 
     # This ignores the numpy warning stemming from A >=0 where A contains NaNs
     with np.errstate(invalid="ignore"):
-        R[~nan_index & (A >= 0)] = (A[~nan_index & (A >= 0)] / (a * L)) ** (1 / b)
+        R[~nan_index & (A >= 0)] = (A[~nan_index & (A >= 0)] / (a * L_km)) ** (1 / b)
         R[~nan_index & (R < R_min)] = 0
     return R
 

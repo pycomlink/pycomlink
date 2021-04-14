@@ -11,3 +11,5 @@ pyproj
 tqdm
 pykrige
 future
+tensorflow
+tensorflow-gpu

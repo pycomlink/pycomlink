@@ -4,25 +4,35 @@ import pandas as pd
 
 from numba import jit
 
+from .xarray_wrapper import xarray_loop_vars_over_dim
+
+
 ################################################
 # Functions for setting the RSL baseline level #
 ################################################
 
 
-def baseline_constant(rsl, wet):
+@xarray_loop_vars_over_dim(vars_to_loop=["trsl", "wet"], loop_dim="channel_id")
+def baseline_constant(trsl, wet, n_average_last_dry=1):
     """
     Build baseline with constant level during a `wet` period
 
     Parameters
     ----------
-    rsl : numpy.array or pandas.Series
-          Received signal level or transmitted signal level minus received
-          signal level
+    trsl : numpy.array or pandas.Series
+        Transmitted signal level minus received signal level (TRSL) or
+        received signal level or t
     wet : numpy.array or pandas.Series
-          Information if classified index of times series is wet (True)
-          or dry (False). Note that `NaN`s in `wet` will lead to `NaN`s in
-          `baseline` also after the `NaN` period since it is then not clear
-          wheter there was a change of wet/dry within the `NaN` period.
+        Information if classified index of times series is wet (True)
+        or dry (False). Note that `NaN`s in `wet` will lead to `NaN`s in
+        `baseline` also after the `NaN` period since it is then not clear
+        whether or not there was a change of wet/dry within the `NaN` period.
+    n_average_last_dry: int, default = 1
+        Number of last baseline values before start of wet event that should
+        be averaged to get the value of the baseline during the wet event.
+        Note that this values should not be too large because the baseline
+        might be at an expected level, e.g. if another wet event is
+        ending shortly before.
 
     Returns
     -------
@@ -31,28 +41,26 @@ def baseline_constant(rsl, wet):
 
     """
 
-    if type(rsl) == pd.Series:
-        rsl = rsl.values
-    if type(wet) == pd.Series:
-        wet = wet.values
-
-    rsl = rsl.astype(np.float64)
-    wet = wet.astype(np.float64)
-
-    return _numba_baseline_constant(rsl, wet)
+    return _numba_baseline_constant(
+        trsl=np.asarray(trsl, dtype=np.float64),
+        wet=np.asarray(wet, dtype=np.bool),
+        n_average_last_dry=n_average_last_dry,
+    )
 
 
 @jit(nopython=True)
-def _numba_baseline_constant(rsl, wet):
-    baseline = np.zeros_like(rsl, dtype=np.float64)
-    baseline[0] = rsl[0]
-    for i in range(1, len(rsl)):
+def _numba_baseline_constant(trsl, wet, n_average_last_dry):
+    baseline = np.zeros_like(trsl, dtype=np.float64)
+    baseline[0:n_average_last_dry] = trsl[0:n_average_last_dry]
+    for i in range(n_average_last_dry, len(trsl)):
         if np.isnan(wet[i]):
             baseline[i] = np.NaN
-        elif wet[i]:
+        elif wet[i] & ~wet[i-1]:
+            baseline[i] = np.mean(baseline[(i-n_average_last_dry) : i])
+        elif wet[i] & wet[i-1]:
             baseline[i] = baseline[i - 1]
         else:
-            baseline[i] = rsl[i]
+            baseline[i] = trsl[i]
     return baseline
 
 

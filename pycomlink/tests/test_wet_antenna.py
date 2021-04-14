@@ -1,7 +1,42 @@
 import unittest
+
 import numpy as np
 from numpy.testing import assert_almost_equal
-from pycomlink.processing.wet_antenna import wet_antenna
+
+from pycomlink.processing import wet_antenna
+
+
+class TestWaaSchleiss2013(unittest.TestCase):
+    def test_with_synthetic_data(self):
+        trsl = np.array(
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+            + [3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
+            + [3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
+            + [3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
+            + [0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8]
+            + [0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8]
+            + [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        )
+        wet = trsl > 1
+        baseline = np.zeros_like(trsl)
+
+        # Test one set of parameters
+        waa = wet_antenna.waa_schleiss_2013(
+            rsl=trsl, baseline=baseline, wet=wet, waa_max=1.5, delta_t=1, tau=15
+        )
+        assert_almost_equal(
+            waa[[5, 15, 30, 40, 50, 65]],
+            np.array([0.0, 1.106784, 1.48616494, 0.8, 0.8, 0.0]),
+        )
+
+        # Test another set of parameters
+        waa = wet_antenna.waa_schleiss_2013(
+            rsl=trsl, baseline=baseline, wet=wet, waa_max=1.8, delta_t=5, tau=30
+        )
+        assert_almost_equal(
+            waa[[5, 15, 30, 40, 50, 65]],
+            np.array([0.0, 1.771875, 1.79999914, 0.8, 0.8, 0.0]),
+        )
 
 
 class TestWaaLeijnse2008(unittest.TestCase):

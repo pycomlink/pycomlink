@@ -2,32 +2,20 @@ language: python
 sudo: false
 matrix:
     include:
-    - python: "2.7"
+    - python: "3.7"
       env: DEPS="numpy
                  scipy
                  pandas>=0.22
                  matplotlib
                  numba
                  folium
-                 h5py
+                 h5py==2.10.0
                  xarray
                  shapely
                  pyproj
                  tqdm
-                 pykrige"
-    - python: "3.6"
-      env: DEPS="numpy
-                 scipy
-                 pandas>=0.22
-                 matplotlib
-                 numba
-                 folium
-                 h5py
-                 xarray
-                 shapely
-                 pyproj
-                 tqdm
-                 pykrige"
+                 pykrige
+                 tensorflow==1.14"
 
 # setup adapted from https://github.com/bsmurphy/PyKrige/blob/master/.travis.yml
 before_install:

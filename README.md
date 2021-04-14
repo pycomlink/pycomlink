@@ -1,7 +1,10 @@
 [![Build Status](https://travis-ci.org/pycomlink/pycomlink.svg?branch=master)](https://travis-ci.org/pycomlink/pycomlink)
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/pycomlink/pycomlink/v0.3alpha)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/pycomlink/pycomlink/master)
 
-**INFO: THIS IS A WIP BRANCH, DO NOT USE**
+**INFO: THIS REPOSITORY IS CURRENTLY IN A WIP STATE, DO NOT USE**
+
+**The last consistent version of `pycomlink` is [v0.2.5](https://github.com/pycomlink/pycomlink/tree/0.2.5) which can also be installed via pip and conda (see below)**
+
 
 pycomlink
 =========

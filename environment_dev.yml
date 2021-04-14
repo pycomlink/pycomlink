@@ -1,0 +1,20 @@
+name: pycomlink-dev
+channels:
+  - conda-forge
+dependencies:
+ - numpy
+ - scipy
+ - pandas>=0.22
+ - matplotlib
+ - numba
+ - folium
+ - h5py==2.10.0
+ - xarray
+ - shapely
+ - pyproj
+ - tqdm
+ - pykrige
+ - tensorflow==1.14
+ - keras
+ - future
+

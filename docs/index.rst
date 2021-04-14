@@ -1,24 +1,22 @@
 .. pycomlink documentation master file, created by
-   sphinx-quickstart on Thu Mar  9 20:55:44 2017.
+   sphinx-quickstart on Wed Apr 14 15:12:18 2021.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
 Welcome to pycomlink's documentation!
 =====================================
 
-Contents:
+A Python library to process commercial microwave link data.
+
+Usage
+-----
+
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 4
+   :caption: Contents:
 
-   reference
-
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
+   installation
+   README <readme_link>
+   api
+   What's new <whats-new>

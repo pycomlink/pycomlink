@@ -17,4 +17,5 @@ dependencies:
  - tensorflow==1.14
  - keras
  - future
-
+ - jupyterlab
+ - notebook

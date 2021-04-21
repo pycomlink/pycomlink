@@ -1,4 +1,4 @@
-pycomlink.tests package
+pycomlink.tests
 =======================
 
 Submodules

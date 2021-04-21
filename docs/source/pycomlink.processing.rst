@@ -1,4 +1,4 @@
-pycomlink.processing package
+pycomlink.processing
 ============================
 
 Subpackages

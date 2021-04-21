@@ -18,5 +18,5 @@ Usage
 
    installation
    README <readme_link>
-   source.modules
+   API <source/pycomlink>
    What's new <whats-new>

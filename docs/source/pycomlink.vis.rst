@@ -1,4 +1,4 @@
-pycomlink.vis package
+pycomlink.vis
 =====================
 
 Submodules

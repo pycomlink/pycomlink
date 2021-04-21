@@ -1,4 +1,4 @@
-pycomlink.validation package
+pycomlink.validation
 ============================
 
 Submodules

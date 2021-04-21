@@ -1,4 +1,4 @@
-pycomlink.io package
+pycomlink.io
 ====================
 
 Submodules

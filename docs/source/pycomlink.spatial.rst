@@ -1,4 +1,4 @@
-pycomlink.spatial
+pycomlink.spatial package
 =========================
 
 Submodules

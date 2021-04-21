@@ -1,4 +1,4 @@
-pycomlink.processing.wet\_dry
+pycomlink.processing.wet\_dry package
 =====================================
 
 Submodules

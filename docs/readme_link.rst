@@ -1,5 +1,4 @@
------------
-Readme File
------------
+Readme
+===========
 
-.. mdinclude:: ../../README.md
+.. mdinclude:: ../README.md

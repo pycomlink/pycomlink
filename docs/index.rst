@@ -13,10 +13,9 @@ Usage
 
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 2
    :caption: Contents:
 
-   installation
    README <readme_link>
    API <source/pycomlink>
    What's new <whats-new>

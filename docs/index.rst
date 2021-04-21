@@ -18,5 +18,5 @@ Usage
 
    installation
    README <readme_link>
-   api
+   source.modules
    What's new <whats-new>

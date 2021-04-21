@@ -83,8 +83,9 @@ def cnn_wet_dry(
     References
     ----------
     .. [1] Polz, J., Chwala, C., Graf, M., and Kunstmann, H.: Rain event detection in commercial microwave link
-    attenuation data using convolutional neural networks, Atmos. Meas. Tech., 13, 3835–3853,
-    https://doi.org/10.5194/amt-13-3835-2020, 2020.
+      attenuation data using convolutional neural networks, Atmos. Meas. Tech., 13, 3835–3853,
+      https://doi.org/10.5194/amt-13-3835-2020, 2020.
+
     """
 
     #################

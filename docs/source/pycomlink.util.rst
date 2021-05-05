@@ -1,10 +1,8 @@
-pycomlink.util package
-======================
+**********************
+Util
+**********************
 
-Submodules
-----------
-
-pycomlink.util.maintenance module
+maintenance
 ---------------------------------
 
 .. automodule:: pycomlink.util.maintenance
@@ -12,18 +10,10 @@ pycomlink.util.maintenance module
    :undoc-members:
    :show-inheritance:
 
-pycomlink.util.temporal module
+temporal
 ------------------------------
 
 .. automodule:: pycomlink.util.temporal
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Module contents
----------------
-
-.. automodule:: pycomlink.util
    :members:
    :undoc-members:
    :show-inheritance:

@@ -1,18 +1,12 @@
-pycomlink.processing package
+Processing
 ============================
-
-Subpackages
------------
 
 .. toctree::
    :maxdepth: 4
 
-   pycomlink.processing.wet_dry
+   wet_dry <pycomlink.processing.wet_dry>
 
-Submodules
-----------
-
-pycomlink.processing.baseline module
+baseline
 ------------------------------------
 
 .. automodule:: pycomlink.processing.baseline
@@ -20,7 +14,7 @@ pycomlink.processing.baseline module
    :undoc-members:
    :show-inheritance:
 
-pycomlink.processing.k\_R\_relation module
+k\_R\_relation
 ------------------------------------------
 
 .. automodule:: pycomlink.processing.k_R_relation
@@ -28,7 +22,7 @@ pycomlink.processing.k\_R\_relation module
    :undoc-members:
    :show-inheritance:
 
-pycomlink.processing.min\_max module
+min\_max
 ------------------------------------
 
 .. automodule:: pycomlink.processing.min_max
@@ -36,7 +30,7 @@ pycomlink.processing.min\_max module
    :undoc-members:
    :show-inheritance:
 
-pycomlink.processing.wet\_antenna module
+wet\_antenna
 ----------------------------------------
 
 .. automodule:: pycomlink.processing.wet_antenna
@@ -44,18 +38,10 @@ pycomlink.processing.wet\_antenna module
    :undoc-members:
    :show-inheritance:
 
-pycomlink.processing.xarray\_wrapper module
+xarray\_wrapper
 -------------------------------------------
 
 .. automodule:: pycomlink.processing.xarray_wrapper
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Module contents
----------------
-
-.. automodule:: pycomlink.processing
    :members:
    :undoc-members:
    :show-inheritance:

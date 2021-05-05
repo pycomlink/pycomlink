@@ -8,14 +8,30 @@ Welcome to pycomlink's documentation!
 
 A Python library to process commercial microwave link data.
 
+.. mdinclude:: ../README.md
+
 Usage
 -----
 
+.. ifconfig:: internal
+  .. toctree::
+     :maxdepth: 1
+     :hidden:
+     :caption: Getting Started
+
+     README <readme_link>
+
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+   :maxdepth: 1
+   :hidden:
+   :caption: User Guide
 
-   README <readme_link>
    API <source/pycomlink>
+
+.. toctree::
+  :maxdepth: 1
+  :hidden:
+  :caption: Help & reference
+
    What's new <whats-new>

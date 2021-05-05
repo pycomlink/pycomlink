@@ -62,6 +62,7 @@ def calc_R_from_A_min_max(
     Ar_max, L, f_GHz=None, a=None, b=None, pol="H", R_min=0.1, k=90
 ):
     """Calculate rain rate from attenuation using the A-R Relationship
+
     Parameters
     ----------
     Ar_max : float or iterable of float
@@ -80,10 +81,12 @@ def calc_R_from_A_min_max(
         Minimal rain rate in mm/h. Everything below will be set to zero.
     k : int, optional
         number of measurements between two consecutive measurement of rx/tx
+
     Returns
     -------
     float or iterable of float
         Rain rate
+        
     Note
     ----
     Based on: "Empirical Study of the Quantization Bias Effects in

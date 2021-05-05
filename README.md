@@ -1,15 +1,10 @@
 [![Build Status](https://travis-ci.org/pycomlink/pycomlink.svg?branch=master)](https://travis-ci.org/pycomlink/pycomlink)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/pycomlink/pycomlink/master)
 
-**INFO: THIS REPOSITORY IS CURRENTLY IN A WIP STATE, DO NOT USE**
-
-**The last consistent version of `pycomlink` is [v0.2.5](https://github.com/pycomlink/pycomlink/tree/0.2.5) which can also be installed via pip and conda (see below)**
-
-
 pycomlink
 =========
 
-A python toolbox for deriving rainfall information from commerical microwave link (CML) data.
+A python toolbox for deriving rainfall information from commercial microwave link (CML) data.
 
 Installation
 ------------
@@ -29,19 +24,25 @@ If you install via `pip`, there might be problems with some dependencies, though
 To run the example notebooks you will also need the [Jupyter Notebook](https://jupyter.org/)
 and `ipython`, both also available via `conda` or `pip`.
 
+If you want to clone the repository for developing purposes follow these steps (installation of Jupyter Notebook included):
+
+    $ cd WORKING_DIRECTORY
+    $ git clone https://github.com/pycomlink/pycomlink.git
+    $ conda env create --name ENV_NAME -file=environment_dev.yml
+    $ conda activate ENV_NAME
+    $ pip install -e WORKING_DIRECTORY/pycomlink
+
 Usage
 -----
 
 The following jupyter notebooks showcase some use cases of `pycomlink`
 
- * [How to do baseline determination](http://nbviewer.jupyter.org/github/pycomlink/pycomlink/blob/master/notebooks/Baseline%20determination.ipynb)
- * [How to do spatial interpolation of CML rainfall](http://nbviewer.jupyter.org/github/pycomlink/pycomlink/blob/master/notebooks/Spatial%20interpolation.ipynb)
- * [How to get started with your CML data from a CSV file](http://nbviewer.jupyter.org/github/pycomlink/pycomlink/blob/master/notebooks/Use%20CML%20data%20from%20CSV%20file.ipynb)
+ * [Basic example CML processing workflow](http://nbviewer.jupyter.org/github/pycomlink/pycomlink/blob/master/notebooks/Basic%20CML%20processing%20workflow.ipynb)
+ * more to come... (see some [notebooks with old outdated pycomlink API](https://github.com/pycomlink/pycomlink/tree/master/notebooks/outdated_notebooks))
 
 Features
 --------
- * Read and write the [common data format `cmlh5` for CML data](https://github.com/cmlh5/cmlh5)
- * Quickly visualize the CML network on a dynamic map
+
  * Perform all required CML data processing steps to derive rainfall information from raw signal levels:
     * data sanity checks
     * wet/dry classification

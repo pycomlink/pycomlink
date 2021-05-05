@@ -47,6 +47,7 @@ setup(
         'folium',
         'h5py',
         'xarray',
+        'netcdf4',
         'shapely',
         'pyproj',
         'tqdm',

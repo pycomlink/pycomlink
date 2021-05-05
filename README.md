@@ -9,7 +9,7 @@ A python toolbox for deriving rainfall information from commercial microwave lin
 Installation
 ------------
 
-`pycomlink` works with Python 2.7, Python 3.6 and Python 3.7. It can be installed via [`conda-forge`](https://conda-forge.org/):
+`pycomlink` works with Python 3.6 and newer. It might still work with Python 2.7, but this is not tested. It can be installed via [`conda-forge`](https://conda-forge.org/):
 
     $ conda install -c conda-forge pycomlink
 
@@ -19,7 +19,7 @@ Installation via `pip` is also possible:
 
     $ pip install pycomlink
 
-If you install via `pip`, there might be problems with some dependencies, though. Currently the dependency `pykrige` only installs if `scipy`, `numpy` and `matplotlib` have been installed before.
+If you install via `pip`, there might be problems with some dependencies, though. E.g. the dependency `pykrige` may only install if `scipy`, `numpy` and `matplotlib` have been installed before.
 
 To run the example notebooks you will also need the [Jupyter Notebook](https://jupyter.org/)
 and `ipython`, both also available via `conda` or `pip`.

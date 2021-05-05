@@ -1,6 +1,36 @@
 What's New
 ==========
 
+v0.3.0
+------
+
+Backward Incompatible Changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* The old API using `pycomlink.core.Comlink` objects has been removed. All processing
+  functions now work with `xarray.DataArrays` or pure `numpy.ndarray`. Most of the
+  original functions and notebooks from v0.2.x do not work anymore, but the basic parts
+  have already been refactored so that the full processing chain, from raw CML data
+  to rainfall fields works in v0.3.0.
+
+Enhancements
+~~~~~~~~~~~~
+
+* Added new example notebook for basic processing workflow (by cchwala in PR #77)
+
+* Added new example data (by maxmargraf in PR #75)
+
+* started docs from scratch with working integration to readthedocs (by jpolz in PR #74)
+
+* read data from cmlh5 files to `xarray.Dataset` (by maxmargraf in PR #68)
+
+* Added functions to perform wet-dry classification with trained CNN (by jpolz in PR #67)
+
+* applied black formatting to codebase (by nblettner in PR #66)
+
+* make repo runnable via mybinder (by jpolz in PR #64)
+
+
 v0.2.4
 ------
 

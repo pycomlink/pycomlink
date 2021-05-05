@@ -1,24 +1,12 @@
-pycomlink package
-=================
-
-Subpackages
------------
+pycomlink
+=========
 
 .. toctree::
    :maxdepth: 4
 
-   pycomlink.io
-   pycomlink.processing
-   pycomlink.spatial
-   pycomlink.tests
-   pycomlink.util
-   pycomlink.validation
-   pycomlink.vis
-
-Module contents
----------------
-
-.. automodule:: pycomlink
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   IO <pycomlink.io>
+   Processing <pycomlink.processing>
+   Spatial <pycomlink.spatial>
+   Util <pycomlink.util>
+   Validation <pycomlink.validation>
+   Visualisation <pycomlink.vis>

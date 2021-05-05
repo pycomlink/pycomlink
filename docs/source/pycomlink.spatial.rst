@@ -1,10 +1,7 @@
-pycomlink.spatial package
+Spatial
 =========================
 
-Submodules
-----------
-
-pycomlink.spatial.coverage module
+coverage
 ---------------------------------
 
 .. automodule:: pycomlink.spatial.coverage
@@ -12,7 +9,7 @@ pycomlink.spatial.coverage module
    :undoc-members:
    :show-inheritance:
 
-pycomlink.spatial.helper module
+helper
 -------------------------------
 
 .. automodule:: pycomlink.spatial.helper
@@ -20,7 +17,7 @@ pycomlink.spatial.helper module
    :undoc-members:
    :show-inheritance:
 
-pycomlink.spatial.idw module
+idw
 ----------------------------
 
 .. automodule:: pycomlink.spatial.idw
@@ -28,18 +25,10 @@ pycomlink.spatial.idw module
    :undoc-members:
    :show-inheritance:
 
-pycomlink.spatial.interpolator module
+interpolator
 -------------------------------------
 
 .. automodule:: pycomlink.spatial.interpolator
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Module contents
----------------
-
-.. automodule:: pycomlink.spatial
    :members:
    :undoc-members:
    :show-inheritance:

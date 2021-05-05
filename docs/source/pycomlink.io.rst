@@ -1,37 +1,29 @@
-pycomlink.io package
+<<<<<<< HEAD
+IO
 ====================
 
-Submodules
-----------
-
-pycomlink.io.cmlh5\_to\_xarray module
--------------------------------------
+cmlh5\_to\_xarray
+-----------------
 
 .. automodule:: pycomlink.io.cmlh5_to_xarray
    :members:
    :undoc-members:
    :show-inheritance:
 
-pycomlink.io.csv module
------------------------
+csv
+---
 
 .. automodule:: pycomlink.io.csv
    :members:
    :undoc-members:
    :show-inheritance:
 
-pycomlink.io.examples module
-----------------------------
+.. ifconfig:: internal
 
-.. automodule:: pycomlink.io.examples
-   :members:
-   :undoc-members:
-   :show-inheritance:
+  examples
+  ----------------------------
 
-Module contents
----------------
-
-.. automodule:: pycomlink.io
-   :members:
-   :undoc-members:
-   :show-inheritance:
+  .. automodule:: pycomlink.io.examples
+     :members:
+     :undoc-members:
+     :show-inheritance:

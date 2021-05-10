@@ -3,19 +3,6 @@ sudo: false
 matrix:
     include:
     - python: "3.7"
-      env: DEPS="numpy
-                 scipy
-                 pandas>=0.22
-                 matplotlib
-                 numba
-                 folium
-                 h5py==2.10.0
-                 xarray
-                 shapely
-                 pyproj
-                 tqdm
-                 pykrige
-                 tensorflow==1.14"
 
 # setup adapted from https://github.com/bsmurphy/PyKrige/blob/master/.travis.yml
 before_install:
@@ -30,7 +17,8 @@ before_install:
 install:
     - conda create -q -n pycomlink-env python=${TRAVIS_PYTHON_VERSION} --yes
     - source activate pycomlink-env
-    - conda install --yes $DEPS pip
+    - conda install -f requirements.txt
+    - conda install --yes pip
     - conda install -c conda-forge --yes codecov
     #- pip install coveralls
     - pip install pytest pytest-cov

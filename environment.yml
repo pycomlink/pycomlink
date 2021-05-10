@@ -7,18 +7,15 @@ dependencies:
  - pandas>=0.22
  - matplotlib
  - numba
- - folium
- - h5py==2.10.0
+ - h5py
  - xarray
  - netcdf4
  - shapely
  - pyproj
  - tqdm
  - pykrige
- - tensorflow==1.14
- - keras
+ - tensorflow
  - future
- - pytest
  - pip
  - pip:
    - git+https://github.com/pycomlink/pycomlink.git#egg=pycomlink

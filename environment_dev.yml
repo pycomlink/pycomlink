@@ -15,7 +15,6 @@ dependencies:
  - tqdm
  - pykrige
  - tensorflow
- - keras
  - future
  - jupyterlab
  - notebook

@@ -56,7 +56,7 @@ def xarray_loop_vars_over_dim(vars_to_loop, loop_dim):
                     for var in vars_to_loop:
                         kwargs[var] = kwargs_vars_to_loop[var].sel(
                             {loop_dim: loop_dim_id}
-                        )
+                        ).values
                     data_list.append(func(**kwargs))
                 return xr.DataArray(
                     data=np.stack(data_list),

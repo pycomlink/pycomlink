@@ -31,6 +31,7 @@ install:
 
 # command to run tests
 script:
+    - export NUMBA_DISABLE_JIT=1
     - py.test --cov
 
 after_success:

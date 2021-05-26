@@ -2,6 +2,19 @@
 What's New
 **********************
 
+v0.3.2
+------
+
+* minor fix to include example NetCDF data in source distribution (by cchwala in PR #84)
+
+
+v0.3.1
+------
+
+* small update to how the dependencies are defined
+* testing for Python verions 3.7, 3.8 and 3.9
+
+
 v0.3.0
 ------
 

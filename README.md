@@ -1,5 +1,8 @@
 [![Build Status](https://travis-ci.org/pycomlink/pycomlink.svg?branch=master)](https://travis-ci.org/pycomlink/pycomlink)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/pycomlink/pycomlink/master)
+[![Documentation Status](https://readthedocs.org/projects/pycomlink/badge/?version=latest)](https://pycomlink.readthedocs.io/en/latest/)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4810169.svg)](https://doi.org/10.5281/zenodo.4810169)
+
 
 pycomlink
 =========
@@ -51,3 +54,7 @@ Features
     * transformation from attenuation to rain rate
  * Generate rainfall maps from the data of a CML network
  * Validate you results against gridded rainfall data or rain gauges networks
+ 
+ Documentation
+--------
+The documentation is hosted by readthedocs.org: [https://pycomlink.readthedocs.io/en/latest/](https://pycomlink.readthedocs.io/en/latest/)

@@ -91,6 +91,12 @@ class TestWaaLeijnse2008FromAobs(unittest.TestCase):
         )
         assert_almost_equal(expected, result)
 
+    def test_error_with_negative_R(self):
+        with self.assertRaises(ValueError) as cm:
+            wet_antenna.waa_leijnse_2008_from_A_obs(
+                A_obs=np.array([0, 2, -1]), L_km=10, f_Hz=23e9
+            )
+
 
 class TestEpswater(unittest.TestCase):
     def test_with_f_array(self):

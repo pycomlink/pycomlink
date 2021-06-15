@@ -169,6 +169,9 @@ def waa_leijnse_2008_from_A_obs(
 
     """
 
+    if np.any(A_obs < 0):
+        raise ValueError('Negative values for `A_obs` are not allowed')
+
     # Make sure that L_km is not an array or xarray.Dataarray with a size greater
     # than 1, i.e. it has to be a single scalar values. This is required so that
     # the xarray wrapper does not fail.

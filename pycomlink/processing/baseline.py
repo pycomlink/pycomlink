@@ -71,18 +71,22 @@ def baseline_linear(rsl, wet, ignore_nan=False):
     Parameters
     ----------
     rsl : numpy.array or pandas.Series
-          Received signal level or transmitted signal level minus received
+        Received signal level or transmitted signal level minus received
           signal level
     wet : numpy.array or pandas.Series
-          Information if classified index of times series is wet (True)
-          or dry (False). Note that `NaN`s in `wet` will lead to `NaN`s in
-          `baseline` also after the `NaN` period since it is then not clear
-          wheter there was a change of wet/dry within the `NaN` period.
+        Information if classified index of times series is wet (True)
+        or dry (False). Note that `NaN`s in `wet` will lead to `NaN`s in
+        `baseline` also after the `NaN` period since it is then not clear
+        wheter there was a change of wet/dry within the `NaN` period.
+    ignore_nan : bool
+        If set to True the last wet/dry state before a NaN will be used for deriving
+        the baseline. If set to False, the baseline for any wet period which contains
+        a NaN will be set to NaN for the duration of the wet period. Default is False.
 
     Returns
     -------
     baseline : numpy.array
-          Baseline during wet period
+        Baseline during wet period
 
     """
 

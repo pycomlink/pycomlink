@@ -111,7 +111,7 @@ def waa_schleiss_2013(rsl, baseline, wet, waa_max, delta_t, tau):
 
     return waa
 
-
+@xarray_loop_vars_over_dim(vars_to_loop=["A_obs", "f_Hz"], loop_dim="channel_id")
 def waa_leijnse_2008_from_A_obs(
     A_obs,
     f_Hz,
@@ -169,11 +169,19 @@ def waa_leijnse_2008_from_A_obs(
 
     """
 
+    if np.any(A_obs < 0):
+        raise ValueError('Negative values for `A_obs` are not allowed')
+
+    # Make sure that L_km is not an array or xarray.Dataarray with a size greater
+    # than 1, i.e. it has to be a single scalar values. This is required so that
+    # the xarray wrapper does not fail.
+    L_km = float(L_km)
+
     # Generate mapping from A_obs to WAA
     A_rain = np.logspace(-10, 3, 100)
     A_rain[0] = 0
 
-    R = k_R_relation.calc_R_from_A(A_rain, L_km=L_km, f_GHz=f_Hz / 1e9, R_min=0)
+    R = k_R_relation.calc_R_from_A(A=A_rain, L_km=L_km, f_GHz=f_Hz / 1e9, R_min=0)
     waa = waa_leijnse_2008(
         f_Hz=f_Hz,
         R=R,

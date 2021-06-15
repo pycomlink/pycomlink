@@ -2,6 +2,13 @@
 What's New
 **********************
 
+v0.3.x
+------
+
+* Added xarray-wrapper for WAA Leijnse and updated WAA example notebook (by cchwala
+  in PR #82)
+
+
 v0.3.2
 ------
 

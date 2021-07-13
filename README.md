@@ -48,6 +48,7 @@ Features
 
  * Perform all required CML data processing steps to derive rainfall information from raw signal levels:
     * data sanity checks
+    * anomaly detection
     * wet/dry classification
     * baseline calculation
     * wet antenna correction

@@ -104,4 +104,21 @@ def test_waa_leijnse_kwarg():
         np.testing.assert_almost_equal(waa_np, waa_da.isel(channel_id=channel_id).values)
 
 
+def test_calc_R_from_A():
+    cml = init_data()
+    cml["wet"] = cml.trsl.rolling(time=60, center=True).std()
+
+    # call baseline function using kwargs
+    cml["baseline"] = pycml.processing.baseline.baseline_constant(
+        trsl=cml.trsl,
+        wet=cml.wet,
+    )
+
+    cml['A'] = cml.trsl - cml.baseline
+    cml['A'] = cml.A.where((cml.A.isnull().values | (cml.A.values >= 0)), 0)
+
+    cml['R'] = pycml.processing.k_R_relation.calc_R_from_A(
+        A=cml.A, L_km=cml.length, f_GHz=cml.frequency,
+    )
+
 # TODO Add test for using positional args

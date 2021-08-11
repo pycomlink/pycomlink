@@ -118,7 +118,15 @@ def test_calc_R_from_A():
     cml['A'] = cml.A.where((cml.A.isnull().values | (cml.A.values >= 0)), 0)
 
     cml['R'] = pycml.processing.k_R_relation.calc_R_from_A(
-        A=cml.A, L_km=cml.length, f_GHz=cml.frequency,
+        A=cml.A, L_km=cml.length, f_GHz=cml.frequency
     )
+
+    for channel_id in range(len(cml.channel_id)):
+        R_np = pycml.processing.k_R_relation.calc_R_from_A(
+            A=cml.isel(channel_id=channel_id).A.values,
+            L_km=cml.isel(channel_id=channel_id).length.values,
+            f_GHz=cml.isel(channel_id=channel_id).frequency,
+        )
+        np.testing.assert_almost_equal(R_np, cml.R.isel(channel_id=channel_id).values)
 
 # TODO Add test for using positional args

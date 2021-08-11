@@ -17,7 +17,7 @@ import scipy.interpolate
 from numba import jit
 
 from pycomlink.processing import k_R_relation
-from .xarray_wrapper import xarray_loop_vars_over_dim
+from .xarray_wrapper import xarray_apply_along_time_dim
 
 
 ########################################
@@ -63,9 +63,7 @@ def _numba_waa_schleiss_2013(rsl, baseline, wet, waa_max, delta_t, tau):
     return waa
 
 
-@xarray_loop_vars_over_dim(
-    vars_to_loop=["rsl", "baseline", "wet"], loop_dim="channel_id"
-)
+@xarray_apply_along_time_dim()
 def waa_schleiss_2013(rsl, baseline, wet, waa_max, delta_t, tau):
     """Calculate WAA according to Schleiss et al 2013
 
@@ -111,7 +109,7 @@ def waa_schleiss_2013(rsl, baseline, wet, waa_max, delta_t, tau):
 
     return waa
 
-@xarray_loop_vars_over_dim(vars_to_loop=["A_obs", "f_Hz"], loop_dim="channel_id")
+@xarray_apply_along_time_dim()
 def waa_leijnse_2008_from_A_obs(
     A_obs,
     f_Hz,

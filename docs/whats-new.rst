@@ -5,9 +5,17 @@ What's New
 v0.3.x
 ------
 
+Enhancements
+~~~~~~~~~~~~
 * Added xarray-wrapper for WAA Leijnse and updated WAA example notebook (by cchwala
   in PR #82)
+* xarray wrapper now uses `xr.apply_ufunc` to apply processing functions along time
+  dimension, instead of looping over the `channel_id` dimension. This should be a lot
+  more flexible. (by cchwala in PR #89)
 
+Bug fixes
+~~~~~~~~~
+* Fixed problem with xarray_wrapper for calc_R_from_A (by cchwala in PR #89)
 
 v0.3.2
 ------

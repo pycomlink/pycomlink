@@ -4,7 +4,7 @@ import pandas as pd
 
 from numba import jit
 
-from .xarray_wrapper import xarray_loop_vars_over_dim
+from .xarray_wrapper import xarray_apply_along_time_dim
 
 
 ################################################
@@ -12,7 +12,7 @@ from .xarray_wrapper import xarray_loop_vars_over_dim
 ################################################
 
 
-@xarray_loop_vars_over_dim(vars_to_loop=["trsl", "wet"], loop_dim="channel_id")
+@xarray_apply_along_time_dim()
 def baseline_constant(trsl, wet, n_average_last_dry=1):
     """
     Build baseline with constant level during a `wet` period

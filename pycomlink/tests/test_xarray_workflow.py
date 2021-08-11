@@ -63,7 +63,9 @@ def test_waa_schleiss_kwarg():
             delta_t=1,
             tau=15,
         )
-        np.testing.assert_almost_equal(waa_np, waa_da.isel(channel_id=channel_id).values)
+        np.testing.assert_almost_equal(
+            waa_np, waa_da.isel(channel_id=channel_id).values
+        )
 
 
 def test_waa_leijnse_kwarg():
@@ -76,8 +78,8 @@ def test_waa_leijnse_kwarg():
         wet=cml.wet,
     )
 
-    cml['A'] = cml.trsl - cml.baseline
-    cml['A'] = cml.A.where((cml.A.isnull().values | (cml.A.values >= 0)), 0)
+    cml["A"] = cml.trsl - cml.baseline
+    cml["A"] = cml.A.where((cml.A.isnull().values | (cml.A.values >= 0)), 0)
 
     waa_da = pycml.processing.wet_antenna.waa_leijnse_2008_from_A_obs(
         A_obs=cml.A,
@@ -93,7 +95,7 @@ def test_waa_leijnse_kwarg():
     for channel_id in range(len(cml.channel_id)):
         waa_np = pycml.processing.wet_antenna.waa_leijnse_2008_from_A_obs(
             A_obs=cml.A.isel(channel_id=channel_id).values,
-            f_Hz=cml.frequency.isel(channel_id=channel_id).values  * 1e9,
+            f_Hz=cml.frequency.isel(channel_id=channel_id).values * 1e9,
             L_km=cml.length,
             T_K=293.0,
             gamma=2.06e-05,
@@ -101,7 +103,9 @@ def test_waa_leijnse_kwarg():
             n_antenna=(1.73 + 0.014j),
             l_antenna=0.001,
         )
-        np.testing.assert_almost_equal(waa_np, waa_da.isel(channel_id=channel_id).values)
+        np.testing.assert_almost_equal(
+            waa_np, waa_da.isel(channel_id=channel_id).values
+        )
 
 
 def test_calc_R_from_A():
@@ -114,10 +118,10 @@ def test_calc_R_from_A():
         wet=cml.wet,
     )
 
-    cml['A'] = cml.trsl - cml.baseline
-    cml['A'] = cml.A.where((cml.A.isnull().values | (cml.A.values >= 0)), 0)
+    cml["A"] = cml.trsl - cml.baseline
+    cml["A"] = cml.A.where((cml.A.isnull().values | (cml.A.values >= 0)), 0)
 
-    cml['R'] = pycml.processing.k_R_relation.calc_R_from_A(
+    cml["R"] = pycml.processing.k_R_relation.calc_R_from_A(
         A=cml.A, L_km=cml.length, f_GHz=cml.frequency
     )
 
@@ -128,5 +132,6 @@ def test_calc_R_from_A():
             f_GHz=cml.isel(channel_id=channel_id).frequency,
         )
         np.testing.assert_almost_equal(R_np, cml.R.isel(channel_id=channel_id).values)
+
 
 # TODO Add test for using positional args

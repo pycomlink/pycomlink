@@ -13,6 +13,7 @@ def xarray_apply_along_time_dim():
     CML time series data, as arguments. Additional argument are also handled.
 
     """
+
     def decorator(func):
         @wraps(func)
         def inner(*args, **kwargs):
@@ -27,9 +28,9 @@ def xarray_apply_along_time_dim():
             found_time_dim = False
             for arg in new_args_dict.values():
                 try:
-                    if 'time' in arg.dims:
+                    if "time" in arg.dims:
                         found_time_dim = True
-                        input_core_dims.append(['time'])
+                        input_core_dims.append(["time"])
                     else:
                         input_core_dims.append([])
                 except AttributeError:
@@ -44,7 +45,7 @@ def xarray_apply_along_time_dim():
                     func,
                     *list(new_args_dict.values()),
                     input_core_dims=input_core_dims,
-                    output_core_dims=[['time']],
+                    output_core_dims=[["time"]],
                     vectorize=True,
                 )
 

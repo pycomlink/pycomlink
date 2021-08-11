@@ -1,4 +1,6 @@
 from functools import wraps
+from collections import OrderedDict
+import inspect
 import numpy as np
 import xarray as xr
 
@@ -76,3 +78,26 @@ def xarray_loop_vars_over_dim(vars_to_loop, loop_dim):
         return inner
 
     return decorator
+
+
+def _get_new_args_dict(func, args, kwargs):
+    """Build one dict from args, kwargs and function default args
+
+    The function signature is used to build one joint dict from args and kwargs and
+    additional from the default arguments found in the function signature. The order
+    of the args in this dict is the order of the args in the function signature and
+    hence the list of args can be used in cases where we can only supply *args, but
+    we have to work with a mixture of args, kwargs and default args as in
+    xarray.apply_ufunc in the xarray wrapper.
+
+    """
+    new_args_dict = OrderedDict()
+    for i, (arg, parameter) in enumerate(inspect.signature(func).parameters.items()):
+        if i < len(args):
+            new_args_dict[arg] = args[i]
+        elif arg in kwargs.keys():
+            new_args_dict[arg] = kwargs[arg]
+        else:
+            new_args_dict[arg] = parameter.default
+
+    return new_args_dict

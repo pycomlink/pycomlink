@@ -20,15 +20,15 @@ def read(fname):
 
 setup(
     name = "pycomlink",
-    version = "0.3.2",
+    version = "0.3.3",
     author = "Christian Chwala",
     author_email = "christian.chwala@kit.edu",
-    description = ("Python tools for MW link data processing"),
+    description = ("Python tools for CML (commercial microwave link) data processing"),
     license = "BSD",
-    keywords = "microwave links precipitation radar",
+    keywords = "microwave links precipitation radar cml",
     url = "https://github.com/pycomlink/pycomlink",
     download_url = (
-        "https://github.com/pycomlink/pycomlink/archive/0.3.2.tar.gz"),
+        "https://github.com/pycomlink/pycomlink/archive/0.3.3.tar.gz"),
     packages=find_packages(exclude=['test']),
     include_package_data=True,
     long_description=read('README.md'),

@@ -6,14 +6,12 @@ from tensorflow.compat.v1.keras.backend import set_session
 import pkg_resources
 
 
-
 # Limit GPU memory usage to avoid processes to run out of memory.
 # For a list of processes blocking GPU memory on an nvidia GPU type 'nvidia-smi' in the terminal.
 config = tf.compat.v1.ConfigProto()
 config.gpu_options.per_process_gpu_memory_fraction = 0.4
 config.gpu_options.visible_device_list = "0"
 set_session(tf.compat.v1.Session(config=config))
-
 
 
 def get_model_file_path():
@@ -24,9 +22,8 @@ def get_model_file_path():
 
 # load model
 modelh5_fn = str(get_model_file_path() + "/model_anomaly_detection_60.h5")
-#modelh5_fn = '/pd/home/glawion-l/pycomlink-1/pycomlink/processing/anomaly_detection/cnn_model/model_anomaly_detection_60.h5'
+# modelh5_fn = '/pd/home/glawion-l/pycomlink-1/pycomlink/processing/anomaly_detection/cnn_model/model_anomaly_detection_60.h5'
 model = tf.keras.models.load_model(modelh5_fn, compile=False)
-
 
 
 def _rolling_window(a, window):
@@ -36,12 +33,13 @@ def _rolling_window(a, window):
         a, shape=shape, strides=strides, writeable=False
     )
 
+
 def cnn_anomaly_detection(
     trsl_channel_1,
     trsl_channel_2,
     batch_size=100,
     verbose=0,
-    ):
+):
     """
      Anomaly detection using the CNN based on channel 1 and channel 2 of a CML
 
@@ -68,10 +66,10 @@ def cnn_anomaly_detection(
 
     References
     ----------
-    .. [1]  Polz, J., Schmidt, L., Glawion, L., Graf, M., Werner, C., Chwala, C., Mollenhauer, H., Rebmann, C., Kunstmann, H., and Bumberger, J.: 
-    Supervised and unsupervised machine-learning for automated quality control of environmental sensor data, EGU General Assembly 2021, online, 
-    19–30 Apr 2021, EGU21-14485, 
-    https://doi.org/10.5194/egusphere-egu21-14485, 2021. 
+    .. [1]  Polz, J., Schmidt, L., Glawion, L., Graf, M., Werner, C., Chwala, C., Mollenhauer, H., Rebmann, C., Kunstmann, H., and Bumberger, J.:
+    Supervised and unsupervised machine-learning for automated quality control of environmental sensor data, EGU General Assembly 2021, online,
+    19–30 Apr 2021, EGU21-14485,
+    https://doi.org/10.5194/egusphere-egu21-14485, 2021.
 
     """
     df = pd.DataFrame()
@@ -84,18 +82,16 @@ def cnn_anomaly_detection(
 
     df = df.fillna(value=-9999)
 
-    x_fts =np.moveaxis(
-            np.array(
-                [
-                    _rolling_window(df["trsl1"].values, 60),
-                    _rolling_window(df["trsl2"].values, 60),
-                ]
-            ),
-            source=0,
-            destination=-1,
-        )
-
-
+    x_fts = np.moveaxis(
+        np.array(
+            [
+                _rolling_window(df["trsl1"].values, 60),
+                _rolling_window(df["trsl2"].values, 60),
+            ]
+        ),
+        source=0,
+        destination=-1,
+    )
 
     cnn_pred = np.ravel(model.predict(x_fts, batch_size=batch_size, verbose=verbose))
 
@@ -106,8 +102,6 @@ def cnn_anomaly_detection(
         ):
             cnn_pred[i] = np.nan
 
-    df["prediction"] = np.concatenate(
-        (np.repeat(np.nan, 59), cnn_pred), axis=0
-    )
+    df["prediction"] = np.concatenate((np.repeat(np.nan, 59), cnn_pred), axis=0)
 
     return df.prediction.values.reshape(len(trsl_channel_1))

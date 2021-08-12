@@ -2,13 +2,14 @@
 What's New
 **********************
 
-v0.3.x
+v0.3.3
 ------
 
 Enhancements
 ~~~~~~~~~~~~
 * Added xarray-wrapper for WAA Leijnse and updated WAA example notebook (by cchwala
   in PR #82)
+* Add CNN-based anomaly detection for CML data (by Glawion in PR#87)
 * xarray wrapper now uses `xr.apply_ufunc` to apply processing functions along time
   dimension, instead of looping over the `channel_id` dimension. This should be a lot
   more flexible. (by cchwala in PR #89)
@@ -16,6 +17,12 @@ Enhancements
 Bug fixes
 ~~~~~~~~~
 * Fixed problem with xarray_wrapper for calc_R_from_A (by cchwala in PR #89)
+
+Maintenance
+~~~~~~~~~~~~
+* Move CI from Travis to Github Actions (by maxmargraf in PR #85)
+* Add readthedocs and zenodo badge to README (by maxmargraaf in PR #85)
+
 
 v0.3.2
 ------

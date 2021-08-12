@@ -17,11 +17,11 @@ from future.utils import with_metaclass
 
 
 class PointsToGridInterpolator(with_metaclass(abc.ABCMeta, object)):
-    """ PointsToGridInterpolator class docstring """
+    """PointsToGridInterpolator class docstring"""
 
     @abc.abstractmethod
     def __init__(self):
-        """ Pass all configuration parameters for the interpolator here """
+        """Pass all configuration parameters for the interpolator here"""
         return
 
     def __call__(self, x, y, z, xgrid=None, ygrid=None, resolution=None):
@@ -65,13 +65,13 @@ class PointsToGridInterpolator(with_metaclass(abc.ABCMeta, object)):
 
     @abc.abstractmethod
     def _interpol_func(self, x, y, z, xi, yi):
-        """ The actual interpolation code goes here """
+        """The actual interpolation code goes here"""
         return
 
 
 class IdwKdtreeInterpolator(PointsToGridInterpolator):
     def __init__(self, nnear=8, p=2, exclude_nan=True, max_distance=None):
-        """ A k-d tree based IDW interpolator for points to grid """
+        """A k-d tree based IDW interpolator for points to grid"""
         self.nnear = nnear
         self.p = p
         self.exclude_nan = exclude_nan
@@ -80,7 +80,7 @@ class IdwKdtreeInterpolator(PointsToGridInterpolator):
         self.y = None
 
     def _interpol_func(self, x, y, z, xi, yi):
-        """ Do IDW interpolation """
+        """Do IDW interpolation"""
 
         x = np.asarray(x)
         y = np.asarray(y)
@@ -94,10 +94,10 @@ class IdwKdtreeInterpolator(PointsToGridInterpolator):
         self.z = z
 
         if np.array_equal(x, self.x) and np.array_equal(y, self.y):
-            #print('Reusing old `Invdisttree`')
+            # print('Reusing old `Invdisttree`')
             idw = self.idw
         else:
-            #print('Building new `Invdistree`')
+            # print('Building new `Invdistree`')
             idw = Invdisttree(X=list(zip(x, y)))
             self.idw = idw
             self.x = x
@@ -123,7 +123,7 @@ class OrdinaryKrigingInterpolator(PointsToGridInterpolator):
         # coordinates_type='euclidean', # Not supported in v1.3.1
         backend="C",
     ):
-        """ A ordinary kriging interpolator for points to grid"""
+        """A ordinary kriging interpolator for points to grid"""
 
         self.nlags = nlags
         self.variogram_model = variogram_model
@@ -191,7 +191,7 @@ def _parse_grid_kwargs(x_list, y_list, xgrid, ygrid, resolution):
 
 
 def get_lon_lat_list_from_cml_list(cml_list):
-    """ Extract lats and lons from all CMLs """
+    """Extract lats and lons from all CMLs"""
 
     lons = np.array([cml.get_center_lon_lat()[0] for cml in cml_list])
     lats = np.array([cml.get_center_lon_lat()[1] for cml in cml_list])

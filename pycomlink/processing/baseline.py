@@ -55,9 +55,9 @@ def _numba_baseline_constant(trsl, wet, n_average_last_dry):
     for i in range(n_average_last_dry, len(trsl)):
         if np.isnan(wet[i]):
             baseline[i] = np.NaN
-        elif wet[i] & ~wet[i-1]:
-            baseline[i] = np.mean(baseline[(i-n_average_last_dry) : i])
-        elif wet[i] & wet[i-1]:
+        elif wet[i] & ~wet[i - 1]:
+            baseline[i] = np.mean(baseline[(i - n_average_last_dry) : i])
+        elif wet[i] & wet[i - 1]:
             baseline[i] = baseline[i - 1]
         else:
             baseline[i] = trsl[i]

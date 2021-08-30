@@ -26,23 +26,11 @@ class TestWetDryandRainErrorfunctions(unittest.TestCase):
             "N_nan_predicted_only"
         )
         WetDryError_reference = collections.namedtuple(class_name, fields)
-        ref = WetDryError_reference(
-            0.66666667,
-            0.25,
-            0.09128709291752767,
-            0.75,
-            0.33333334,
-            3,
-            4,
-            3,
-            1,
-            2,
-            1,
-            10,
-            3,
-            3,
-            1,
-        )
+
+
+        ref = WetDryError_reference(0.66666667, 0.25, 0.09128709291752767, 0.75,
+                                    0.33333334, 3, 4, 3, 1, 2, 1, 10, 3, 3, 1)
+
 
         np.testing.assert_array_almost_equal(wd_error, ref)
 
@@ -70,6 +58,20 @@ class TestWetDryandRainErrorfunctions(unittest.TestCase):
         np.testing.assert_array_almost_equal(
             wd_error.matthews_correlation, 0.3105295017040594
         )
+
+    # verify mcc against a mcc calculated with sklearn.metrics.matthews_corrcoef
+    # extra test because sklearn.metrics.matthews_corrcoef can't handel nans
+    def test_mcc_against_sklearns_mcc(self):
+        reference = np.array([0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 1])
+        predicted = np.array([0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1])
+
+        wd_error = pycml.validation.stats.calc_wet_dry_performance_metrics(
+            reference,
+            predicted)
+
+        np.testing.assert_array_almost_equal(
+            wd_error.matthews_correlation,
+            0.3105295017040594)
 
     def test_RainError_with_simple_arrays(self):
         reference = np.array([1, 0, 1, 1, 1, 0, 1, 0, np.nan, np.nan, np.nan])

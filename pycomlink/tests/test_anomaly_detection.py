@@ -28,7 +28,7 @@ class Testcnnpred(unittest.TestCase):
                 np.nan,
                 np.nan,
                 np.nan,
-                0.5839,
+                0.66665839,
                 0.5869,
                 0.5899,
                 0.5931,

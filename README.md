@@ -1,8 +1,9 @@
-[![Build Status](https://travis-ci.org/pycomlink/pycomlink.svg?branch=master)](https://travis-ci.org/pycomlink/pycomlink)
+[![CI](https://github.com/pycomlink/pycomlink/actions/workflows/main.yml/badge.svg?branch=master)](https://github.com/pycomlink/pycomlink/actions/workflows/main.yml)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/pycomlink/pycomlink/master)
 [![Documentation Status](https://readthedocs.org/projects/pycomlink/badge/?version=latest)](https://pycomlink.readthedocs.io/en/latest/)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4810169.svg)](https://doi.org/10.5281/zenodo.4810169)
 
+Anaconda Version [![Anaconda Version](https://anaconda.org/conda-forge/pycomlink/badges/version.svg)](https://anaconda.org/conda-forge/pycomlink) [![Anaconda-Server Badge](https://anaconda.org/conda-forge/pycomlink/badges/latest_release_date.svg)](https://anaconda.org/conda-forge/pycomlink)
 
 pycomlink
 =========

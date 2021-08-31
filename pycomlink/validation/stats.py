@@ -169,12 +169,8 @@ def calc_wet_dry_performance_metrics(reference, predicted):
     assert reference.shape == predicted.shape
 
     # force bool type
-
-
-
-    reference = (reference > 0)
-    predicted = (predicted > 0)
-    
+    reference = reference > 0
+    predicted = predicted > 0
 
     # Calculate N_tp, tn, N_fp, N_fn, N_wet_reference (real positive cases)
     # and N_dry_reference (real negative cases)
@@ -205,10 +201,7 @@ def calc_wet_dry_performance_metrics(reference, predicted):
     c = np.sqrt(N_tn + N_fp)
     d = np.sqrt(N_tn + N_fn)
 
-
-    matthews_correlation = (((N_tp * N_tn) - (N_fp * N_fn)) /
-                            (a * b * c * d))
-
+    matthews_correlation = ((N_tp * N_tn) - (N_fp * N_fn)) / (a * b * c * d)
 
     # if predicted has zero/false values only
     # 'inf' would be returned, but 0 is more favorable

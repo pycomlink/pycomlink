@@ -2,7 +2,7 @@ numpy
 scipy
 pandas>=0.22
 matplotlib
-numba<0.54
+numba
 h5py
 xarray
 netcdf4

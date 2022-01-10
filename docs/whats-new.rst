@@ -2,6 +2,19 @@
 What's New
 **********************
 
+
+v0.3.4
+------
+
+Bug fixes
+~~~~~~~~~
+* Reference files are now included in conda-forge build (PR #97)
+
+Maintenance
+~~~~~~~~~~~~
+* `tensorflow-gpu` dependency (which seems to be obsolete) was removed from requirements (PR #97)
+
+
 v0.3.3
 ------
 

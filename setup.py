@@ -20,7 +20,7 @@ def read(fname):
 
 setup(
     name = "pycomlink",
-    version = "0.3.3",
+    version = "0.3.4",
     author = "Christian Chwala",
     author_email = "christian.chwala@kit.edu",
     description = ("Python tools for CML (commercial microwave link) data processing"),

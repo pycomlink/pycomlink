@@ -15,6 +15,7 @@ dependencies:
  - tqdm
  - pykrige
  - tensorflow
+ - bottleneck
  - future
  - pip
  - pip:

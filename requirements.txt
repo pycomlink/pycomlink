@@ -12,3 +12,4 @@ tqdm
 pykrige
 future
 tensorflow
+bottleneck

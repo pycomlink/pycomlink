@@ -18,3 +18,4 @@ dependencies:
  - future
  - jupyterlab
  - notebook
+ - bottleneck

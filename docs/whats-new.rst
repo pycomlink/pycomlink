@@ -2,6 +2,14 @@
 What's New
 **********************
 
+Unreleased
+----------
+
+Enhancements
+~~~~~~~~~~~~
+* Added `bottelneck` as dependency to allow `max_gap` keyword in `xarray.DataArray.interpolate` (by maxmargraf
+  in PR #99)
+
 
 v0.3.4
 ------

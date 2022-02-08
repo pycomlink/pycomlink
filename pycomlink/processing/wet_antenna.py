@@ -293,6 +293,131 @@ def waa_leijnse_2008(
     return waa
 
 
+@xarray_apply_along_time_dim()
+def waa_pastorek_2021_from_A_obs(
+    A_obs,
+    f_Hz,
+    L_km,
+    A_max=14,
+    zeta=0.55,
+    d=0.1,
+):
+
+    """Calculate wet antenna attenuation according to Pastorek et al. 2021 [3]
+    (model denoted "KR-alt" in their study, i.e. a variation of the WAA model
+    suggested by Kharadly and Ross 2001 [4])
+
+    Calculate the wet antenna from rain rate explicitly assuming an upper limit
+    A_max.
+
+    The equation proposed in [3] calculates the WAA from the rain rate R.
+    With CML data the rain rates is not directly available. We need to use
+    the observed attenuation to derive the WAA. This is done here by building
+    a look-up-table for the relation between A_obs and WAA, where A_obs is
+    calculated as A_obs = A_rain + WAA. A_rain is derived from the A-R relation
+    for the given CML frequency and length.
+
+    Parameters
+    ----------
+    A_max : upper bound of WAA ("C" in [3])
+    R : array-like or scalar
+        Rain rate in mm/h
+    f_Hz : array-like or scalar (but only either `R` or `f_Hz` can be array)
+        Frequency of CML in Hz
+    L_km : float
+        Lenght of CML in kilometer
+    zeta : power-law parameters
+    d : power-law parameters
+
+    Returns
+    -------
+    waa : array-like
+        Wet antenna attenuation in dB
+    References
+    ----------
+    .. [3] J. Pastorek, M. Fencl, J. Rieckermann and V. Bareš, "Precipitation
+        Estimates From Commercial Microwave Links: Practical Approaches to
+        Wet-Antenna Correction," in IEEE Transactions on Geoscience and Remote
+        Sensing, doi: 10.1109/TGRS.2021.3110004.
+    .. [4] M. M. Z. Kharadly and R. Ross, "Effect of wet antenna attenuation on
+        propagation data statistics," in IEEE Transactions on Antennas and
+        Propagation, vol. 49, no. 8, pp. 1183-1191, Aug. 2001,
+        doi: 10.1109/8.943313.
+    """
+
+    if np.any(A_obs < 0):
+        raise ValueError("Negative values for `A_obs` are not allowed")
+
+    # Generate mapping from A_obs to WAA
+    A_rain = np.logspace(-10, 3, 100)
+    A_rain[0] = 0
+
+    R = k_R_relation.calc_R_from_A(A=A_rain, L_km=L_km, f_GHz=f_Hz / 1e9, R_min=0)
+
+    waa = waa_pastorek_2021(
+        A_max=A_max,
+        R=R,
+        zeta=zeta,
+        d=d
+    )
+
+    A_obs_theoretical = A_rain + waa
+
+    mapping = scipy.interpolate.interp1d(
+        A_obs_theoretical, waa, assume_sorted=True, kind="linear"
+    )
+
+    return mapping(A_obs)
+
+
+def waa_pastorek_2021(
+    R,
+    A_max=14,
+    zeta=0.55,
+    d=0.1,
+):
+    """Calculate wet antenna attenuation according to Pastorek et al. 2021 [3]
+    (model denoted "KR-alt" in their study, i.e. a variation of the WAA model
+    suggested by Kharadly and Ross 2001 [4])
+
+    Calculate the wet antenna from rain rate explicitly assuming an upper limit
+    A_max.
+
+    Parameters
+    ----------
+    A_max : upper bound of WAA ("C" in [3])
+    R : array-like or scalar
+        Rain rate in mm/h
+    zeta : power-law parameters
+    d : power-law parameters
+
+    Returns
+    -------
+    waa : array-like
+        Wet antenna attenuation in dB
+    References
+    ----------
+    .. [3] J. Pastorek, M. Fencl, J. Rieckermann and V. Bareš, "Precipitation
+        Estimates From Commercial Microwave Links: Practical Approaches to
+        Wet-Antenna Correction," in IEEE Transactions on Geoscience and Remote
+        Sensing, doi: 10.1109/TGRS.2021.3110004.
+    .. [4] M. M. Z. Kharadly and R. Ross, "Effect of wet antenna attenuation on
+        propagation data statistics," in IEEE Transactions on Antennas and
+        Propagation, vol. 49, no. 8, pp. 1183-1191, Aug. 2001,
+        doi: 10.1109/8.943313.
+    """
+
+    R = np.asanyarray(R)
+
+    waa = A_max * (1 - np.exp(-d * (R ** zeta)))
+
+    # Assure that numeric inaccuracy does not lead to waa > 0 for R == 0
+    waa[R == 0] = 0
+
+    return waa#@xarray_apply_along_time_dim()
+
+
+
 def eps_water(f_Hz, T_K):
     """Calculate the dielectric permitiviy of water
 

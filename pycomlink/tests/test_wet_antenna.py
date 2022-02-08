@@ -115,8 +115,9 @@ class TestWaaPastorek2021(unittest.TestCase):
             ),
         }
 
-        for A_max in expected_dict.keys():
-            expected = expected_dict[f]
+        for k in expected_dict.keys():
+            A_max = float(k)
+            expected = expected_dict[k]
             result = wet_antenna.waa_pastorek_2021(R=R, A_max=A_max, zeta=0.55, d=0.1)
             assert_almost_equal(expected, result)
 
@@ -134,8 +135,9 @@ class TestWaaPastorek2021(unittest.TestCase):
             ),
         }
 
-        for zeta in expected_dict.keys():
-            expected = expected_dict[f]
+        for k in expected_dict.keys():
+            zeta = float(k)
+            expected = expected_dict[k]
             result = wet_antenna.waa_pastorek_2021(R=R, A_max=14, zeta=zeta, d=0.1)
             assert_almost_equal(expected, result)
 

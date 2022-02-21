@@ -30,11 +30,12 @@ and `ipython`, both also available via `conda` or `pip`.
 
 If you want to clone the repository for developing purposes follow these steps (installation of Jupyter Notebook included):
 
-    $ cd WORKING_DIRECTORY
     $ git clone https://github.com/pycomlink/pycomlink.git
-    $ conda env create --name ENV_NAME -file=environment_dev.yml
-    $ conda activate ENV_NAME
-    $ pip install -e WORKING_DIRECTORY/pycomlink
+    $ cd pycomlink	
+    $ conda env create environment_dev.yml
+    $ conda activate pycomlink-dev
+    $ cd ..
+    $ pip install -e pycomlink
 
 Usage
 -----

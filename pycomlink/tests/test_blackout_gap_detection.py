@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-import pycomlink.processing.anomaly_detection.blackout_gap_detection as gap_detec
+import pycomlink.processing.blackout_gap_detection as gap_detec
 
 
 class TestBlackoutDetection(unittest.TestCase):

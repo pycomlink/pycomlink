@@ -10,7 +10,6 @@ dependencies:
  - h5py
  - xarray
  - netcdf4
- - h5netcdf
  - shapely
  - pyproj
  - tqdm

@@ -67,7 +67,7 @@ class Invdisttree(object):
     # error analysis, |f(x) - idw(x)| ? todo: regular grid, nnear ndim+1, 2*ndim
 
     def __init__(self, X, leafsize=10, stat=0):
-        self.X = X
+        self.X = np.asarray(X, dtype="float")
         self.tree = KDTree(X, leafsize=leafsize)  # build the tree
         self.stat = stat
         self.wn = 0
@@ -75,6 +75,8 @@ class Invdisttree(object):
         self.q = None
 
     def __call__(self, q, z, nnear=6, eps=0, p=1, weights=None, max_distance=None):
+        q = np.asarray(q, dtype="float")
+        z = np.asarray(z, dtype="float")
         # nnear nearest neighbours of each query point --
         assert len(self.X) == len(z), "len(X) %d != len(z) %d" % (len(self.X), len(z))
 
@@ -115,16 +117,12 @@ class Invdisttree(object):
 
         self.z = z
 
-        if weights is None:
-            weights = np.ones(len(q))
-
         interpol, self.wn, self.wsum = _numba_idw_loop(
             distances=self.distances,
             ixs=self.ix,
             z=self.z,
             z_shape=z[0].shape,
             p=p,
-            weights=weights,
             wn=self.wn,
             wsum=self.wsum,
         )
@@ -133,7 +131,7 @@ class Invdisttree(object):
 
 
 @jit(nopython=True)
-def _numba_idw_loop(distances, ixs, z, z_shape, p, weights, wn, wsum):
+def _numba_idw_loop(distances, ixs, z, z_shape, p, wn, wsum):
     interpol = np.zeros((len(distances),) + z_shape)
     jinterpol = 0
     for i in range(len(distances)):
@@ -143,7 +141,6 @@ def _numba_idw_loop(distances, ixs, z, z_shape, p, weights, wn, wsum):
             wz = z[ix[0]]
         else:  # weight z s by 1/dist --
             w = 1 / dist ** p
-            w *= weights[ix]  # >= 0
             w /= np.sum(w)
             wz = np.dot(w, z[ix])
             wn += 1

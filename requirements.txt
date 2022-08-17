@@ -1,5 +1,5 @@
 numpy
-scipy
+scipy<1.9
 pandas>=0.22
 matplotlib
 numba

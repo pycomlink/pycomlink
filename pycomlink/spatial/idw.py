@@ -67,14 +67,14 @@ class Invdisttree(object):
     # error analysis, |f(x) - idw(x)| ? todo: regular grid, nnear ndim+1, 2*ndim
 
     def __init__(self, X, leafsize=10, stat=0):
-        self.X = X
+        self.X = np.asarray(X, dtype="float")
         self.tree = KDTree(X, leafsize=leafsize)  # build the tree
         self.stat = stat
-        self.wn = 0
-        self.wsum = None
         self.q = None
 
     def __call__(self, q, z, nnear=6, eps=0, p=1, weights=None, max_distance=None):
+        q = np.asarray(q, dtype="float")
+        z = np.asarray(z, dtype="float")
         # nnear nearest neighbours of each query point --
         assert len(self.X) == len(z), "len(X) %d != len(z) %d" % (len(self.X), len(z))
 
@@ -89,8 +89,6 @@ class Invdisttree(object):
         qdim = q.ndim
         if qdim == 1:
             q = np.array([q])
-        if self.wsum is None:
-            self.wsum = np.zeros(nnear)
 
         # Do not recalculate the distance matrix if it has already
         # been calculated for the same parameters
@@ -115,39 +113,39 @@ class Invdisttree(object):
 
         self.z = z
 
-        if weights is None:
-            weights = np.ones(len(q))
-
-        interpol, self.wn, self.wsum = _numba_idw_loop(
+        interpol = _numba_idw_loop(
             distances=self.distances,
             ixs=self.ix,
             z=self.z,
             z_shape=z[0].shape,
             p=p,
-            weights=weights,
-            wn=self.wn,
-            wsum=self.wsum,
         )
 
         return interpol if qdim > 1 else interpol[0]
 
 
 @jit(nopython=True)
-def _numba_idw_loop(distances, ixs, z, z_shape, p, weights, wn, wsum):
+def _numba_idw_loop(distances, ixs, z, z_shape, p):
     interpol = np.zeros((len(distances),) + z_shape)
     jinterpol = 0
     for i in range(len(distances)):
         dist = distances[i]
         ix = ixs[i]
-        if dist[0] < 1e-10:
+
+        # drop entries where ix item == len(z), which is how KDTree.query indicates
+        # missing neighbours
+        dist = dist[ix < len(z)]
+        ix = ix[ix < len(z)]
+
+        if len(ix) == 0:
+            wz = np.NaN
+        elif dist[0] < 1e-10:
             wz = z[ix[0]]
         else:  # weight z s by 1/dist --
             w = 1 / dist ** p
-            w *= weights[ix]  # >= 0
             w /= np.sum(w)
             wz = np.dot(w, z[ix])
-            wn += 1
-            wsum += w
+
         interpol[jinterpol] = wz
         jinterpol += 1
-    return interpol, wn, wsum
+    return interpol

@@ -2,9 +2,10 @@ import numpy as np
 import numba
 from .xarray_wrapper import xarray_apply_along_time_dim
 
+
 @xarray_apply_along_time_dim()
 def get_blackout_start_and_end(rsl, rsl_threshold):
-    '''
+    """
     Identify nan gaps as blackout gaps caused by heavy attenuation based on
     a rs threshold and return the start and end of each gap
 
@@ -20,10 +21,10 @@ def get_blackout_start_and_end(rsl, rsl_threshold):
     -------
     gap_start, gap_end
 
-    '''
+    """
 
     # required to avoid RuntimeWarning when comparing to NaNs
-    with np.errstate(invalid='ignore'):
+    with np.errstate(invalid="ignore"):
         rsl_below_threshold = rsl < rsl_threshold
     rsl_nan = np.isnan(rsl)
     gap_start = np.roll(rsl_nan, -1) & rsl_below_threshold
@@ -34,7 +35,7 @@ def get_blackout_start_and_end(rsl, rsl_threshold):
 
 @numba.jit(nopython=True)
 def created_blackout_gap_mask_from_start_end_markers(rsl, gap_start, gap_end):
-    '''
+    """
     Deriving a mask which masks all detected blackout gaps.
 
     Parameters
@@ -50,9 +51,9 @@ def created_blackout_gap_mask_from_start_end_markers(rsl, gap_start, gap_end):
     -------
     mask
 
-    '''
+    """
 
-    mask = np.zeros(rsl.shape, dtype=numba.boolean)
+    mask = np.zeros(rsl.shape, dtype=np.bool_)
     in_blackout_gap = False
     for i in range(len(rsl)):
         if gap_start[i] == True:

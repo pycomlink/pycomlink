@@ -35,4 +35,3 @@ def test_idw_standard_method():
         )
 
     # fmt: on
-

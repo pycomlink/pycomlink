@@ -131,7 +131,7 @@ def _numba_idw_loop(distances, ixs, z, z_shape, p):
     for i in range(len(distances)):
         dist = distances[i]
         ix = ixs[i]
-        
+
         # drop entries where ix item == len(z), which is how KDTree.query indicates
         # missing neighbours
         dist = dist[ix < len(z)]

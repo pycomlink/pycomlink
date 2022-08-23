@@ -5,6 +5,7 @@ matplotlib
 numba
 h5py
 xarray
+sparse
 netcdf4
 shapely
 pyproj

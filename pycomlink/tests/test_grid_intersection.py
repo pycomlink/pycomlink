@@ -2,6 +2,7 @@ import unittest
 import pytest
 import numpy as np
 from collections import namedtuple
+import sparse
 import pycomlink as pycml
 
 
@@ -14,7 +15,7 @@ class TestSparseIntersectWeights(unittest.TestCase):
         y1_list = [0, 0]
         x2_list = [0, 9]
         y2_list = [9, 9]
-        cml_id_list = ['abc1', 'cde2']
+        cml_id_list = ["abc1", "cde2"]
 
         da_intersect_weights = pycml.spatial.grid_intersection.calc_sparse_intersect_weights_for_several_cmls(
             x1_line=x1_list,
@@ -236,3 +237,45 @@ class TestCalcGridCorners(unittest.TestCase):
             pycml.spatial.grid_intersection._calc_grid_corners_for_lower_left_location(
                 grid=grid
             )
+
+
+class TestGetGridTimeseries(unittest.TestCase):
+    def test_numpy_grid_sparse_weights(self):
+        grid_data = np.tile(
+            np.expand_dims(np.arange(10, dtype="float"), axis=[1, 2]), (1, 4, 4)
+        )
+        grid_data[0, 0, 1] = np.nan
+        # fmt: off
+        intersect_weights = np.array(
+            [
+                [[0.25, 0, 0, 0],
+                 [0.25, 0, 0, 0],
+                 [0.25, 0, 0, 0],
+                 [0.25, 0, 0, 0]],
+                [[0, 0.25, 0.25, 0],
+                 [0, 0, 0, 0],
+                 [0, 0, 0, 0],
+                 [0, 0, 0, 0]],
+            ]
+        )
+        # fmt: on
+
+        result = pycml.spatial.grid_intersection.get_grid_time_series_at_intersections(
+            grid_data=grid_data,
+            intersect_weights=intersect_weights,
+        )
+        expected = np.array(
+            [
+                [0.0, np.nan],
+                [1.0, 0.5],
+                [2.0, 1.0],
+                [3.0, 1.5],
+                [4.0, 2.0],
+                [5.0, 2.5],
+                [6.0, 3.0],
+                [7.0, 3.5],
+                [8.0, 4.0],
+                [9.0, 4.5],
+            ]
+        )
+        np.testing.assert_array_almost_equal(result, expected)

@@ -296,3 +296,32 @@ def _calc_grid_corners_for_lower_left_location(grid):
     return GridCorners(
         ur_grid=ur_grid, ul_grid=ul_grid, lr_grid=lr_grid, ll_grid=ll_grid
     )
+
+
+def get_grid_time_series_at_intersections(grid_data, intersect_weights):
+    """Get time series from gird data using sparse intersection weights
+
+    It is assumed that the `grid_data` is 3D, with the first dimensio is...
+
+    Parameters
+    ----------
+
+    grid_data: 
+    intersect_weights:
+    """
+
+    # Assure that we use a sparse matrix for the weights, because, besides
+    # being much faster for large tensordot computation, it can deal with
+    # NaN better. If the weights are passed to `sparse.tensordot` as numpy
+    # arrays, the value for each time series for a certain point in time is NaN
+    # if there is at least one nan in the grid at that point in time. We only
+    # want NaN in the time series if the intersection intersects with a NaN grid pixel.
+    intersect_weights = sparse.asCOO(intersect_weights, check=False)
+    grid_intersect_timeseries = sparse.tensordot(
+            grid_data,
+            intersect_weights,
+            axes=[[1, 2], [1, 2]],
+        )
+
+    return grid_intersect_timeseries
+

@@ -73,9 +73,9 @@ def calc_sparse_intersect_weights_for_several_cmls(
         data=sparse.stack(intersect_weights_list),
         dims=("cml_id", "y", "x"),
         coords={
-            'x_grid': (('y', 'x'), x_grid),
-            'y_grid': (('y', 'x'), y_grid),
-            }
+            "x_grid": (("y", "x"), x_grid),
+            "y_grid": (("y", "x"), y_grid),
+        },
     )
     da_intersect_weights.coords["cml_id"] = cml_id
 
@@ -306,9 +306,25 @@ def get_grid_time_series_at_intersections(grid_data, intersect_weights):
     Parameters
     ----------
 
-    grid_data: 
+    grid_data:
     intersect_weights:
     """
+
+    return_a_dataarray = False
+    try:
+        intersect_weights_coords = intersect_weights.coords
+        # from here on we only want to deal with the actual array
+        intersect_weights = intersect_weights.data
+        return_a_dataarray = True
+    except AttributeError:
+        pass
+    try:
+        grid_data_coords = grid_data.coords
+        # from here on we only want to deal with the actual array
+        grid_data = grid_data.data
+        return_a_dataarray = True
+    except AttributeError:
+        pass
 
     # Assure that we use a sparse matrix for the weights, because, besides
     # being much faster for large tensordot computation, it can deal with
@@ -317,11 +333,31 @@ def get_grid_time_series_at_intersections(grid_data, intersect_weights):
     # if there is at least one nan in the grid at that point in time. We only
     # want NaN in the time series if the intersection intersects with a NaN grid pixel.
     intersect_weights = sparse.asCOO(intersect_weights, check=False)
+
     grid_intersect_timeseries = sparse.tensordot(
-            grid_data,
-            intersect_weights,
-            axes=[[1, 2], [1, 2]],
+        grid_data,
+        intersect_weights,
+        axes=[[1, 2], [1, 2]],
+    )
+
+    if return_a_dataarray:
+        coords = {}
+        try:
+            dim_0_name = grid_data_coords.dims[0]
+            dim_0_values = grid_data_coords[dim_0_name].values
+        except NameError:
+            dim_0_name = "time"
+            dim_0_values = np.arange(grid_intersect_timeseries.shape[0])
+        try:
+            dim_1_name = intersect_weights_coords.dims[0]
+            dim_1_values = intersect_weights_coords[dim_1_name].values
+        except NameError:
+            dim_1_name = "cml_id"
+            dim_1_values = np.arange(grid_intersect_timeseries.shape[1])
+        grid_intersect_timeseries = xr.DataArray(
+            data=grid_intersect_timeseries,
+            dims=(dim_0_name, dim_1_name),
+            coords={dim_0_name: dim_0_values, dim_1_name: dim_1_values},
         )
 
     return grid_intersect_timeseries
-

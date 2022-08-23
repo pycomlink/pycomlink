@@ -3,6 +3,7 @@ import pytest
 import numpy as np
 from collections import namedtuple
 import sparse
+import xarray as xr
 import pycomlink as pycml
 
 
@@ -239,43 +240,85 @@ class TestCalcGridCorners(unittest.TestCase):
             )
 
 
+def get_grid_intersect_ts_test_data():
+    grid_data = np.tile(
+        np.expand_dims(np.arange(10, dtype="float"), axis=[1, 2]), (1, 4, 4)
+    )
+    grid_data[0, 0, 1] = np.nan
+    # fmt: off
+    intersect_weights = np.array(
+        [
+            [[0.25, 0, 0, 0],
+             [0.25, 0, 0, 0],
+             [0.25, 0, 0, 0],
+             [0.25, 0, 0, 0]],
+            [[0, 0.25, 0.25, 0],
+             [0, 0, 0, 0],
+             [0, 0, 0, 0],
+             [0, 0, 0, 0]],
+        ]
+    )
+    # fmt: on
+    expected = np.array(
+        [
+            [0.0, np.nan],
+            [1.0, 0.5],
+            [2.0, 1.0],
+            [3.0, 1.5],
+            [4.0, 2.0],
+            [5.0, 2.5],
+            [6.0, 3.0],
+            [7.0, 3.5],
+            [8.0, 4.0],
+            [9.0, 4.5],
+        ]
+    )
+    return grid_data, intersect_weights, expected
+
+
 class TestGetGridTimeseries(unittest.TestCase):
-    def test_numpy_grid_sparse_weights(self):
-        grid_data = np.tile(
-            np.expand_dims(np.arange(10, dtype="float"), axis=[1, 2]), (1, 4, 4)
-        )
-        grid_data[0, 0, 1] = np.nan
-        # fmt: off
-        intersect_weights = np.array(
-            [
-                [[0.25, 0, 0, 0],
-                 [0.25, 0, 0, 0],
-                 [0.25, 0, 0, 0],
-                 [0.25, 0, 0, 0]],
-                [[0, 0.25, 0.25, 0],
-                 [0, 0, 0, 0],
-                 [0, 0, 0, 0],
-                 [0, 0, 0, 0]],
-            ]
-        )
-        # fmt: on
+    def test_numpy_grid_numpy_weights(self):
+        grid_data, intersect_weights, expected = get_grid_intersect_ts_test_data()
 
         result = pycml.spatial.grid_intersection.get_grid_time_series_at_intersections(
             grid_data=grid_data,
             intersect_weights=intersect_weights,
         )
-        expected = np.array(
-            [
-                [0.0, np.nan],
-                [1.0, 0.5],
-                [2.0, 1.0],
-                [3.0, 1.5],
-                [4.0, 2.0],
-                [5.0, 2.5],
-                [6.0, 3.0],
-                [7.0, 3.5],
-                [8.0, 4.0],
-                [9.0, 4.5],
-            ]
-        )
         np.testing.assert_array_almost_equal(result, expected)
+
+    def test_dataarray_grid_numpy_weights(self):
+        grid_data, intersect_weights, expected = get_grid_intersect_ts_test_data()
+        time = np.arange(np.datetime64("2017-01-01"), np.datetime64("2017-01-11"))
+        da_grid_data = xr.DataArray(
+            data=grid_data,
+            dims=("time", "y", "x"),
+            coords={"time": time},
+        )
+
+        result = pycml.spatial.grid_intersection.get_grid_time_series_at_intersections(
+            grid_data=da_grid_data,
+            intersect_weights=intersect_weights,
+        )
+        np.testing.assert_array_almost_equal(result.data, expected)
+
+        np.testing.assert_array_almost_equal(result.time.values, time)
+        assert results.dims == ('time', 'cml_id')
+
+    def test_numpy_grid_dataarray_weights(self):
+        grid_data, intersect_weights, expected = get_grid_intersect_ts_test_data()
+        cml_ids = ['cml_1', 'cml_2']
+        da_intersect_weights = xr.DataArray(
+                data=intersect_weights,
+                dims=('cml_id', 'y', 'x'),
+                coords={'cml_id': cml_ids},
+                )
+
+        result = pycml.spatial.grid_intersection.get_grid_time_series_at_intersections(
+            grid_data=grid_data,
+            intersect_weights=da_intersect_weights,
+        )
+        np.testing.assert_array_almost_equal(result.data, expected)
+
+        np.testing.assert_array_almost_equal(result.cml_id, cml_ids)
+        assert results.dims == ('time', 'cml_id')
+

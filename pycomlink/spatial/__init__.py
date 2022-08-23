@@ -13,3 +13,5 @@ from __future__ import absolute_import
 from . import idw
 from . import interpolator
 from . import coverage
+from . import grid_intersection
+

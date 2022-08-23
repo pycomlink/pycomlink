@@ -302,16 +302,16 @@ class TestGetGridTimeseries(unittest.TestCase):
         np.testing.assert_array_almost_equal(result.data, expected)
 
         np.testing.assert_array_almost_equal(result.time.values, time)
-        assert results.dims == ('time', 'cml_id')
+        assert results.dims == ("time", "cml_id")
 
     def test_numpy_grid_dataarray_weights(self):
         grid_data, intersect_weights, expected = get_grid_intersect_ts_test_data()
-        cml_ids = ['cml_1', 'cml_2']
+        cml_ids = ["cml_1", "cml_2"]
         da_intersect_weights = xr.DataArray(
-                data=intersect_weights,
-                dims=('cml_id', 'y', 'x'),
-                coords={'cml_id': cml_ids},
-                )
+            data=intersect_weights,
+            dims=("cml_id", "y", "x"),
+            coords={"cml_id": cml_ids},
+        )
 
         result = pycml.spatial.grid_intersection.get_grid_time_series_at_intersections(
             grid_data=grid_data,
@@ -320,5 +320,4 @@ class TestGetGridTimeseries(unittest.TestCase):
         np.testing.assert_array_almost_equal(result.data, expected)
 
         np.testing.assert_array_almost_equal(result.cml_id, cml_ids)
-        assert results.dims == ('time', 'cml_id')
-
+        assert results.dims == ("time", "cml_id")

@@ -301,13 +301,37 @@ def _calc_grid_corners_for_lower_left_location(grid):
 def get_grid_time_series_at_intersections(grid_data, intersect_weights):
     """Get time series from gird data using sparse intersection weights
 
-    It is assumed that the `grid_data` is 3D, with the first dimensio is...
+    Time series of grid data are derived via intersection weights of CMLs.
+    Please note that it is crucial to have the correct order of dimensions, see
+    parameter list below.
+
+    Input can be ndarrays or xarray.DataArrays. If at least one input is a
+    DataArray, a DataArray is returned.
+
 
     Parameters
     ----------
 
-    grid_data:
-    intersect_weights:
+    grid_data: ndarray or xarray.DataArray
+        3-D data of the gridded data we want to extract time series from at the
+        given pixel intersection. The order of dimensions must be ('time', 'y', 'x').
+        The size in the `x` and `y` dimension must be the same as in the intersection
+        weights.
+    intersect_weights: ndarray or xarray.DataArray
+        3-D data of intersection weights. The order of dimensions must be
+        ('cml_id', 'y', 'x'). The size in the `x` and `y` dimension must be the
+        same as in the grid data. Intersection weights do not have to be a
+        `sparse.array` but will be converted to one internally before doing a
+        `sparse.tensordot` contraction.
+    Returns
+    -------
+
+    grid_intersect_timeseries: ndarray or xarray.DataArray
+        The time series for each grid intersection. If at least one of the inputs is
+        a xarray.DataArray, a xarray.DataArray is returned. Coordinates are
+        derived from the input.
+    DataArrays.
+
     """
 
     return_a_dataarray = False

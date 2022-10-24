@@ -5,11 +5,25 @@ What's New
 Unreleased
 ----------
 
+
+v0.3.5
+------
+
 Enhancements
 ~~~~~~~~~~~~
 * Added `bottelneck` as dependency to allow `max_gap` keyword in `xarray.DataArray.interpolate` (by maxmargraf
   in PR #99)
+* Added WAA model after Pastorek et al. 2021 (by nblettern via direct commit to master branch)
+* Added function and example notebook for blackout gap detection (by maxmargraf in PR #101)
+* Refactore and extended grid intersction code, now using sparse matrices (by cchwala in PR #106)
 
+Maintenance
+~~~~~~~~~~~~
+* Pinned scipy to < 1.9 because of problem in pykrige
+
+Bug fixes
+~~~~~~~~~
+* Fixed problems in IDW code (by cchwala in PR #105)
 
 v0.3.4
 ------

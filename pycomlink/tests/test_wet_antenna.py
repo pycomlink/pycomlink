@@ -75,15 +75,15 @@ class TestWaaLeijnse2008FromAobs(unittest.TestCase):
         expected = np.array(
             [
                 0.0,
-                0.85081045,
-                1.2087577,
-                1.39943582,
-                1.53099038,
-                1.63112499,
-                1.7142827,
-                1.78122755,
-                1.84301522,
-                1.89539232,
+                0.82241041,
+                1.16192413,
+                1.34918332,
+                1.47911528,
+                1.57976159,
+                1.66444932,
+                1.73214808,
+                1.79472864,
+                1.84852106
             ]
         )
         result = wet_antenna.waa_leijnse_2008_from_A_obs(
@@ -146,16 +146,17 @@ class TestWaaPastorek2021(unittest.TestCase):
 class TestWaaPastorek2021FromAobs(unittest.TestCase):
     def test_with_R_array(self):
         expected = np.array(
-            [0.,
-             0.71160868,
-             1.18532731,
-             1.5620119,
-             1.88043968,
-             2.15915973,
-             2.40885381,
-             2.64133098,
-             2.84426374,
-             3.04378787,
+            [
+                0.0,
+                0.66274715,
+                1.10407043,
+                1.45760649,
+                1.76189926,
+                2.0291218,
+                2.26924516,
+                2.49339808,
+                2.69506481,
+                2.88842441
             ]
         )
         result = wet_antenna.waa_pastorek_2021_from_A_obs(

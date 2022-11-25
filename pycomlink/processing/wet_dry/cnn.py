@@ -31,11 +31,7 @@ json_file.close()
 model = model_from_json(loaded_model_json)
 # load weights into new model
 model.load_weights(modelh5_fn)
-model.compile(
-    loss="binary_crossentropy",
-    optimizer=SGD(lr=0.01, decay=1e-3, momentum=0.9, nesterov=True),
-    metrics=["accuracy"],
-)
+model.compile()
 
 
 def _rolling_window(a, window):

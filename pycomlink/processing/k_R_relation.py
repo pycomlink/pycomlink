@@ -15,7 +15,7 @@ def calc_R_from_A(A, L_km, f_GHz=None, a=None, b=None, pol="H", R_min=0.1):
 
     Parameters
     ----------
-    A : float or iterable of float
+    A : int, float, or iterable of int/float
         Attenuation of microwave signal
     f_GHz : float, optional
         Frequency in GHz. If provided together with `pol`, it will be used to
@@ -44,9 +44,11 @@ def calc_R_from_A(A, L_km, f_GHz=None, a=None, b=None, pol="H", R_min=0.1):
     .. math:: A = aR^{b}
 
     """
+
     if f_GHz is not None:
         a, b = a_b(f_GHz, pol=pol)
 
+    A = np.atleast_1d(A).astype(float)
     R = np.zeros_like(A)
 
     nan_index = np.isnan(A)
@@ -144,8 +146,8 @@ def a_b(f_GHz, pol, approx_type="ITU_2005"):
     'v' or 'V' for vertical polarization respectively.
 
     Currently only 'ITU' for approx_type is accepted. The approximation makes
-    use of a table recommanded by ITU [4]. There are two versions available, 
-    P.838-2 (04/2003) and P.838-3 (03/2005). 
+    use of a table recommanded by ITU [4]. There are two versions available,
+    P.838-2 (04/2003) and P.838-3 (03/2005).
 
     References
     ----------
@@ -160,7 +162,7 @@ def a_b(f_GHz, pol, approx_type="ITU_2005"):
     if f_GHz.min() < 1 or f_GHz.max() > 100:
         raise ValueError("Frequency must be between 1 Ghz and 100 GHz.")
     else:
-        
+
         # select ITU table
         if approx_type == "ITU_2003":
             ITU_table = ITU_table_2003.copy()
@@ -168,7 +170,7 @@ def a_b(f_GHz, pol, approx_type="ITU_2005"):
             ITU_table = ITU_table_2005.copy()
         else:
             raise ValueError("Approximation type not available.")
-        
+
         if pol == "V" or pol == "v":
             f_a = interp1d(ITU_table[0, :], ITU_table[2, :], kind="cubic")
             f_b = interp1d(ITU_table[0, :], ITU_table[4, :], kind="cubic")

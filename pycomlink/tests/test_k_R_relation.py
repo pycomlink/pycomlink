@@ -103,6 +103,17 @@ class Test_a_b(unittest.TestCase):
         assert_almost_equal(expected_a, calculated_a)
         assert_almost_equal(expected_b, calculated_b)
 
+    def test_raises(self):
+
+        with self.assertRaises(ValueError):
+            k_R_relation.a_b(-2, "H", approx_type="ITU_2005")
+
+        with self.assertRaises(ValueError):
+            k_R_relation.a_b(30, "b", approx_type="ITU_2005")
+
+        with self.assertRaises(ValueError):
+            k_R_relation.a_b(30, "H", approx_type="ITU_2000")
+
 
 class Test_calc_R_from_A(unittest.TestCase):
     def test_with_int(self):

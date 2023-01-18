@@ -161,7 +161,7 @@ class Test_nearby_wetdry_approach(unittest.TestCase):
             min_hours=6)
 
         ds_cml_minmax["wet"]=nb_wd.nearby_wetdry(
-            ds_cml_dataset=ds_cml_minmax,
+            ds_cml=ds_cml_minmax,
             ds_dist=ds_dist,
             r=15,
             thresh_median_P=-2.0,

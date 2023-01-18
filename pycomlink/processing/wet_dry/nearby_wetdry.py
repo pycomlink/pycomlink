@@ -111,7 +111,7 @@ def instanteanous_to_minmax_data(ds_cml, interval=15, timeperiod=24, min_hours=6
 
 
 def nearby_wetdry(
-        ds_cml_dataset,
+        ds_cml,
         ds_dist,
         r=15,
         thresh_median_P=-2.0,
@@ -156,20 +156,20 @@ def nearby_wetdry(
             & (ds_dist.b_to_all_b < r)
     )
 
-    wet = xr.full_like(ds_cml_dataset.pmin, np.nan)
+    wet = xr.full_like(ds_cml.pmin, np.nan)
 
-    for cmlid in tqdm(ds_cml_dataset.cml_id):
+    for cmlid in tqdm(ds_cml.cml_id):
         # only make wet dry detection if min_links is reachied within r
         if sum(ds_dist.within_r.sel(cml_id1=cmlid).values) > min_links:
             # select all CMLs within r
-            ds_nearby_cmls = ds_cml_dataset.isel(
+            ds_nearby_cmls = ds_cml.isel(
                 cml_id=ds_dist.within_r.sel(cml_id1=cmlid).values
             )
 
             # add selected cml if longer than r
-            if ds_cml_dataset.sel(cml_id=cmlid).length > r:
+            if ds_cml.sel(cml_id=cmlid).length > r:
                 ds_nearby_cmls = xr.concat(
-                    [ds_nearby_cmls, ds_cml_dataset.sel(cml_id=cmlid)],
+                    [ds_nearby_cmls, ds_cml.sel(cml_id=cmlid)],
                     dim="cml_id"
                 )
 

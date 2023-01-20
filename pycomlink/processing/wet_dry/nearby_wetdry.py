@@ -67,6 +67,12 @@ def calc_distance_between_cml_endpoints(
             np.array(site_b_longitude),
             np.array(site_b_latitude),
         )
+    # set distance between endpoints of one cml to 0km to not be rejected when
+    # radius r for the nearby approach is larger than r
+    ds = xr.where(
+        ds.cml_id1 == ds.cml_id2,
+        0,
+        ds)
     return ds
 
 
@@ -114,23 +120,23 @@ def nearby_wetdry(
         ds_cml,
         ds_dist,
         r=15,
-        thresh_median_P=-2.0,
-        thresh_median_PL=-0.3,
+        thresh_median_P=-1.4,
+        thresh_median_PL=-0.7,
         min_links=3,
 
 ):
     """
     calculating pmin from instanteanousy measured rsl and tsl values
     ----------
-    ds_selected_cml : xarray.Dataset
-         Time series of minmax values the CML selected for wet-dry calssification.
-    ds_selected_cml : xarray.Dataset
-         Time series of minmax values from all CMLs.
+    ds_cml : xarray.Dataset
+         Dataset consisting minmax values (pmin, max_pmin, deltaP and deltaPL
+         from CML data.
     ds_dist : xarray.Dataset
-         Distance matrix between all CML endpoints.
+         Distance matrix between all CML endpoints calculated with
+         `calc_distance_between_cml_endpoints()`
     r : float
-        Both end points are within a chosen radius r from either end of
-        the already selected link are selected as well.
+        Radius for which surrounding CMLs (both end points are within a chosen
+        radius r from either end of the selected link)
     thresh_median_P : float
         Threshold for median_P. Is dependent on the spatial correlation of rainfall.
     thresh_median_PL : float
@@ -166,8 +172,8 @@ def nearby_wetdry(
                 cml_id=ds_dist.within_r.sel(cml_id1=cmlid).values
             )
 
-            # add selected cml if longer than r
-            if ds_cml.sel(cml_id=cmlid).length > r:
+            # add selected cml if its excluded because its longer then r
+            if cmlid.values not in ds_nearby_cmls.cml_id:
                 ds_nearby_cmls = xr.concat(
                     [ds_nearby_cmls, ds_cml.sel(cml_id=cmlid)],
                     dim="cml_id"
@@ -202,7 +208,7 @@ def nearby_wetdry(
                     > 2
             )
             for shift in [-2, -1, 1]:
-                wet.loc[dict(cml_id=cmlid)] = xr.where(
+                wet.loc[dict(cml_id=cmlid.values)] = xr.where(
                     diff2db_rule.shift(time=shift) > 2,
                     x=1,
                     y=wet.loc[dict(cml_id=cmlid)],

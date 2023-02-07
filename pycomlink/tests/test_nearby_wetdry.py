@@ -116,14 +116,14 @@ class Test_nearby_wetdry_approach(unittest.TestCase):
                 np.repeat(-40, 140),
             ]
         )
-        rsl = np.reshape(np.repeat(rsl, 4), (-1, 4)).T
+        rsl = np.reshape(np.repeat(rsl, 5), (-1, 5)).T
 
-        tsl = np.reshape(np.repeat(10, 4 * 2160), (4, -1))
+        tsl = np.reshape(np.repeat(10, 5 * 2160), (5, -1))
 
-        a_lat = np.array([0, 0.01, 0.02, 0.5])
-        a_lon = np.array([0, 0.01, 0.02, 0.5])
-        b_lat = np.array([0.005, 0.02, 0.00, 0.512])
-        b_lon = np.array([0.01, 0.02, 0.03, 0.51])
+        a_lat = [0, 0.01, 0.02, 0.5, -0.075]
+        a_lon = [0, 0.01, 0.02, 0.5, -0.075]
+        b_lat = [0.005, 0.02, 0.00, 0.512, 0.075]
+        b_lon = [0.01, 0.02, 0.03, 0.51, 0.075]
 
         ds_cml = xr.Dataset(
             data_vars=dict(tsl=(["cml_id", "time"], tsl),
@@ -133,7 +133,7 @@ class Test_nearby_wetdry_approach(unittest.TestCase):
                     "2020-01-01 00:00",
                     "2020-01-02 11:59",
                     freq="1min"),
-                cml_id=["id0", "id1", "id2", "id3"],
+                cml_id=["id0", "id1", "id2", "id3", "id4"],
                 site_a_latitude=(["cml_id"], a_lat),
                 site_a_longitude=(["cml_id"], a_lon),
                 site_b_latitude=(["cml_id"], b_lat),
@@ -169,18 +169,25 @@ class Test_nearby_wetdry_approach(unittest.TestCase):
             min_links=2,
         )
 
+        test_result_array = np.array(
+            [np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan,
+             np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan,
+             np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, 0, 0,
+             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0,
+             0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+             1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        )
+
         np.testing.assert_array_almost_equal(
             ds_cml_minmax.wet.sel(cml_id="id1").values,
-            np.array(
-                [np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan,
-                 np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan,
-                 np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, 0, 0,
-                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0,
-                 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-            )
+            test_result_array
+        )
 
+        # test CML which is longer than r
+        np.testing.assert_array_almost_equal(
+            ds_cml_minmax.wet.sel(cml_id="id4").values,
+            test_result_array
         )

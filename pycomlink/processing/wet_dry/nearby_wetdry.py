@@ -126,7 +126,8 @@ def nearby_wetdry(
 
 ):
     """
-    calculating pmin from instanteanousy measured rsl and tsl values
+    Classification of rainy and dry periods from diagnostic (min-max) CML signal
+    levels following the nearby link approach.
     ----------
     ds_cml : xarray.Dataset
          Dataset consisting minmax values (pmin, max_pmin, deltaP and deltaPL

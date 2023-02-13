@@ -166,19 +166,12 @@ def nearby_wetdry(
     wet = xr.full_like(ds_cml.pmin, np.nan)
 
     for cmlid in tqdm(ds_cml.cml_id):
-        # only make wet dry detection if min_links is reachied within r
+        # only make wet dry detection if min_links is reached within r
         if sum(ds_dist.within_r.sel(cml_id1=cmlid).values) > min_links:
             # select all CMLs within r
             ds_nearby_cmls = ds_cml.isel(
                 cml_id=ds_dist.within_r.sel(cml_id1=cmlid).values
             )
-
-            # add selected cml if its excluded because its longer then r
-            if cmlid.values not in ds_nearby_cmls.cml_id:
-                ds_nearby_cmls = xr.concat(
-                    [ds_nearby_cmls, ds_cml.sel(cml_id=cmlid)],
-                    dim="cml_id"
-                )
 
             # calculate median delta P and delta PL for each timestep
             # .where checks if the minimal require number of CMLs has data

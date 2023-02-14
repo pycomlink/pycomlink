@@ -5,6 +5,18 @@ What's New
 Unreleased
 ----------
 
+v0.3.6
+------
+
+Enhancements
+~~~~~~~~~~~~
+* Implemented "nearby wet-dry approach" from RAINLINK (by maxmargraf in PR #113)
+* Updated ITU recommendation for k-R power law to version from 2005 (by nblettner in PR #110)
+
+Maintenance
+~~~~~~~~~~~~
+* remove parameters from model.compile() in wet-dry CNN method (by cchwala in PR #112)
+
 
 v0.3.5
 ------

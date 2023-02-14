@@ -12,8 +12,12 @@ def calc_distance_between_cml_endpoints(
     site_b_longitude,
 ):
     """
-    calculating the distance between all start and endpoints of a network
-    of CMLs using the Haversine distance forumla
+    Calculating the distance from and to all start and endpoints of a network
+    of CMLs using the Haversine distance formula. This includes the start and
+    endpoint of each CML (which equals its length). The distance between start
+    and enpoint of a CML will be set to 0 for the case when r (the radius for
+    which CMLs are considered to be "nearby") is smaller than the actual length
+    of the CML
     ----------
     cml_ids : list of str or int
          ids of CMLs
@@ -67,8 +71,11 @@ def calc_distance_between_cml_endpoints(
             np.array(site_b_longitude),
             np.array(site_b_latitude),
         )
-    # set distance between endpoints of one cml to 0km to not be rejected when
-    # radius r for the nearby approach is larger than r
+    # set distance between start and endpoint of each CML to 0km
+    # this has to be done so that CMLs are not rejected when the radius r
+    # which defines nearby CMLs is larger than the distance between endpoints
+    # of a CML (aka its length). Otherwise, the signal levels of CMLs with
+    # length > r will not be considered in the nearby approach
     ds = xr.where(
         ds.cml_id1 == ds.cml_id2,
         0,

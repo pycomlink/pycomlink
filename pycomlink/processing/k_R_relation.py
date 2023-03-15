@@ -1,5 +1,4 @@
 from __future__ import division
-from ctypes import ArgumentError
 import numpy as np
 
 from .xarray_wrapper import xarray_apply_along_time_dim

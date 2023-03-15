@@ -12,7 +12,7 @@ from .xarray_wrapper import xarray_apply_along_time_dim
 
 @xarray_apply_along_time_dim()
 def calc_R_from_A(A, L_km, f_GHz=None, pol=None, a=None, b=None, R_min=0.1):
-    """Calculate rain rate from attenuation using the k-R power law 
+    """Calculate rain rate from path-integrated attenuation using the k-R power law 
 
     Note that either `f_GHz` and `pol` or `a` and `b` have to be provided. The former
     option calculates `a` and `b` for the k-R power law internally.
@@ -44,9 +44,12 @@ def calc_R_from_A(A, L_km, f_GHz=None, pol=None, a=None, b=None, R_min=0.1):
 
     Note
     ----
-    The A-R Relationship is defined as
+    The A-R and k-R relation are defined as
 
-    .. math:: A = aR^{b}
+    .. math:: A = k L_{km} = aR^{b} L_{km}
+
+    where `A` is the path-integrated attenuation in dB and `k` is the specific
+    attenuation in dB/km.
 
     """
 

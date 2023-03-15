@@ -11,7 +11,7 @@ from .xarray_wrapper import xarray_apply_along_time_dim
 
 
 @xarray_apply_along_time_dim()
-def calc_R_from_A(A, L_km, f_GHz=None, pol=None, a=None, b=None, R_min=0.1):
+def calc_R_from_A(A, L_km, f_GHz=None, pol=None, a=None, b=None, a_b_approximation='ITU_2005', R_min=0.1):
     """Calculate rain rate from path-integrated attenuation using the k-R power law 
 
     Note that either `f_GHz` and `pol` or `a` and `b` have to be provided. The former
@@ -34,6 +34,9 @@ def calc_R_from_A(A, L_km, f_GHz=None, pol=None, a=None, b=None, R_min=0.1):
         Parameter of A-R relationship
     b : float, optional
         Parameter of A-R relationship
+    a_b_approximation : string
+        Specifies which approximatoin for the k-R power law shall be used. See the
+        function `a_b` for details.
     R_min : float
         Minimal rain rate in mm/h. Everything below will be set to zero.
 
@@ -55,7 +58,7 @@ def calc_R_from_A(A, L_km, f_GHz=None, pol=None, a=None, b=None, R_min=0.1):
 
     # Make sure that we only continue if correct combination of optional args is used
     if (f_GHz is not None) and (pol is not None) and (a is None) and (b is None):
-        a, b = a_b(f_GHz, pol=pol)
+        a, b = a_b(f_GHz, pol=pol, approx_type=a_b_approximation)
     elif (a is not None) and (b is not None) and (f_GHz is None) and (pol is None):
         # in this case we use `a` and `b` from args
         pass
@@ -136,7 +139,7 @@ def calc_R_from_A_min_max(
 
 
 def a_b(f_GHz, pol, approx_type="ITU_2005"):
-    """Approximation of parameters for k-R relationship
+    """Approximation of parameters a and b for k-R power law
 
     Parameters
     ----------

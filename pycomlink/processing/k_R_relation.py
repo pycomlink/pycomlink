@@ -1,4 +1,5 @@
 from __future__ import division
+from ctypes import ArgumentError
 import numpy as np
 
 from .xarray_wrapper import xarray_apply_along_time_dim
@@ -10,7 +11,7 @@ from .xarray_wrapper import xarray_apply_along_time_dim
 
 
 @xarray_apply_along_time_dim()
-def calc_R_from_A(A, L_km, f_GHz=None, a=None, b=None, pol=None , R_min=0.1):
+def calc_R_from_A(A, L_km, f_GHz=None, pol=None, a=None, b=None, R_min=0.1):
     """Calculate rain rate from attenuation using the k-R power law 
 
     Note that either `f_GHz` and `pol` or `a` and `b` have to be provided. The former
@@ -49,8 +50,16 @@ def calc_R_from_A(A, L_km, f_GHz=None, a=None, b=None, pol=None , R_min=0.1):
 
     """
 
-    if f_GHz is not None:
+    # Make sure that we only continue if correct combination of optional args is used
+    if (f_GHz is not None) and (pol is not None) and (a is None) and (b is None):
         a, b = a_b(f_GHz, pol=pol)
+    elif (a is not None) and (b is not None) and (f_GHz is None) and (pol is None):
+        # in this case we use `a` and `b` from args
+        pass
+    else:
+        raise ValueError(
+            "Either `f_GHz` and `pol` or `a` and `b` have to be passed. Any other combination is not allowed"
+        )
 
     A = np.atleast_1d(A).astype(float)
     R = np.zeros_like(A)

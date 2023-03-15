@@ -114,6 +114,7 @@ def waa_schleiss_2013(rsl, baseline, wet, waa_max, delta_t, tau):
 def waa_leijnse_2008_from_A_obs(
     A_obs,
     f_Hz,
+    pol,
     L_km,
     T_K=293.0,
     gamma=2.06e-5,
@@ -140,6 +141,8 @@ def waa_leijnse_2008_from_A_obs(
         Observed attenuation
     f_Hz : array-like or scalar (but only either `R` or `f_Hz` can be array)
         Frequency of CML in Hz
+    pol : string
+        Polarization of CML. Has to be either 'H' or 'V'.
     L_km : float
         Lenght of CML in kilometer
     gamma : float
@@ -180,7 +183,7 @@ def waa_leijnse_2008_from_A_obs(
     A_rain = np.logspace(-10, 3, 100)
     A_rain[0] = 0
 
-    R = k_R_relation.calc_R_from_A(A=A_rain, L_km=L_km, f_GHz=f_Hz / 1e9, R_min=0)
+    R = k_R_relation.calc_R_from_A(A=A_rain, L_km=L_km, f_GHz=f_Hz / 1e9, pol=pol, R_min=0)
     waa = waa_leijnse_2008(
         f_Hz=f_Hz,
         R=R,
@@ -297,6 +300,7 @@ def waa_leijnse_2008(
 def waa_pastorek_2021_from_A_obs(
     A_obs,
     f_Hz,
+    pol,
     L_km,
     A_max=14,
     zeta=0.55,
@@ -324,6 +328,8 @@ def waa_pastorek_2021_from_A_obs(
         Rain rate in mm/h
     f_Hz : array-like or scalar (but only either `R` or `f_Hz` can be array)
         Frequency of CML in Hz
+    pol: string
+        Polarisation of CML. Must be either 'H' or 'V'.
     L_km : float
         Lenght of CML in kilometer
     zeta : power-law parameters
@@ -352,7 +358,7 @@ def waa_pastorek_2021_from_A_obs(
     A_rain = np.logspace(-10, 3, 100)
     A_rain[0] = 0
 
-    R = k_R_relation.calc_R_from_A(A=A_rain, L_km=L_km, f_GHz=f_Hz / 1e9, R_min=0)
+    R = k_R_relation.calc_R_from_A(A=A_rain, L_km=L_km, f_GHz=f_Hz / 1e9, pol=pol, R_min=0)
 
     waa = waa_pastorek_2021(
         A_max=A_max,

@@ -87,14 +87,14 @@ class TestWaaLeijnse2008FromAobs(unittest.TestCase):
             ]
         )
         result = wet_antenna.waa_leijnse_2008_from_A_obs(
-            A_obs=np.arange(10), L_km=10, f_Hz=23e9
+            A_obs=np.arange(10), L_km=10, f_Hz=23e9, pol="H",
         )
         assert_almost_equal(expected, result)
 
     def test_error_with_negative_R(self):
         with self.assertRaises(ValueError) as cm:
             wet_antenna.waa_leijnse_2008_from_A_obs(
-                A_obs=np.array([0, 2, -1]), L_km=10, f_Hz=23e9
+                A_obs=np.array([0, 2, -1]), L_km=10, f_Hz=23e9, pol="H",
             )
             
             
@@ -160,14 +160,14 @@ class TestWaaPastorek2021FromAobs(unittest.TestCase):
             ]
         )
         result = wet_antenna.waa_pastorek_2021_from_A_obs(
-            A_obs=np.arange(10), f_Hz=23e9, L_km=10, A_max=14, zeta=0.55, d=0.1
+            A_obs=np.arange(10), f_Hz=23e9, pol="H", L_km=10, A_max=14, zeta=0.55, d=0.1
         )
         assert_almost_equal(expected, result)
 
     def test_error_with_negative_R(self):
         with self.assertRaises(ValueError) as cm:
             wet_antenna.waa_pastorek_2021_from_A_obs(
-                A_obs=np.array([0, 2, -1]), f_Hz=23e9, L_km=10, A_max=14, zeta=0.55, d=0.1
+                A_obs=np.array([0, 2, -1]), f_Hz=23e9, pol="H", L_km=10, A_max=14, zeta=0.55, d=0.1
             )
 
 

@@ -124,7 +124,7 @@ def calc_R_from_A_min_max(
 
 
 def a_b(f_GHz, pol, approx_type="ITU_2005"):
-    """Approximation of parameters for A-R relationship
+    """Approximation of parameters for k-R relationship
 
     Parameters
     ----------

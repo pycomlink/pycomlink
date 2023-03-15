@@ -141,12 +141,15 @@ class Test_calc_R_from_A(unittest.TestCase):
 
     def test_raise_with_wrong_args(self):
         with self.assertRaises(ValueError):
+            # missing `pol` when providing `f_GHz`
             calculated_R = k_R_relation.calc_R_from_A(A=2, L_km=42, f_GHz=10)
 
         with self.assertRaises(ValueError):
+            # not a valid combination to have `f_GHz` and `a`
             calculated_R = k_R_relation.calc_R_from_A(A=2, L_km=42, f_GHz=10, a=3.1)
 
         with self.assertRaises(ValueError):
+            # not a valid combination either since `a` is not allowed with `f_GHz and `pol` 
             calculated_R = k_R_relation.calc_R_from_A(A=2, L_km=42, f_GHz=10, pol='H', a=1)
 
     def test_different_power_law_approximation_types(self):

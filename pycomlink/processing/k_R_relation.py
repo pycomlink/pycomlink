@@ -14,14 +14,15 @@ def calc_R_from_A(A, L_km, f_GHz=None, pol=None, a=None, b=None, a_b_approximati
     """Calculate rain rate from path-integrated attenuation using the k-R power law 
 
     Note that either `f_GHz` and `pol` or `a` and `b` have to be provided. The former
-    option calculates `a` and `b` for the k-R power law internally.
+    option calculates the parameters `a` and `b` for the k-R power law internally
+    based on frequeny and polarization.
 
     Parameters
     ----------
     A : float or iterable of float
-        Path-integrates attenuation of microwave link signal
+        Path-integrated attenuation of microwave link signal
     L_km : float
-        length of the link
+        length of the link in km
     f_GHz : float, optional
         Frequency in GHz. If provided together with `pol`, it will be used to
         derive the parameters a and b for the k-R power law.
@@ -55,7 +56,7 @@ def calc_R_from_A(A, L_km, f_GHz=None, pol=None, a=None, b=None, a_b_approximati
 
     """
 
-    # Make sure that we only continue if correct combination of optional args is used
+    # Make sure that we only continue if a correct combination of optional args is used
     if (f_GHz is not None) and (pol is not None) and (a is None) and (b is None):
         a, b = a_b(f_GHz, pol=pol, approx_type=a_b_approximation)
     elif (a is not None) and (b is not None) and (f_GHz is None) and (pol is None):

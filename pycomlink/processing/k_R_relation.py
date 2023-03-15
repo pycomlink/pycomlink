@@ -10,25 +10,29 @@ from .xarray_wrapper import xarray_apply_along_time_dim
 
 
 @xarray_apply_along_time_dim()
-def calc_R_from_A(A, L_km, f_GHz=None, a=None, b=None, pol="H", R_min=0.1):
-    """Calculate rain rate from attenuation using the A-R Relationship
+def calc_R_from_A(A, L_km, f_GHz=None, a=None, b=None, pol=None , R_min=0.1):
+    """Calculate rain rate from attenuation using the k-R power law 
+
+    Note that either `f_GHz` and `pol` or `a` and `b` have to be provided. The former
+    option calculates `a` and `b` for the k-R power law internally.
 
     Parameters
     ----------
-    A : int, float, or iterable of int/float
-        Attenuation of microwave signal
+    A : float or iterable of float
+        Path-integrates attenuation of microwave link signal
+    L_km : float
+        length of the link
     f_GHz : float, optional
         Frequency in GHz. If provided together with `pol`, it will be used to
         derive the parameters a and b for the k-R power law.
-    pol : string
-        Polarization, default is 'H'. If provided together with `f_GHz`, it
-        will be used to derive the parameters a and b for the k-R power law.
+    pol : string, optional
+        Polarization that is either 'H' or 'V'. Has to be provided together with 
+        `f_GHz`. It will be used to derive the parameters a and b for the 
+        k-R power law.
     a : float, optional
         Parameter of A-R relationship
     b : float, optional
         Parameter of A-R relationship
-    L_km : float
-        length of the link
     R_min : float
         Minimal rain rate in mm/h. Everything below will be set to zero.
 

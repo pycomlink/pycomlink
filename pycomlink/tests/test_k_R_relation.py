@@ -120,7 +120,8 @@ class Test_calc_R_from_A(unittest.TestCase):
         A = 5
         L_km = 5
         f_GHz = 30
-        calculated_R = k_R_relation.calc_R_from_A(A, L_km, f_GHz)
+        pol = 'H'
+        calculated_R = k_R_relation.calc_R_from_A(A, L_km, f_GHz, pol)
         assert_almost_equal(4.49644185, calculated_R)
 
     def test_with_array(self):
@@ -128,31 +129,33 @@ class Test_calc_R_from_A(unittest.TestCase):
         A = np.linspace(0, 30, 5)
         A[3] = np.nan
 
+        pol = 'H'
+
         L_km = 0.1
         f_GHz = 80
         expected_R = np.array([0.0, 346.1952323, 917.0924868, np.nan, 2429.43446609])
-        calculated_R = k_R_relation.calc_R_from_A(A, L_km, f_GHz)
+        calculated_R = k_R_relation.calc_R_from_A(A, L_km, f_GHz, pol)
         assert_almost_equal(expected_R, calculated_R)
 
         L_km = 5
         f_GHz = 30
         expected_R = np.array([0.0, 6.89479467, 14.31845421, np.nan, 29.7352047])
-        calculated_R = k_R_relation.calc_R_from_A(A, L_km, f_GHz)
+        calculated_R = k_R_relation.calc_R_from_A(A, L_km, f_GHz, pol)
         assert_almost_equal(expected_R, calculated_R)
 
         L_km = 30
         f_GHz = 12
         expected_R = np.array([0.0, 7.29133826, 13.10322105, np.nan, 23.54772138])
-        calculated_R = k_R_relation.calc_R_from_A(A, L_km, f_GHz)
+        calculated_R = k_R_relation.calc_R_from_A(A, L_km, f_GHz, pol)
         assert_almost_equal(expected_R, calculated_R)
 
         L_km = 50
         f_GHz = 5
         expected_R = np.array([0.0, 47.24635411, 71.08341151, np.nan, 106.946906])
-        calculated_R = k_R_relation.calc_R_from_A(A, L_km, f_GHz)
+        calculated_R = k_R_relation.calc_R_from_A(A, L_km, f_GHz, pol)
         assert_almost_equal(expected_R, calculated_R)
 
         # without NaN
         expected_R = np.array([0.0, 47.24635411, 71.08341151])
-        calculated_R = k_R_relation.calc_R_from_A(A[:3], L_km, f_GHz)
+        calculated_R = k_R_relation.calc_R_from_A(A[:3], L_km, f_GHz, pol)
         assert_almost_equal(expected_R, calculated_R)

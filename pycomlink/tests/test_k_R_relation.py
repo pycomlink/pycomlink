@@ -139,6 +139,17 @@ class Test_calc_R_from_A(unittest.TestCase):
                 )
         assert_almost_equal(calculated_R_a_b, calculated_R_f_pol)
 
+    def test_raise_with_wrong_args(self):
+        with self.assertRaises(ValueError):
+            calculated_R = k_R_relation.calc_R_from_A(A=2, L_km=42, f_GHz=10)
+
+        with self.assertRaises(ValueError):
+            calculated_R = k_R_relation.calc_R_from_A(A=2, L_km=42, f_GHz=10, a=3.1)
+
+        with self.assertRaises(ValueError):
+            calculated_R = k_R_relation.calc_R_from_A(A=2, L_km=42, f_GHz=10, pol='H', a=1)
+
+
     def test_with_array(self):
 
         A = np.linspace(0, 30, 5)

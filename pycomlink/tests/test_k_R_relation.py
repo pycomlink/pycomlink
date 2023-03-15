@@ -124,6 +124,21 @@ class Test_calc_R_from_A(unittest.TestCase):
         calculated_R = k_R_relation.calc_R_from_A(A, L_km, f_GHz, pol)
         assert_almost_equal(4.49644185, calculated_R)
 
+    def test_with_arg_a_b(self):
+        A = 5
+        L_km = 3
+        f_GHz = 23
+        pol = 'V'
+        a, b = k_R_relation.a_b(f_GHz=f_GHz, pol=pol)
+
+        calculated_R_a_b = k_R_relation.calc_R_from_A(
+                A=A, L_km=L_km, a=a, b=b,
+                )
+        calculated_R_f_pol = k_R_relation.calc_R_from_A(
+                A=A, L_km=L_km, f_GHz=f_GHz, pol=pol,
+                )
+        assert_almost_equal(calculated_R_a_b, calculated_R_f_pol)
+
     def test_with_array(self):
 
         A = np.linspace(0, 30, 5)

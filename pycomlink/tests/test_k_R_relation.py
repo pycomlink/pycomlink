@@ -8,7 +8,6 @@ from pycomlink.processing import k_R_relation
 
 class Test_a_b(unittest.TestCase):
     def test_with_float(self):
-
         f_GHz = 30
 
         pol = "V"
@@ -26,7 +25,6 @@ class Test_a_b(unittest.TestCase):
         assert_almost_equal(0.9485, calculated_b)
 
     def test_with_array(self):
-
         f_GHz = np.arange(1, 100, 0.5)
 
         pol = "V"
@@ -60,7 +58,6 @@ class Test_a_b(unittest.TestCase):
         )
 
     def test_interpolation(self):
-
         f_GHz = np.array([1.7, 28.9, 82.1])
 
         pol = "V"
@@ -82,7 +79,6 @@ class Test_a_b(unittest.TestCase):
         assert_almost_equal(expected_b, calculated_b)
 
     def test_2003_ITU_table(self):
-
         f_GHz = np.array([2, 35, 90])
 
         pol = "V"
@@ -104,7 +100,6 @@ class Test_a_b(unittest.TestCase):
         assert_almost_equal(expected_b, calculated_b)
 
     def test_raises(self):
-
         with self.assertRaises(ValueError):
             k_R_relation.a_b(-2, "H", approx_type="ITU_2005")
 
@@ -120,7 +115,7 @@ class Test_calc_R_from_A(unittest.TestCase):
         A = 5
         L_km = 5
         f_GHz = 30
-        pol = 'H'
+        pol = "H"
         calculated_R = k_R_relation.calc_R_from_A(A, L_km, f_GHz, pol)
         assert_almost_equal(4.49644185, calculated_R)
 
@@ -128,15 +123,21 @@ class Test_calc_R_from_A(unittest.TestCase):
         A = 5
         L_km = 3
         f_GHz = 23
-        pol = 'V'
+        pol = "V"
         a, b = k_R_relation.a_b(f_GHz=f_GHz, pol=pol)
 
         calculated_R_a_b = k_R_relation.calc_R_from_A(
-                A=A, L_km=L_km, a=a, b=b,
-                )
+            A=A,
+            L_km=L_km,
+            a=a,
+            b=b,
+        )
         calculated_R_f_pol = k_R_relation.calc_R_from_A(
-                A=A, L_km=L_km, f_GHz=f_GHz, pol=pol,
-                )
+            A=A,
+            L_km=L_km,
+            f_GHz=f_GHz,
+            pol=pol,
+        )
         assert_almost_equal(calculated_R_a_b, calculated_R_f_pol)
 
     def test_raise_with_wrong_args(self):
@@ -149,27 +150,32 @@ class Test_calc_R_from_A(unittest.TestCase):
             calculated_R = k_R_relation.calc_R_from_A(A=2, L_km=42, f_GHz=10, a=3.1)
 
         with self.assertRaises(ValueError):
-            # not a valid combination either since `a` is not allowed with `f_GHz and `pol` 
-            calculated_R = k_R_relation.calc_R_from_A(A=2, L_km=42, f_GHz=10, pol='H', a=1)
+            # not a valid combination either since `a` is not allowed with `f_GHz and `pol`
+            calculated_R = k_R_relation.calc_R_from_A(
+                A=2, L_km=42, f_GHz=10, pol="H", a=1
+            )
 
     def test_different_power_law_approximation_types(self):
         A = 5
         L_km = 5
         f_GHz = 30
-        pol = 'H'
+        pol = "H"
 
-        calculated_R = k_R_relation.calc_R_from_A(A, L_km, f_GHz, pol, a_b_approximation='ITU_2005')
+        calculated_R = k_R_relation.calc_R_from_A(
+            A, L_km, f_GHz, pol, a_b_approximation="ITU_2005"
+        )
         assert_almost_equal(4.49644185, calculated_R)
 
-        calculated_R = k_R_relation.calc_R_from_A(A, L_km, f_GHz, pol, a_b_approximation='ITU_2003')
+        calculated_R = k_R_relation.calc_R_from_A(
+            A, L_km, f_GHz, pol, a_b_approximation="ITU_2003"
+        )
         assert_almost_equal(5.1663233, calculated_R)
 
     def test_with_array(self):
-
         A = np.linspace(0, 30, 5)
         A[3] = np.nan
 
-        pol = 'H'
+        pol = "H"
 
         L_km = 0.1
         f_GHz = 80

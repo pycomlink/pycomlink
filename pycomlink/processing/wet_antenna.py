@@ -183,7 +183,9 @@ def waa_leijnse_2008_from_A_obs(
     A_rain = np.logspace(-10, 3, 100)
     A_rain[0] = 0
 
-    R = k_R_relation.calc_R_from_A(A=A_rain, L_km=L_km, f_GHz=f_Hz / 1e9, pol=pol, R_min=0)
+    R = k_R_relation.calc_R_from_A(
+        A=A_rain, L_km=L_km, f_GHz=f_Hz / 1e9, pol=pol, R_min=0
+    )
     waa = waa_leijnse_2008(
         f_Hz=f_Hz,
         R=R,
@@ -255,7 +257,7 @@ def waa_leijnse_2008(
     n_air = 1
     c = 299792458
 
-    l = gamma * R ** delta
+    l = gamma * R**delta
 
     n_water = np.sqrt(eps_water(f_Hz=f_Hz, T_K=T_K))
 
@@ -306,7 +308,6 @@ def waa_pastorek_2021_from_A_obs(
     zeta=0.55,
     d=0.1,
 ):
-
     """Calculate wet antenna attenuation according to Pastorek et al. 2021 [3]
     (model denoted "KR-alt" in their study, i.e. a variation of the WAA model
     suggested by Kharadly and Ross 2001 [4])
@@ -358,14 +359,11 @@ def waa_pastorek_2021_from_A_obs(
     A_rain = np.logspace(-10, 3, 100)
     A_rain[0] = 0
 
-    R = k_R_relation.calc_R_from_A(A=A_rain, L_km=L_km, f_GHz=f_Hz / 1e9, pol=pol, R_min=0)
-
-    waa = waa_pastorek_2021(
-        A_max=A_max,
-        R=R,
-        zeta=zeta,
-        d=d
+    R = k_R_relation.calc_R_from_A(
+        A=A_rain, L_km=L_km, f_GHz=f_Hz / 1e9, pol=pol, R_min=0
     )
+
+    waa = waa_pastorek_2021(A_max=A_max, R=R, zeta=zeta, d=d)
 
     A_obs_theoretical = A_rain + waa
 
@@ -415,13 +413,12 @@ def waa_pastorek_2021(
 
     R = np.asanyarray(R)
 
-    waa = A_max * (1 - np.exp(-d * (R ** zeta)))
+    waa = A_max * (1 - np.exp(-d * (R**zeta)))
 
     # Assure that numeric inaccuracy does not lead to waa > 0 for R == 0
     waa[R == 0] = 0
 
-    return waa#@xarray_apply_along_time_dim()
-
+    return waa  # @xarray_apply_along_time_dim()
 
 
 def eps_water(f_Hz, T_K):

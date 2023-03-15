@@ -83,21 +83,27 @@ class TestWaaLeijnse2008FromAobs(unittest.TestCase):
                 1.66444932,
                 1.73214808,
                 1.79472864,
-                1.84852106
+                1.84852106,
             ]
         )
         result = wet_antenna.waa_leijnse_2008_from_A_obs(
-            A_obs=np.arange(10), L_km=10, f_Hz=23e9, pol="H",
+            A_obs=np.arange(10),
+            L_km=10,
+            f_Hz=23e9,
+            pol="H",
         )
         assert_almost_equal(expected, result)
 
     def test_error_with_negative_R(self):
         with self.assertRaises(ValueError) as cm:
             wet_antenna.waa_leijnse_2008_from_A_obs(
-                A_obs=np.array([0, 2, -1]), L_km=10, f_Hz=23e9, pol="H",
+                A_obs=np.array([0, 2, -1]),
+                L_km=10,
+                f_Hz=23e9,
+                pol="H",
             )
-            
-            
+
+
 class TestWaaPastorek2021(unittest.TestCase):
     def test_with_R_array(self):
         R = np.logspace(-3, 2, 6)
@@ -108,10 +114,24 @@ class TestWaaPastorek2021(unittest.TestCase):
                 [0.01118109, 0.03955909, 0.13895185, 0.47581291, 1.49347849, 3.58020499]
             ),
             "14": np.array(
-                [0.03130704,  0.11076545,  0.38906518,  1.33227615,  4.18173977, 10.02457398]
+                [
+                    0.03130704,
+                    0.11076545,
+                    0.38906518,
+                    1.33227615,
+                    4.18173977,
+                    10.02457398,
+                ]
             ),
             "20": np.array(
-                [0.04472434,  0.15823636,  0.55580741,  1.90325164,  5.97391396, 14.32081997]
+                [
+                    0.04472434,
+                    0.15823636,
+                    0.55580741,
+                    1.90325164,
+                    5.97391396,
+                    14.32081997,
+                ]
             ),
         }
 
@@ -121,17 +141,30 @@ class TestWaaPastorek2021(unittest.TestCase):
             result = wet_antenna.waa_pastorek_2021(R=R, A_max=A_max, zeta=0.55, d=0.1)
             assert_almost_equal(expected, result)
 
-
         # some values for zeta
         expected_dict = {
             "0.3": np.array(
                 [0.17514477, 0.34728415, 0.68436903, 1.33227615, 2.53233773, 4.59773931]
             ),
             "0.55": np.array(
-                [0.03130704,  0.11076545,  0.38906518,  1.33227615,  4.18173977, 10.02457398]
+                [
+                    0.03130704,
+                    0.11076545,
+                    0.38906518,
+                    1.33227615,
+                    4.18173977,
+                    10.02457398,
+                ]
             ),
             "0.65": np.array(
-                [ 0.01569945,  0.06999067,  0.30993868,  1.33227615,  5.04355184, 12.09630827]
+                [
+                    0.01569945,
+                    0.06999067,
+                    0.30993868,
+                    1.33227615,
+                    5.04355184,
+                    12.09630827,
+                ]
             ),
         }
 
@@ -140,7 +173,6 @@ class TestWaaPastorek2021(unittest.TestCase):
             expected = expected_dict[k]
             result = wet_antenna.waa_pastorek_2021(R=R, A_max=14, zeta=zeta, d=0.1)
             assert_almost_equal(expected, result)
-
 
 
 class TestWaaPastorek2021FromAobs(unittest.TestCase):
@@ -156,7 +188,7 @@ class TestWaaPastorek2021FromAobs(unittest.TestCase):
                 2.26924516,
                 2.49339808,
                 2.69506481,
-                2.88842441
+                2.88842441,
             ]
         )
         result = wet_antenna.waa_pastorek_2021_from_A_obs(
@@ -167,9 +199,14 @@ class TestWaaPastorek2021FromAobs(unittest.TestCase):
     def test_error_with_negative_R(self):
         with self.assertRaises(ValueError) as cm:
             wet_antenna.waa_pastorek_2021_from_A_obs(
-                A_obs=np.array([0, 2, -1]), f_Hz=23e9, pol="H", L_km=10, A_max=14, zeta=0.55, d=0.1
+                A_obs=np.array([0, 2, -1]),
+                f_Hz=23e9,
+                pol="H",
+                L_km=10,
+                A_max=14,
+                zeta=0.55,
+                d=0.1,
             )
-
 
 
 class TestEpswater(unittest.TestCase):

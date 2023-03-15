@@ -124,7 +124,10 @@ def test_calc_R_from_A():
     cml["A"] = cml.A.where((cml.A.isnull().values | (cml.A.values >= 0)), 0)
 
     cml["R"] = pycml.processing.k_R_relation.calc_R_from_A(
-        A=cml.A, L_km=cml.length, f_GHz=cml.frequency, pol=cml.polarization,
+        A=cml.A,
+        L_km=cml.length,
+        f_GHz=cml.frequency,
+        pol=cml.polarization,
     )
 
     for channel_id in range(len(cml.channel_id)):

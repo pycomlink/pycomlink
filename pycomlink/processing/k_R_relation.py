@@ -10,8 +10,17 @@ from .xarray_wrapper import xarray_apply_along_time_dim
 
 
 @xarray_apply_along_time_dim()
-def calc_R_from_A(A, L_km, f_GHz=None, pol=None, a=None, b=None, a_b_approximation='ITU_2005', R_min=0.1):
-    """Calculate rain rate from path-integrated attenuation using the k-R power law 
+def calc_R_from_A(
+    A,
+    L_km,
+    f_GHz=None,
+    pol=None,
+    a=None,
+    b=None,
+    a_b_approximation="ITU_2005",
+    R_min=0.1,
+):
+    """Calculate rain rate from path-integrated attenuation using the k-R power law
 
     Note that either `f_GHz` and `pol` or `a` and `b` have to be provided. The former
     option calculates the parameters `a` and `b` for the k-R power law internally
@@ -27,8 +36,8 @@ def calc_R_from_A(A, L_km, f_GHz=None, pol=None, a=None, b=None, a_b_approximati
         Frequency in GHz. If provided together with `pol`, it will be used to
         derive the parameters a and b for the k-R power law.
     pol : string, optional
-        Polarization that is either 'H' or 'V'. Has to be provided together with 
-        `f_GHz`. It will be used to derive the parameters a and b for the 
+        Polarization that is either 'H' or 'V'. Has to be provided together with
+        `f_GHz`. It will be used to derive the parameters a and b for the
         k-R power law.
     a : float, optional
         Parameter of A-R relationship
@@ -181,7 +190,6 @@ def a_b(f_GHz, pol, approx_type="ITU_2005"):
     if f_GHz.min() < 1 or f_GHz.max() > 100:
         raise ValueError("Frequency must be between 1 Ghz and 100 GHz.")
     else:
-
         # select ITU table
         if approx_type == "ITU_2003":
             ITU_table = ITU_table_2003.copy()

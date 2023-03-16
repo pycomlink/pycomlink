@@ -36,9 +36,9 @@ def calc_R_from_A(
         Frequency in GHz. If provided together with `pol`, it will be used to
         derive the parameters a and b for the k-R power law.
     pol : string, optional
-        Polarization, that is either 'H' for horizontal or 'V' for vertical. Has to be provided together with
-        `f_GHz`. It will be used to derive the parameters a and b for the
-        k-R power law.
+        Polarization, that is either 'H' for horizontal or 'V' for vertical. Has 
+        to be provided together with `f_GHz`. It will be used to derive the 
+        parameters a and b for the k-R power law.
     a : float, optional
         Parameter of A-R relationship
     b : float, optional

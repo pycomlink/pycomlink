@@ -24,19 +24,19 @@ def calc_R_from_A(
 
     Note that either `f_GHz` and `pol` or `a` and `b` have to be provided. The former
     option calculates the parameters `a` and `b` for the k-R power law internally
-    based on frequeny and polarization.
+    based on frequency and polarization.
 
     Parameters
     ----------
     A : float or iterable of float
         Path-integrated attenuation of microwave link signal
     L_km : float
-        length of the link in km
+        Length of the link in km
     f_GHz : float, optional
         Frequency in GHz. If provided together with `pol`, it will be used to
         derive the parameters a and b for the k-R power law.
     pol : string, optional
-        Polarization that is either 'H' or 'V'. Has to be provided together with
+        Polarization, that is either 'H' for horizontal or 'V' for vertical. Has to be provided together with
         `f_GHz`. It will be used to derive the parameters a and b for the
         k-R power law.
     a : float, optional
@@ -44,7 +44,7 @@ def calc_R_from_A(
     b : float, optional
         Parameter of A-R relationship
     a_b_approximation : string
-        Specifies which approximatoin for the k-R power law shall be used. See the
+        Specifies which approximation for the k-R power law shall be used. See the
         function `a_b` for details.
     R_min : float
         Minimal rain rate in mm/h. Everything below will be set to zero.
@@ -73,7 +73,7 @@ def calc_R_from_A(
         pass
     else:
         raise ValueError(
-            "Either `f_GHz` and `pol` or `a` and `b` have to be passed. Any other combination is not allowed"
+            "Either `f_GHz` and `pol` or `a` and `b` have to be passed. Any other combination is not allowed."
         )
 
     A = np.atleast_1d(A).astype(float)

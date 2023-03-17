@@ -10,25 +10,42 @@ from .xarray_wrapper import xarray_apply_along_time_dim
 
 
 @xarray_apply_along_time_dim()
-def calc_R_from_A(A, L_km, f_GHz=None, a=None, b=None, pol="H", R_min=0.1):
-    """Calculate rain rate from attenuation using the A-R Relationship
+def calc_R_from_A(
+    A,
+    L_km,
+    f_GHz=None,
+    pol=None,
+    a=None,
+    b=None,
+    a_b_approximation="ITU_2005",
+    R_min=0.1,
+):
+    """Calculate rain rate from path-integrated attenuation using the k-R power law
+
+    Note that either `f_GHz` and `pol` or `a` and `b` have to be provided. The former
+    option calculates the parameters `a` and `b` for the k-R power law internally
+    based on frequency and polarization.
 
     Parameters
     ----------
-    A : int, float, or iterable of int/float
-        Attenuation of microwave signal
+    A : float or iterable of float
+        Path-integrated attenuation of microwave link signal
+    L_km : float
+        Length of the link in km
     f_GHz : float, optional
         Frequency in GHz. If provided together with `pol`, it will be used to
         derive the parameters a and b for the k-R power law.
-    pol : string
-        Polarization, default is 'H'. If provided together with `f_GHz`, it
-        will be used to derive the parameters a and b for the k-R power law.
+    pol : string, optional
+        Polarization, that is either 'H' for horizontal or 'V' for vertical. Has 
+        to be provided together with `f_GHz`. It will be used to derive the 
+        parameters a and b for the k-R power law.
     a : float, optional
         Parameter of A-R relationship
     b : float, optional
         Parameter of A-R relationship
-    L_km : float
-        length of the link
+    a_b_approximation : string
+        Specifies which approximation for the k-R power law shall be used. See the
+        function `a_b` for details.
     R_min : float
         Minimal rain rate in mm/h. Everything below will be set to zero.
 
@@ -39,14 +56,25 @@ def calc_R_from_A(A, L_km, f_GHz=None, a=None, b=None, pol="H", R_min=0.1):
 
     Note
     ----
-    The A-R Relationship is defined as
+    The A-R and k-R relation are defined as
 
-    .. math:: A = aR^{b}
+    .. math:: A = k L_{km} = aR^{b} L_{km}
+
+    where `A` is the path-integrated attenuation in dB and `k` is the specific
+    attenuation in dB/km.
 
     """
 
-    if f_GHz is not None:
-        a, b = a_b(f_GHz, pol=pol)
+    # Make sure that we only continue if a correct combination of optional args is used
+    if (f_GHz is not None) and (pol is not None) and (a is None) and (b is None):
+        a, b = a_b(f_GHz, pol=pol, approx_type=a_b_approximation)
+    elif (a is not None) and (b is not None) and (f_GHz is None) and (pol is None):
+        # in this case we use `a` and `b` from args
+        pass
+    else:
+        raise ValueError(
+            "Either `f_GHz` and `pol` or `a` and `b` have to be passed. Any other combination is not allowed."
+        )
 
     A = np.atleast_1d(A).astype(float)
     R = np.zeros_like(A)
@@ -120,7 +148,7 @@ def calc_R_from_A_min_max(
 
 
 def a_b(f_GHz, pol, approx_type="ITU_2005"):
-    """Approximation of parameters for A-R relationship
+    """Approximation of parameters a and b for k-R power law
 
     Parameters
     ----------
@@ -162,7 +190,6 @@ def a_b(f_GHz, pol, approx_type="ITU_2005"):
     if f_GHz.min() < 1 or f_GHz.max() > 100:
         raise ValueError("Frequency must be between 1 Ghz and 100 GHz.")
     else:
-
         # select ITU table
         if approx_type == "ITU_2003":
             ITU_table = ITU_table_2003.copy()

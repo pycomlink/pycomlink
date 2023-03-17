@@ -1,8 +1,7 @@
 import pkg_resources
 from os import path
 
-
-from pycomlink.io.cmlh5_to_xarray import read_cmlh5_file_to_xarray
+from .. io.cmlh5_to_xarray import read_cmlh5_file_to_xarray
 
 
 def get_example_data_path():

@@ -2,8 +2,7 @@ from __future__ import division
 from collections import namedtuple
 import numpy as np
 
-from pycomlink.util.maintenance import deprecated
-
+from .. util.maintenance import deprecated
 
 class WetDryError(
     namedtuple(

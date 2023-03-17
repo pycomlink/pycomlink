@@ -1,7 +1,7 @@
 import h5py
 import xarray as xr
 from tqdm import tqdm
-from pycomlink.spatial.helper import haversine
+from .. spatial.helper import haversine
 
 
 def read_cmlh5_file_to_xarray(filename):

@@ -1,8 +1,7 @@
 import xarray as xr
 import numpy as np
 from tqdm import tqdm
-import pycomlink.spatial.helper as spatial
-
+from ... spatial import helper as spatial
 
 def calc_distance_between_cml_endpoints(
     cml_ids,

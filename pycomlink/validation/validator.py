@@ -8,9 +8,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from shapely.geometry import LineString, Polygon
 
-import pycomlink.spatial.grid_intersection as grid_intersection
-from pycomlink.util.maintenance import deprecated
-
+from .. spatial import grid_intersection
+from .. util.maintenance import deprecated
 
 class Validator(object):
     def __init__(self):

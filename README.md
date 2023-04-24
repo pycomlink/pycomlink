@@ -13,7 +13,9 @@ A python toolbox for deriving rainfall information from commercial microwave lin
 Installation
 ------------
 
-`pycomlink` is tested with Python 3.7, 3.8 and 3.9. It should also work without problems on Python 3.6. It might still work with Python 2.7, but this is not tested. It can be installed via [`conda-forge`](https://conda-forge.org/):
+`pycomlink` is tested with Python 3.9 and 3.10. There have been problems with Python 3.8, see https://github.com/pycomlink/pycomlink/pull/120. Many things might work with older version, but there is no support for this.
+
+It can be installed via [`conda-forge`](https://conda-forge.org/):
 
     $ conda install -c conda-forge pycomlink
 

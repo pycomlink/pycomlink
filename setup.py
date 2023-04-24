@@ -36,9 +36,9 @@ setup(
         "Development Status :: 3 - Alpha",
         "Topic :: Scientific/Engineering :: Atmospheric Science",
         "License :: OSI Approved :: BSD License",
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
     ],
     # A list of all available classifiers can be found at 
     # https://pypi.python.org/pypi?%3Aaction=list_classifiers

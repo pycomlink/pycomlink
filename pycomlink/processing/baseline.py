@@ -43,7 +43,7 @@ def baseline_constant(trsl, wet, n_average_last_dry=1):
 
     return _numba_baseline_constant(
         trsl=np.asarray(trsl, dtype=np.float64),
-        wet=np.asarray(wet, dtype=np.bool),
+        wet=np.asarray(wet, dtype=bool),
         n_average_last_dry=n_average_last_dry,
     )
 

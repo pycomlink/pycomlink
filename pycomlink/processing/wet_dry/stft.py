@@ -182,7 +182,7 @@ def stft_classification(
     P_sum_diff = P_norm_low / N_f_divide_low - P_norm_high / N_f_divide_high
 
     nan_index = np.isnan(P_sum_diff)
-    wet = np.zeros_like(P_sum_diff, dtype=np.bool)
+    wet = np.zeros_like(P_sum_diff, dtype=bool)
     wet[~nan_index] = P_sum_diff[~nan_index] > threshold
 
     info = {

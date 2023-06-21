@@ -209,7 +209,7 @@ def waa_leijnse_2008(
     T_K=293.0,
     gamma=2.06e-5,
     delta=0.24,
-    n_antenna=np.complex(1.73, 0.014),
+    n_antenna=complex(1.73, 0.014),
     l_antenna=0.001,
 ):
     """Calculate wet antenna attenuation according to Leijnse et al. 2008

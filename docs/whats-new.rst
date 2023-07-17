@@ -5,6 +5,22 @@ What's New
 Unreleased
 ----------
 
+
+
+v0.3.7
+------
+
+Maintenance
+~~~~~~~~~~~~
+* Change absolute imports of pycomlink to relative imports (by cchwala in PR #119)
+* Drop Python 3.7 and Python 3.8 support in CI (by cchwala in PR #120)
+* Replaced depreciated np.complex and np.bool (by maxmargraf in PR #122, #123 and #124)
+
+Bug fixes
+~~~~~~~~~
+* Fix problems related to missing pol argument in example workflow (by cchwala in PR #116)
+
+
 v0.3.6
 ------
 

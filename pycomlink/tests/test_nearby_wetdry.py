@@ -91,7 +91,7 @@ class Test_nearby_wetdry_approach(unittest.TestCase):
             ),
         )
 
-        ds_cml_minmax = nb_wd.instanteanous_to_minmax_data(
+        ds_cml_minmax = nb_wd.instantaneous_to_minmax_data(
             ds_cml,
             interval=15,
             timeperiod=24,
@@ -154,13 +154,18 @@ class Test_nearby_wetdry_approach(unittest.TestCase):
         )
 
         # create min max data
-        ds_cml_minmax = nb_wd.instanteanous_to_minmax_data(
+        ds_cml_minmax = nb_wd.instantaneous_to_minmax_data(
             ds_cml,
             interval=15,
             timeperiod=24,
             min_hours=6)
 
-        ds_cml_minmax["wet"]=nb_wd.nearby_wetdry(
+        (
+            ds_cml_minmax["wet"],
+            ds_cml_minmax["F"],
+            ds_cml_minmax["medianP"],
+            ds_cml_minmax["medianPL"],
+        ) = nb_wd.nearby_wetdry(
             ds_cml=ds_cml_minmax,
             ds_dist=ds_dist,
             r=15,
@@ -169,16 +174,21 @@ class Test_nearby_wetdry_approach(unittest.TestCase):
             min_links=2,
         )
 
-        test_result_array = np.array(
-            [np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan,
-             np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan,
-             np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, 0, 0,
-             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0,
-             0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-             1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        test_result_array = np.array([
+            np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan,
+            np.nan, np.nan, np.nan, np.nan, np.nan,
+            np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan,
+            np.nan, np.nan, 0., 0., 0.,
+            0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+            0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+            0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+            0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+            0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+            0., 0., 0., 0., 1., 1., 1., 1., 1., 1., 0., 0., 0.,
+            0., 0., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.,
+            1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 0.,
+            1., 1., 1., 1., 1., 1., 0., 0., 0., 0., 0., 0., 1.,
+            1.]
         )
 
         np.testing.assert_array_almost_equal(

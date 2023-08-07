@@ -2,11 +2,10 @@ import unittest
 import numpy as np
 import xarray as xr
 import pandas as pd
-from tqdm import tqdm
 
 import pycomlink.processing.wet_dry.nearby_wetdry as nb_wd
 import pycomlink.spatial.helper as spatial
-
+import pycomlink.processing.nearby_rain_retrival as nearby_rain
 
 
 class Test_nearby_wetdry_approach(unittest.TestCase):
@@ -178,8 +177,7 @@ class Test_nearby_wetdry_approach(unittest.TestCase):
             np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan,
             np.nan, np.nan, np.nan, np.nan, np.nan,
             np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan,
-            np.nan, np.nan, 0., 0., 0.,
-            0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+            np.nan, np.nan, 0., 0., 0.,0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
             0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
             0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
             0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,

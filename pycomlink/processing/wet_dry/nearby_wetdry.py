@@ -83,12 +83,16 @@ def calc_distance_between_cml_endpoints(
     return ds
 
 
-def instantaneous_to_minmax_data(ds_cml, interval=15, timeperiod=24, min_hours=6):
+def instantaneous_to_minmax_data(rsl, tsl, length, interval=15, timeperiod=24, min_hours=6):
     """
     calculating pmin from instanteanousy measured rsl and tsl values
     ----------
-    ds_cml : xarray.Dataset
-         Time series of rsl and tsl
+    rsl : xarray.DataArray
+         Time series of received signal levels (rsl)
+    tsl : xarray.DataArray
+         Time series of transmitted signal levels (tsl)
+    length : xarray.Dataset,float64
+        Lengths of CML(s) which are provided
     interval : int
         Interval of pmin in minutes
     timeperiod : int
@@ -97,7 +101,7 @@ def instantaneous_to_minmax_data(ds_cml, interval=15, timeperiod=24, min_hours=6
         Minimum number of hours needed to compute max(pmin)
     Returns
     -------
-    xarray.Dataset
+    tuple of xarray.Datasets
         Time series of pmin, max_pmin, deltaP and deltaPL
     References
     ----------
@@ -105,27 +109,35 @@ def instantaneous_to_minmax_data(ds_cml, interval=15, timeperiod=24, min_hours=6
     for rainfall mapping from microwave links in a cellular communication network,
     Atmos. Meas. Tech., 9, 2425–2444, https://doi.org/10.5194/amt-9-2425-2016, 2016.
     """
-    ds_cml["pmin"] = ds_cml.rsl - ds_cml.tsl
-    ds_cml_minmax = ds_cml.pmin.resample(time=str(interval) + "min").min().to_dataset()
-    ds_cml_minmax["pmax"] = ds_cml.pmin.resample(time=str(interval) + "min").max()
+    pmin = rsl - tsl
+    pmin = pmin.resample(time=str(interval) + "min").min()
+    pmax = pmin.resample(time=str(interval) + "min").max()
 
     # rolling window * 60min/interval(in minutes)
     period = int(timeperiod * 60 / interval)
     # min hours for calculation * 60min/interval(in minutes)
     hours_needed = int(min_hours * 60 / interval)
-    ds_cml_minmax["max_pmin"] = ds_cml_minmax.pmin.rolling(
+    max_pmin = pmin.rolling(
         time=period,
         min_periods=hours_needed,
     ).max(skipna=False)
 
-    ds_cml_minmax["deltaP"] = ds_cml_minmax.pmin - ds_cml_minmax.max_pmin
-    ds_cml_minmax["deltaPL"] = ds_cml_minmax["deltaP"] / ds_cml_minmax.length
+    deltaP = pmin - max_pmin
+    deltaPL = deltaP / length
 
-    return ds_cml_minmax
+    return (
+        pmin,
+        max_pmin,
+        deltaP,
+        deltaPL,
+    )
 
 
 def nearby_wetdry(
-        ds_cml,
+        pmin,
+        max_pmin,
+        deltaP,
+        deltaPL,
         ds_dist,
         r=15,
         thresh_median_P=-1.4,
@@ -138,12 +150,17 @@ def nearby_wetdry(
     Classification of rainy and dry periods from diagnostic (min-max) CML signal
     levels following the nearby link approach.
     ----------
-    ds_cml : xarray.Dataset
-         Dataset consisting minmax values (pmin, max_pmin, deltaP and deltaPL)
-         from CML data.
+    pmin : xarray.DataArray
+         Time series of pmin, must include cml_id and time as dimensions
+    max_pmin: xarray.DataArray
+        Time series of max_pmin, must include cml_id and time as dimensions
+    deltaP : xarray.DataArray
+        Time series of deltaP, must include cml_id and time as dimensions
+    deltaPL : xarray.DataArray
+        Time series of deltaPL, must include cml_id and time as dimensions
     ds_dist : xarray.Dataset
          Distance matrix between all CML endpoints calculated with
-         `calc_distance_between_cml_endpoints()`
+         `calc_distance_between_cml_endpoints()`, must include cml_id
     r : float
         Radius for which surrounding CMLs (both end points are within a chosen
         radius r from either end of the selected link)
@@ -170,6 +187,16 @@ def nearby_wetdry(
             & (ds_dist.b_to_all_a < r)
             & (ds_dist.b_to_all_b < r)
     )
+
+    if not ((pmin.cml_id.values == max_pmin.cml_id.values).all() and (
+            deltaP.cml_id.values == deltaPL.cml_id.values
+    ).all() and (deltaP.cml_id.values == max_pmin.cml_id.values).all()):
+        print("All input variables must contain the same cml_ids.")
+
+    ds_cml = pmin.to_dataset(name='pmin')
+    ds_cml["max_pmin"] = max_pmin
+    ds_cml["deltaP"] = deltaP
+    ds_cml["deltaPL"] = deltaPL
 
     wet = xr.full_like(ds_cml.pmin, np.nan)
     F = xr.full_like(ds_cml.pmin, np.nan)
@@ -221,8 +248,8 @@ def nearby_wetdry(
             for shift in [1, -1, -2]:
                 wet.loc[dict(cml_id=cmlid.values)] = xr.where(
                     ((wet_tmp.loc[dict(cml_id=cmlid)] == 1) & (
-                                ds_nearby_cmls.sel(
-                                    cml_id=cmlid).deltaP < -2)).shift(
+                            ds_nearby_cmls.sel(
+                                cml_id=cmlid).deltaP < -2)).shift(
                         time=shift),  ##
                     # shift here
                     x=1,

@@ -117,16 +117,26 @@ class Test_nearby_wetdry_approach(unittest.TestCase):
     def test_rainfall_calc(self):
 
         time = pd.date_range("2020-01-01 00:00", periods=100)
-        pmin = xr.DataArray(np.linspace(0, -10, 100),
-                            coords=dict(time=time))
+        cml_id = ["cml_1"]
+        pmin = xr.DataArray(
+            np.reshape((np.linspace(0, -10, 100)), (1, 100)),
+            coords=dict(cml_id=cml_id, time=time),
+        )
         wet = xr.DataArray(
-            np.concatenate([np.repeat(0, 50), np.repeat(1, 50)]),
-            coords=dict(time=time))
-        pref = xr.DataArray(np.repeat(-4, 100),
-                            coords=dict(time=time))
-        F = xr.DataArray(np.repeat(-20, 100),
-                         coords=dict(time=time))
-        F[20] = -44
+            np.reshape(np.concatenate([np.repeat(0, 50), np.repeat(1, 50)]),
+                       (1, 100)),
+            coords=dict(cml_id=cml_id, time=time),
+        )
+        pref = xr.DataArray(
+            np.reshape(np.repeat(-4, 100), (1, 100)),
+            coords=dict(cml_id=cml_id, time=time)
+        )
+        F = xr.DataArray(
+            np.reshape(np.repeat(-20, 100), (1, 100)),
+            coords=dict(cml_id=cml_id, time=time)
+        )
+        F[0,20] = -44
+
         pcmin, pcmax = nearby_rain.nearby_correct_recieved_signals(
             pmin, wet, pref)
         length = 5
@@ -149,7 +159,7 @@ class Test_nearby_wetdry_approach(unittest.TestCase):
             F_value_correction = True
         )
 
-        result = np.array([
+        result = np.array([[
             0.        , 0.        , 0.        , 0.        , 0.        ,
             0.        , 0.        , 0.        , 0.        , 0.        ,
             0.        , 0.        , 0.        , 0.        , 0.        ,
@@ -169,7 +179,7 @@ class Test_nearby_wetdry_approach(unittest.TestCase):
             2.44864666, 2.5802814 , 2.71155681, 2.84249211, 2.97310463,
             3.10341004, 3.2334226 , 3.36315532, 3.49262013, 3.62182803,
             3.75078913, 3.87951283, 4.00800783, 4.13628224, 4.26434363,
-            4.39219907, 4.51985519, 4.64731821, 4.774594  , 4.90168807])
+            4.39219907, 4.51985519, 4.64731821, 4.774594  , 4.90168807]])
 
         np.testing.assert_array_almost_equal(
             R.values,

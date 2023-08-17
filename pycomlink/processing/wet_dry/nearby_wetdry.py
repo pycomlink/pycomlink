@@ -172,8 +172,9 @@ def nearby_wetdry(
         minimum number of CMLs within r needed to perform wet-dry classification
     Returns
     -------
-    xarray.Dataset
-        Time series wet-dry classification
+    tuple of four xarray.Datasets
+        Time series of wet-dry classification as well as three variable for
+        later quality control
     References
     ----------
     .. [1] Overeem, A., Leijnse, H., and Uijlenhoet, R.: Retrieval algorithm

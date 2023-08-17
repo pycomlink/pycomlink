@@ -154,6 +154,17 @@ def nearby_rainfall_retrival(
             a = np.reshape(np.array(a), shape_save)
             b = np.reshape(np.array(b), shape_save)
 
+            # turn a and b values to xarray.DataArray and check whether
+            # no or the dim channel_id is available
+            if 'channel_id' in list(pref.dims):
+                a = xr.DataArray(a, coords=dict(cml_id=pref.cml_id,
+                                                channel_id=pref.channel_id))
+                b = xr.DataArray(b, coords=dict(cml_id=pref.cml_id,
+                                                channel_id=pref.channel_id))
+            else:
+                a = xr.DataArray(a, coords=dict(cml_id=pref.cml_id))
+                b = xr.DataArray(b, coords=dict(cml_id=pref.cml_id))
+
         else:
             raise IndexError(
                 "Size of `f_GHz` and `pol` must be identical."

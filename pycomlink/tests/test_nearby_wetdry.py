@@ -180,6 +180,7 @@ class Test_nearby_wetdry_approach(unittest.TestCase):
             min_links=2,
         )
 
+
         test_result_array = np.array([
             np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan,
             np.nan, np.nan, np.nan, np.nan, np.nan,
@@ -206,3 +207,22 @@ class Test_nearby_wetdry_approach(unittest.TestCase):
         np.testing.assert_array_almost_equal(
             wet.sel(cml_id="id4").values,
             test_result_array)
+
+        # test error when input data has different meta data
+        with self.assertRaises(ValueError):
+            (
+                wet,
+                F,
+                medianP,
+                medianPL,
+            ) = nb_wd.nearby_wetdry(
+                pmin=pmin.isel(cml_id=0),
+                max_pmin=max_pmin,
+                deltaP=deltaP,
+                deltaPL=deltaPL,
+                ds_dist=ds_dist,
+                r=15,
+                thresh_median_P=-2.0,
+                thresh_median_PL=-0.3,
+                min_links=2,
+            )

@@ -186,6 +186,156 @@ class Test_nearby_wetdry_approach(unittest.TestCase):
             result
         )
 
+        # with give a and b values and with a channel id
+
+        time = pd.date_range("2020-01-01 00:00", periods=100)
+        cml_id = ["cml_1"]
+        channel_id = ["channel_1"]
+        pmin = xr.DataArray(
+            np.reshape((np.linspace(0, -10, 100)), (1, 1, 100)),
+            coords=dict(cml_id=cml_id, channel_id=channel_id, time=time),
+        )
+        wet = xr.DataArray(
+            np.reshape(np.concatenate([np.repeat(0, 50), np.repeat(1, 50)]),
+                       (1, 1, 100)),
+            coords=dict(cml_id=cml_id, channel_id=channel_id, time=time),
+        )
+        pref = xr.DataArray(
+            np.reshape(np.repeat(-4, 100), (1, 1, 100)),
+            coords=dict(cml_id=cml_id, channel_id=channel_id, time=time)
+        )
+        F = xr.DataArray(
+            np.reshape(np.repeat(-20, 100), (1, 1, 100)),
+            coords=dict(cml_id=cml_id, channel_id=channel_id, time=time)
+        )
+        F[0, 0, 20] = -44
+
+        pcmin, pcmax = nearby_rain.nearby_correct_recieved_signals(
+            pmin, wet, pref)
+        length = 5
+        f_GHz = xr.DataArray([25])
+        pol = xr.DataArray(['Vertical'])
 
 
+        R = nearby_rain.nearby_rainfall_retrival(
+            pref=pref,
+            p_c_min=pcmin,
+            p_c_max=pcmax,
+            F=F,
+            length=length,
+            a=1,
+            b=1,
+            a_b_approximation="ITU_2005",
+            waa_max=2.3,
+            alpha=0.33,
+            F_value_correction=True
+        )
 
+        result = np.array([[[
+            0.        , 0.        , 0.        , 0.        , 0.        ,
+            0.        , 0.        , 0.        , 0.        , 0.        ,
+            0.        , 0.        , 0.        , 0.        , 0.        ,
+            0.        , 0.        , 0.        , 0.        , 0.        ,
+                np.nan, 0.        , 0.        , 0.        , 0.        ,
+            0.        , 0.        , 0.        , 0.        , 0.        ,
+            0.        , 0.        , 0.        , 0.        , 0.        ,
+            0.        , 0.        , 0.        , 0.        , 0.        ,
+            0.        , 0.        , 0.        , 0.        , 0.        ,
+            0.        , 0.        , 0.        , 0.        , 0.        ,
+            0.        , 0.        , 0.        , 0.        , 0.        ,
+            0.        , 0.        , 0.        , 0.        , 0.        ,
+            0.        , 0.        , 0.        , 0.01272727, 0.03292929,
+            0.05313131, 0.07333333, 0.09353535, 0.11373737, 0.13393939,
+            0.15414141, 0.17434343, 0.19454545, 0.21474747, 0.23494949,
+            0.25515152, 0.27535354, 0.29555556, 0.31575758, 0.3359596 ,
+            0.35616162, 0.37636364, 0.39656566, 0.41676768, 0.4369697 ,
+            0.45717172, 0.47737374, 0.49757576, 0.51777778, 0.5379798 ,
+            0.55818182, 0.57838384, 0.59858586, 0.61878788, 0.6389899 ,
+            0.65919192, 0.67939394, 0.69959596, 0.71979798, 0.74      ]]])
+
+        np.testing.assert_array_almost_equal(
+            R.values,
+            result
+        )
+
+    def test_raises(self):
+        time = pd.date_range("2020-01-01 00:00", periods=100)
+        cml_id = ["cml_1"]
+        pmin = xr.DataArray(
+            np.reshape((np.linspace(0, -10, 100)), (1, 100)),
+            coords=dict(cml_id=cml_id, time=time),
+        )
+        wet = xr.DataArray(
+            np.reshape(np.concatenate([np.repeat(0, 50), np.repeat(1, 50)]),
+                       (1, 100)),
+            coords=dict(cml_id=cml_id, time=time),
+        )
+        pref = xr.DataArray(
+            np.reshape(np.repeat(-4, 100), (1, 100)),
+            coords=dict(cml_id=cml_id, time=time)
+        )
+        F = xr.DataArray(
+            np.reshape(np.repeat(-20, 100), (1, 100)),
+            coords=dict(cml_id=cml_id, time=time)
+        )
+        F[0, 20] = -44
+
+        pcmin, pcmax = nearby_rain.nearby_correct_recieved_signals(
+            pmin, wet, pref)
+        length = 5
+        f_GHz = xr.DataArray([25])
+        pol = xr.DataArray(['Vertical'])
+
+
+        with self.assertRaises(ValueError):
+            nearby_rain.nearby_rainfall_retrival(
+                pref=pref,
+                p_c_min=pcmin,
+                p_c_max=pcmax,
+                F=F,
+                length=length,
+                f_GHz=f_GHz,
+                a=None,
+                b=1,
+                a_b_approximation="ITU_2005",
+                waa_max=2.3,
+                alpha=0.33,
+                F_value_correction=True
+            )
+
+        with self.assertRaises(IndexError):
+            nearby_rain.nearby_rainfall_retrival(
+                pref=pref,
+                p_c_min=pcmin,
+                p_c_max=pcmax,
+                F=F,
+                length=length,
+                f_GHz = f_GHz,
+                pol = xr.DataArray(['Vertical','Vertical']),
+                a = None,
+                b = None,
+                a_b_approximation = "ITU_2005",
+                waa_max = 2.3,
+                alpha = 0.33,
+                F_value_correction = True
+            )
+
+        R = nearby_rain.nearby_rainfall_retrival(
+            pref=pref,
+            p_c_min=pcmin,
+            p_c_max=pcmax,
+            F=F,
+            length=length,
+            a = 0.5,
+            b = 2,
+            a_b_approximation = "ITU_2005",
+            waa_max = 2.3,
+            alpha = 0.33,
+            F_value_correction = True
+        )
+
+#with self.assertRaises(ValueError):
+#    k_R_relation.a_b(30, "b", approx_type="ITU_2005")
+
+#with self.assertRaises(ValueError):
+#    k_R_relation.a_b(30, "H", approx_type="ITU_2000")

@@ -198,14 +198,15 @@ def a_b(f_GHz, pol, approx_type="ITU_2005"):
         else:
             raise ValueError("Approximation type not available.")
 
-        if pol == "V" or pol == "v":
+        if pol == "V" or pol == "v" or pol == 'Vertical' or pol == "vertical":
             f_a = interp1d(ITU_table[0, :], ITU_table[2, :], kind="cubic")
             f_b = interp1d(ITU_table[0, :], ITU_table[4, :], kind="cubic")
-        elif pol == "H" or pol == "h":
+        elif pol == "H" or pol == "h" or pol == "Horizontal" or pol == "horizontal":
             f_a = interp1d(ITU_table[0, :], ITU_table[1, :], kind="cubic")
             f_b = interp1d(ITU_table[0, :], ITU_table[3, :], kind="cubic")
         else:
-            raise ValueError("Polarization must be V, v, H or h.")
+            raise ValueError("Polarization must be V, v, Vertical, vertical, H,"
+                             "Horizontal or horizontal.")
         a = f_a(f_GHz)
         b = f_b(f_GHz)
     return a, b

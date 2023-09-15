@@ -2,11 +2,10 @@ import unittest
 import numpy as np
 import xarray as xr
 import pandas as pd
-from tqdm import tqdm
 
 import pycomlink.processing.wet_dry.nearby_wetdry as nb_wd
 import pycomlink.spatial.helper as spatial
-
+import pycomlink.processing.nearby_rain_retrival as nearby_rain
 
 
 class Test_nearby_wetdry_approach(unittest.TestCase):
@@ -87,18 +86,20 @@ class Test_nearby_wetdry_approach(unittest.TestCase):
                 site_b_latitude=(["cml_id"], b_lat),
                 site_b_longitude=(["cml_id"], b_lon),
                 length=(
-                ["cml_id"], spatial.haversine(a_lon, a_lat, b_lon, b_lat, ))
+                    ["cml_id"], spatial.haversine(a_lon, a_lat, b_lon, b_lat, ))
             ),
         )
 
-        ds_cml_minmax = nb_wd.instanteanous_to_minmax_data(
-            ds_cml,
+        pmin, max_pmin, deltaP, deltaPL, = nb_wd.instantaneous_to_minmax_data(
+            ds_cml.rsl,
+            ds_cml.tsl,
+            ds_cml.length,
             interval=15,
             timeperiod=24,
             min_hours=6)
 
         np.testing.assert_array_almost_equal(
-            np.sum(ds_cml_minmax.sel(cml_id="id0").pmin.values),
+            np.sum(pmin.sel(cml_id="id0").values),
             -7440.26763596)
 
     def test_wetdry_classification(self):
@@ -154,14 +155,24 @@ class Test_nearby_wetdry_approach(unittest.TestCase):
         )
 
         # create min max data
-        ds_cml_minmax = nb_wd.instanteanous_to_minmax_data(
-            ds_cml,
+        pmin, max_pmin, deltaP, deltaPL, = nb_wd.instantaneous_to_minmax_data(
+            ds_cml.rsl,
+            ds_cml.tsl,
+            ds_cml.length,
             interval=15,
             timeperiod=24,
             min_hours=6)
 
-        ds_cml_minmax["wet"]=nb_wd.nearby_wetdry(
-            ds_cml=ds_cml_minmax,
+        (
+            wet,
+            F,
+            medianP,
+            medianPL,
+        ) = nb_wd.nearby_wetdry(
+            pmin=pmin,
+            max_pmin=max_pmin,
+            deltaP=deltaP,
+            deltaPL=deltaPL,
             ds_dist=ds_dist,
             r=15,
             thresh_median_P=-2.0,
@@ -169,25 +180,49 @@ class Test_nearby_wetdry_approach(unittest.TestCase):
             min_links=2,
         )
 
-        test_result_array = np.array(
-            [np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan,
-             np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan,
-             np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, 0, 0,
-             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0,
-             0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-             1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+        test_result_array = np.array([
+            np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan,
+            np.nan, np.nan, np.nan, np.nan, np.nan,
+            np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan,
+            np.nan, np.nan, 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+            0., 0., 0.,
+            0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+            0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+            0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+            0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+            0., 0., 0., 0., 1., 1., 1., 1., 1., 1., 0., 0., 0.,
+            0., 0., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.,
+            1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 0.,
+            1., 1., 1., 1., 1., 1., 0., 0., 0., 0., 0., 0., 1.,
+            1.]
         )
 
         np.testing.assert_array_almost_equal(
-            ds_cml_minmax.wet.sel(cml_id="id1").values,
+            wet.sel(cml_id="id1").values,
             test_result_array
         )
 
         # test CML which is longer than r
         np.testing.assert_array_almost_equal(
-            ds_cml_minmax.wet.sel(cml_id="id4").values,
-            test_result_array
-        )
+            wet.sel(cml_id="id4").values,
+            test_result_array)
+
+        # test error when input data has different meta data
+        with self.assertRaises(ValueError):
+            (
+                wet,
+                F,
+                medianP,
+                medianPL,
+            ) = nb_wd.nearby_wetdry(
+                pmin=pmin.isel(cml_id=0),
+                max_pmin=max_pmin,
+                deltaP=deltaP,
+                deltaPL=deltaPL,
+                ds_dist=ds_dist,
+                r=15,
+                thresh_median_P=-2.0,
+                thresh_median_PL=-0.3,
+                min_links=2,
+            )

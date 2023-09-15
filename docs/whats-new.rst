@@ -6,6 +6,13 @@ Unreleased
 ----------
 
 
+v0.3.8
+------
+
+Enhancements
+~~~~~~~~~~~~
+* Extended implementation of "nearby wet-dry approach" and added some fixes and more test (by maxmargraf in PR #129)
+
 
 v0.3.7
 ------

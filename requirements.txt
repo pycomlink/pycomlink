@@ -1,6 +1,6 @@
 numpy
-scipy<1.9
-pandas>=0.22
+scipy
+pandas
 matplotlib
 numba
 h5py

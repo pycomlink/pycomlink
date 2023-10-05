@@ -63,7 +63,37 @@ class TestIdwKdtreeInterpolator(unittest.TestCase):
 
 class TestOrdiniaryKrigingInterpolator(unittest.TestCase):
     def test_without_nans(self):
-        pass
+        xi, yi = np.meshgrid(np.linspace(0, 6, 4), np.linspace(0, 6, 4))
+
+
+        interpolator = pycml.spatial.interpolator.OrdinaryKrigingInterpolator(
+                nlags=5,
+                variogram_model='spherical',
+                variogram_parameters=None,
+                weight=True,
+                n_closest_points=None,
+        )
+
+        zi = interpolator(
+            x=np.array([1, 2, 3, 4, 5]),
+            y=np.array([2, 4, 3, 5, 1]),
+            z=np.array([1, 2, 3, 4, 3]),
+            xgrid=xi,
+            ygrid=yi,
+        )
+        
+        np.testing.assert_array_almost_equal(
+            zi,
+            np.array(
+                [
+                    [2.60646399, 2.60646399, 2.67751778, 2.67751778],
+                    [2.00209071, 2.08368869, 2.77132632, 2.67751778],
+                    [2.59425344, 2.00043515, 3.21239818, 2.60656801],
+                    [2.6065197 , 2.59435746, 3.1308002 , 2.60656801],
+                ],
+            ),
+        )
+
 
     def test_with_nans(self):
         pass

@@ -118,6 +118,7 @@ class OrdinaryKrigingInterpolator(PointsToGridInterpolator):
         self,
         nlags=100,
         variogram_model="spherical",
+        variogram_parameters={'sill': 0.9, 'range': 1, 'nugget': 0.1},
         weight=True,
         n_closest_points=None,
         exclude_nan=True,
@@ -128,6 +129,7 @@ class OrdinaryKrigingInterpolator(PointsToGridInterpolator):
 
         self.nlags = nlags
         self.variogram_model = variogram_model
+        self.variogram_parameters = variogram_parameters
         self.weight = weight
         self.n_closest_points = n_closest_points
         self.exclude_nan = exclude_nan
@@ -135,16 +137,6 @@ class OrdinaryKrigingInterpolator(PointsToGridInterpolator):
         self.backend = backend
 
     def _interpol_func(self, x, y, z, xi, yi):
-        ok = OrdinaryKriging(
-            x,
-            y,
-            z,
-            nlags=self.nlags,
-            variogram_model=self.variogram_model,
-            weight=self.weight,
-        )
-        # coordinates_type=self.coordinates_type)
-
         x = np.asarray(x)
         y = np.asarray(y)
         z = np.asarray(z)
@@ -155,6 +147,17 @@ class OrdinaryKrigingInterpolator(PointsToGridInterpolator):
             y = y[not_nan_ix]
             z = z[not_nan_ix]
         self.z = z
+
+        ok = OrdinaryKriging(
+            x,
+            y,
+            z,
+            nlags=self.nlags,
+            variogram_model=self.variogram_model,
+            variogram_parameters=self.variogram_parameters,
+            weight=self.weight,
+        )
+        # coordinates_type=self.coordinates_type)
 
         zi, sigma = ok.execute(
             style="points",

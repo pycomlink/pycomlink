@@ -11,14 +11,6 @@ class TestIdwKdtreeInterpolator(unittest.TestCase):
         pass
 
     def test_with_nans(self):
-        pass
-
-
-class TestOrdiniaryKrigingInterpolator(unittest.TestCase):
-    def test_without_nans(self):
-        pass
-
-    def test_with_nans(self):
         interpolator = pycml.spatial.interpolator.IdwKdtreeInterpolator(nnear=12, p=2)
 
         xi, yi = np.meshgrid(np.linspace(0, 6, 4), np.linspace(0, 6, 4))
@@ -43,7 +35,7 @@ class TestOrdiniaryKrigingInterpolator(unittest.TestCase):
             ),
         )
 
-    def test_without_float(selfself):
+    def test_without_float(self):
         interpolator = pycml.spatial.interpolator.IdwKdtreeInterpolator(nnear=12, p=2)
 
         xi, yi = np.meshgrid(np.linspace(0, 6, 4), np.linspace(0, 6, 4))
@@ -67,3 +59,11 @@ class TestOrdiniaryKrigingInterpolator(unittest.TestCase):
                 ]
             ),
         )
+
+
+class TestOrdiniaryKrigingInterpolator(unittest.TestCase):
+    def test_without_nans(self):
+        pass
+
+    def test_with_nans(self):
+        pass

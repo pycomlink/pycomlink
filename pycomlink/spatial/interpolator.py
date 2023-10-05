@@ -118,8 +118,10 @@ class OrdinaryKrigingInterpolator(PointsToGridInterpolator):
         self,
         nlags=100,
         variogram_model="spherical",
+        variogram_parameters={"sill": 0.9, "range": 1, "nugget": 0.1},
         weight=True,
         n_closest_points=None,
+        exclude_nan=True,
         # coordinates_type='euclidean', # Not supported in v1.3.1
         backend="C",
     ):
@@ -127,18 +129,32 @@ class OrdinaryKrigingInterpolator(PointsToGridInterpolator):
 
         self.nlags = nlags
         self.variogram_model = variogram_model
+        self.variogram_parameters = variogram_parameters
         self.weight = weight
         self.n_closest_points = n_closest_points
+        self.exclude_nan = exclude_nan
         # self.coordinates_type = coordinates_type
         self.backend = backend
 
     def _interpol_func(self, x, y, z, xi, yi):
+        x = np.asarray(x)
+        y = np.asarray(y)
+        z = np.asarray(z)
+
+        if self.exclude_nan:
+            not_nan_ix = ~np.isnan(z)
+            x = x[not_nan_ix]
+            y = y[not_nan_ix]
+            z = z[not_nan_ix]
+        self.z = z
+
         ok = OrdinaryKriging(
             x,
             y,
             z,
             nlags=self.nlags,
             variogram_model=self.variogram_model,
+            variogram_parameters=self.variogram_parameters,
             weight=self.weight,
         )
         # coordinates_type=self.coordinates_type)
@@ -172,7 +188,6 @@ def _parse_grid_kwargs(x_list, y_list, xgrid, ygrid, resolution):
     """
 
     if (xgrid is None) or (ygrid is None):
-
         if resolution is None:
             raise ValueError(
                 "`resolution must be set if `xgrid` " "or `ygrid` are None"
@@ -188,11 +203,3 @@ def _parse_grid_kwargs(x_list, y_list, xgrid, ygrid, resolution):
     else:
         pass
     return xgrid, ygrid
-
-
-def get_lon_lat_list_from_cml_list(cml_list):
-    """Extract lats and lons from all CMLs"""
-
-    lons = np.array([cml.get_center_lon_lat()[0] for cml in cml_list])
-    lats = np.array([cml.get_center_lon_lat()[1] for cml in cml_list])
-    return lons, lats

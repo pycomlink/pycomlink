@@ -67,7 +67,7 @@ class TestOrdiniaryKrigingInterpolator(unittest.TestCase):
 
 
         interpolator = pycml.spatial.interpolator.OrdinaryKrigingInterpolator(
-                nlags=5,
+                nlags=10,
                 variogram_model='spherical',
                 variogram_parameters=None,
                 weight=True,
@@ -86,10 +86,10 @@ class TestOrdiniaryKrigingInterpolator(unittest.TestCase):
             zi,
             np.array(
                 [
-                    [2.60646399, 2.60646399, 2.67751778, 2.67751778],
-                    [2.00209071, 2.08368869, 2.77132632, 2.67751778],
-                    [2.59425344, 2.00043515, 3.21239818, 2.60656801],
-                    [2.6065197 , 2.59435746, 3.1308002 , 2.60656801],
+                    [2.11825683, 2.14974322, 2.55817076, 2.54075673],
+                    [1.4905079 , 1.70555872, 2.76440966, 2.5806816 ],
+                    [2.06495187, 2.60523688, 3.60004479, 2.90631718],
+                    [2.53986917, 2.93249053, 3.45374888, 2.90229311],
                 ],
             ),
         )

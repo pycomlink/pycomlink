@@ -76,7 +76,7 @@ class TestOrdiniaryKrigingInterpolator(unittest.TestCase):
 
         zi = interpolator(
             x=np.array([1, 2, 3, 4, 5]),
-            y=np.array([2, 4, 3, 5, 1]),
+            y=np.array([2, 3, 3, 5, 3]),
             z=np.array([1, 2, 3, 4, 3]),
             xgrid=xi,
             ygrid=yi,

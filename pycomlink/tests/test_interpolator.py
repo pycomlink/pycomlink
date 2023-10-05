@@ -65,13 +65,12 @@ class TestOrdiniaryKrigingInterpolator(unittest.TestCase):
     def test_without_nans(self):
         xi, yi = np.meshgrid(np.linspace(0, 6, 4), np.linspace(0, 6, 4))
 
-
         interpolator = pycml.spatial.interpolator.OrdinaryKrigingInterpolator(
-                nlags=10,
-                variogram_model='spherical',
-                variogram_parameters=None,
-                weight=True,
-                n_closest_points=None,
+            nlags=10,
+            variogram_model="spherical",
+            variogram_parameters=None,
+            weight=True,
+            n_closest_points=None,
         )
 
         zi = interpolator(
@@ -81,19 +80,18 @@ class TestOrdiniaryKrigingInterpolator(unittest.TestCase):
             xgrid=xi,
             ygrid=yi,
         )
-        
+
         np.testing.assert_array_almost_equal(
             zi,
             np.array(
                 [
                     [2.11825683, 2.14974322, 2.55817076, 2.54075673],
-                    [1.4905079 , 1.70555872, 2.76440966, 2.5806816 ],
+                    [1.4905079, 1.70555872, 2.76440966, 2.5806816],
                     [2.06495187, 2.60523688, 3.60004479, 2.90631718],
                     [2.53986917, 2.93249053, 3.45374888, 2.90229311],
                 ],
             ),
         )
-
 
     def test_with_nans(self):
         pass

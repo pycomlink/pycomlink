@@ -118,7 +118,7 @@ class OrdinaryKrigingInterpolator(PointsToGridInterpolator):
         self,
         nlags=100,
         variogram_model="spherical",
-        variogram_parameters={'sill': 0.9, 'range': 1, 'nugget': 0.1},
+        variogram_parameters={"sill": 0.9, "range": 1, "nugget": 0.1},
         weight=True,
         n_closest_points=None,
         exclude_nan=True,
@@ -188,7 +188,6 @@ def _parse_grid_kwargs(x_list, y_list, xgrid, ygrid, resolution):
     """
 
     if (xgrid is None) or (ygrid is None):
-
         if resolution is None:
             raise ValueError(
                 "`resolution must be set if `xgrid` " "or `ygrid` are None"
@@ -204,4 +203,3 @@ def _parse_grid_kwargs(x_list, y_list, xgrid, ygrid, resolution):
     else:
         pass
     return xgrid, ygrid
-

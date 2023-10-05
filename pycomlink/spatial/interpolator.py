@@ -120,6 +120,7 @@ class OrdinaryKrigingInterpolator(PointsToGridInterpolator):
         variogram_model="spherical",
         weight=True,
         n_closest_points=None,
+        exclude_nan=True,
         # coordinates_type='euclidean', # Not supported in v1.3.1
         backend="C",
     ):
@@ -129,6 +130,7 @@ class OrdinaryKrigingInterpolator(PointsToGridInterpolator):
         self.variogram_model = variogram_model
         self.weight = weight
         self.n_closest_points = n_closest_points
+        self.exclude_nan = exclude_nan
         # self.coordinates_type = coordinates_type
         self.backend = backend
 
@@ -142,6 +144,17 @@ class OrdinaryKrigingInterpolator(PointsToGridInterpolator):
             weight=self.weight,
         )
         # coordinates_type=self.coordinates_type)
+
+        x = np.asarray(x)
+        y = np.asarray(y)
+        z = np.asarray(z)
+
+        if self.exclude_nan:
+            not_nan_ix = ~np.isnan(z)
+            x = x[not_nan_ix]
+            y = y[not_nan_ix]
+            z = z[not_nan_ix]
+        self.z = z
 
         zi, sigma = ok.execute(
             style="points",

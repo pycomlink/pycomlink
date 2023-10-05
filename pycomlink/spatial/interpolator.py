@@ -205,10 +205,3 @@ def _parse_grid_kwargs(x_list, y_list, xgrid, ygrid, resolution):
         pass
     return xgrid, ygrid
 
-
-def get_lon_lat_list_from_cml_list(cml_list):
-    """Extract lats and lons from all CMLs"""
-
-    lons = np.array([cml.get_center_lon_lat()[0] for cml in cml_list])
-    lats = np.array([cml.get_center_lon_lat()[1] for cml in cml_list])
-    return lons, lats

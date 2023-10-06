@@ -2,8 +2,22 @@
 What's New
 **********************
 
-Unreleased
-----------
+
+v0.3.9
+------
+
+Enhancements
+~~~~~~~~~~~~
+* Added IDW and Kriging interpolation comparison noteboook (by cchwala in PR #132)
+
+Maintenance
+~~~~~~~~~~~~
+* Updated README with current list of example notebooks
+* Removed pinning of scipy and pandas versions (by cchwala in PR #132)
+
+Bug fixes
+~~~~~~~~~
+* Added test for Kriging and fixed wrong naming of IDW test (by cchwala in PR #132)
 
 
 v0.3.8

@@ -49,10 +49,10 @@ def read_cmlh5_file_to_xarray(filename):
                     "frequency": cml_ch_g.attrs["frequency"] / 1e9,
                     "polarization": cml_ch_g.attrs["polarization"],
                     "length": haversine(
-                        cml_g.attrs["site_a_latitude"],
                         cml_g.attrs["site_a_longitude"],
-                        cml_g.attrs["site_b_latitude"],
+                        cml_g.attrs["site_a_latitude"],
                         cml_g.attrs["site_b_longitude"],
+                        cml_g.attrs["site_b_latitude"],
                     ),
                 },
             )

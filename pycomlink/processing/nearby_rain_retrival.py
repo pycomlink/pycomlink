@@ -4,23 +4,27 @@ import xarray as xr
 from pycomlink.processing.k_R_relation import a_b
 
 
-def nearby_determine_reference_level(wet, pmin, pmax=None):
+def nearby_determine_reference_level(pmin, pmax, wet, n_average_dry=96):
     """
     Determine reference/baseline level during rain events.
     ----------
-    wet : xarray.DataArray
-         DataArray consisting of time series with wet-dry classification
     pmin : xarray.DataArray
-         DataArray consisting of pmin, the minimal received power level of a
-         CML over a certain period
+         Time series of pmin.
     pmax : xarray.DataArray
-        optional, if available, the maximal received power level of an CML over
-        a certain period
+        Time series of pmax. If not available e.g. because the min-max data
+        is derived from instanteanous sampled CML data and has the same
+        temporal resolution as the instanteanous CML data, substitute pmax
+        with pmin so pmin and pmax are identical.
+    wet : xarray.DataArray
+         DataArray consisting of time series with wet-dry classification.
+    n_average_dry: int
+        Number of timesteps which are used to calculate the reference levek
+        (baseline) from.
 
     Returns
     -------
     pref : xarray.DataArray
-        Reference signal level, sometimes also called baseline
+        Reference signal level, also called baseline
     References
     ----------
     .. [1] Overeem, A., Leijnse, H., and Uijlenhoet, R.: Retrieval algorithm
@@ -31,31 +35,29 @@ def nearby_determine_reference_level(wet, pmin, pmax=None):
 
     dry = (wet == 0).where(~np.isnan(wet))
 
-    if pmax is not None:
-        pmean = ((pmin + pmax) / 2).where(dry == 1)
-    else:
-        pmean = pmin.where(dry == 1)
+
+    pmean = ((pmin + pmax) / 2).where(dry == 1)
 
     pref = pmean.rolling(time=96, min_periods=1).median()
 
     return pref
 
 
-def nearby_correct_recieved_signals(pmin, wet, pref, pmax=None):
+def nearby_correct_recieved_signals(pmin, pmax, wet, pref):
     """
     Determine reference/baseline level during rain events.
     ----------
-    wet : xarray.DataArray
-         DataArray consisting of time series with wet-dry classification
     pmin : xarray.DataArray
-         DataArray consiting of pmin, the minimal received power level of a
-         CML over a certain period
+         Time series of pmin.
+    pmax : xarray.DataArray
+        Time series of pmax. If not available e.g. because the min-max data
+        is derived from instanteanous sampled CML data and has the same
+        temporal resolution as the instanteanous CML data, substitute pmax
+        with pmin so pmin and pmax are identical.
+    wet : xarray.DataArray
+         DataArray consisting of time series with wet-dry classification.
     pref : xarray.DataArray
         Reference signal level, sometimes also called baseline
-    pmax : xarray.DataArray
-        optional, if available, the maximal received power level of an CML over
-        a certain period
-
     Returns
     -------
     p_c_min : xarray.DataArray
@@ -122,8 +124,8 @@ def nearby_rainfall_retrival(
     b : float, optional
         Parameter of A-R relationship
     a_b_approximation : string
-        Specifies which approximation for the k-R power law shall be used. See the
-        function `a_b` for details.
+        Specifies which approximation for the k-R power law shall be used. See
+        the function `a_b` for details.
     waa_max : float
         Maximum value of wet antenna attenuation
     alpha : float
@@ -132,7 +134,8 @@ def nearby_rainfall_retrival(
     F_values_correction=True
     """
 
-    # Make sure that we only continue if a correct combination of optional args is used
+    # Make sure that we only continue if a correct combination of optional
+    # args is used
     if (f_GHz is not None) and (pol is not None) and (a is None) and (
             b is None):
 
@@ -176,7 +179,8 @@ def nearby_rainfall_retrival(
         pass
     else:
         raise ValueError(
-            "Either `f_GHz` and `pol` or `a` and `b` have to be passed. Any other combination is not allowed."
+            "Either `f_GHz` and `pol` or `a` and `b` have to be passed. Any "
+            "other combination is not allowed."
         )
 
     # calculate minimum and maximum rain-induced attenuation

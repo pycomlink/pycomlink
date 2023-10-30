@@ -285,6 +285,83 @@ class Test_nearby_wetdry_approach(unittest.TestCase):
             result
         )
 
+        # test if a and be are transformed to xarray datasets correctly when
+        # sublink_id is an additional dimension
+        time = pd.date_range("2020-01-01 00:00", periods=100)
+        cml_id = ["cml_1"]
+        sublink_id = ["sublink_1"]
+        pmin = xr.DataArray(
+            [np.reshape((np.linspace(0, -30, 100)), (1, 100))],
+            coords=dict(sublink_id=sublink_id, cml_id=cml_id, time=time),
+        )
+        pmax = xr.DataArray(
+            [np.reshape((np.linspace(0, 10, 100)), (1, 100))],
+            coords=dict(sublink_id=sublink_id, cml_id=cml_id, time=time),
+        )
+        wet = xr.DataArray(
+            [np.reshape(np.concatenate([np.repeat(0, 50), np.repeat(1, 50)]),
+                        (1, 100))],
+            coords=dict(sublink_id=sublink_id, cml_id=cml_id, time=time),
+        )
+        pref = xr.DataArray(
+            [np.reshape(np.repeat(-4, 100), (1, 100))],
+            coords=dict(sublink_id=sublink_id, cml_id=cml_id, time=time)
+        )
+        F = xr.DataArray(
+            [np.reshape(np.repeat(-20, 100), (1, 100))],
+            coords=dict(sublink_id=sublink_id, cml_id=cml_id, time=time)
+        )
+        F[0, 0, 20] = -44
+
+        pcmin, pcmax = nearby_rain.nearby_correct_received_signals(
+            pmin, pmax, wet, pref)
+        length = 5
+        f_GHz = xr.DataArray([25])
+        pol = xr.DataArray(['Vertical'])
+
+        R = nearby_rain.nearby_rainfall_retrival(
+            pref=pref,
+            p_c_min=pcmin,
+            p_c_max=pcmax,
+            F=F,
+            length=length,
+            f_GHz=f_GHz,
+            pol=pol,
+            a=None,
+            b=None,
+            a_b_approximation="ITU_2005",
+            waa_max=2.3,
+            alpha=0.33,
+            F_value_correction=True
+        )
+
+        result = np.array([[[
+            0., 0., 0., 0., 0.,
+            0., 0., 0., 0., 0.,
+            0., 0., 0., 0., 0.,
+            0., 0., 0., 0., 0.,
+            np.nan, 0., 0., 0., 0.,
+            0., 0., 0., 0., 0.,
+            0., 0., 0., 0., 0.,
+            0., 0., 0., 0., 0.,
+            0., 0., 0., 0., 0.,
+            0., 0., 0., 0., 0.,
+            3.70163655, 3.82180766, 3.94177644, 4.06154969, 4.18113378,
+            4.3005347, 4.41975808, 4.5388092, 4.65769307, 4.77641441,
+            4.89497769, 5.01338714, 5.13164677, 5.24976042, 5.36773171,
+            5.4855641, 5.60326089, 5.72082524, 5.83826015, 5.95556851,
+            6.07275307, 6.18981648, 6.30676126, 6.42358986, 6.54030461,
+            6.65690776, 6.77340147, 6.88978782, 7.00606882, 7.12224641,
+            7.23832245, 7.35429874, 7.47017703, 7.58595899, 7.70164626,
+            7.8172404, 7.93274294, 8.04815535, 8.16347907, 8.27871548,
+            8.39386593, 8.50893172, 8.62391412, 8.73881436, 8.85363363,
+            8.9683731, 9.08303389, 9.19761711, 9.31212382, 9.42655507]]])
+
+        np.testing.assert_array_almost_equal(
+            R.values,
+            result
+        )
+
     def test_raises(self):
         time = pd.date_range("2020-01-01 00:00", periods=100)
         cml_id = ["cml_1"]

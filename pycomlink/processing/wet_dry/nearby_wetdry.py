@@ -159,12 +159,6 @@ def nearby_wetdry(
             & (ds_dist.b_to_all_b < radius)
     )
 
-    if not ((pmin.cml_id.values == max_pmin.cml_id.values).all() and (
-            deltaP.cml_id.values == deltaPL.cml_id.values
-    ).all() and (deltaP.cml_id.values == max_pmin.cml_id.values).all()):
-        raise ValueError(
-            "All input variables must contain the same cml_ids.")
-
     ds_cml = pmin.to_dataset(name='pmin')
     ds_cml["max_pmin"] = max_pmin
     ds_cml["deltaP"] = deltaP

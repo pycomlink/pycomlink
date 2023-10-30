@@ -286,30 +286,30 @@ class Test_nearby_wetdry_approach(unittest.TestCase):
         )
 
         # test if a and be are transformed to xarray datasets correctly when
-        # sublink_id is an additional dimension
+        # channel_id is an additional dimension
         time = pd.date_range("2020-01-01 00:00", periods=100)
         cml_id = ["cml_1"]
-        sublink_id = ["sublink_1"]
+        channel_id = ["channel_1"]
         pmin = xr.DataArray(
             [np.reshape((np.linspace(0, -30, 100)), (1, 100))],
-            coords=dict(sublink_id=sublink_id, cml_id=cml_id, time=time),
+            coords=dict(channel_id=channel_id, cml_id=cml_id, time=time),
         )
         pmax = xr.DataArray(
             [np.reshape((np.linspace(0, 10, 100)), (1, 100))],
-            coords=dict(sublink_id=sublink_id, cml_id=cml_id, time=time),
+            coords=dict(channel_id=channel_id, cml_id=cml_id, time=time),
         )
         wet = xr.DataArray(
             [np.reshape(np.concatenate([np.repeat(0, 50), np.repeat(1, 50)]),
                         (1, 100))],
-            coords=dict(sublink_id=sublink_id, cml_id=cml_id, time=time),
+            coords=dict(channel_id=channel_id, cml_id=cml_id, time=time),
         )
         pref = xr.DataArray(
             [np.reshape(np.repeat(-4, 100), (1, 100))],
-            coords=dict(sublink_id=sublink_id, cml_id=cml_id, time=time)
+            coords=dict(channel_id=channel_id, cml_id=cml_id, time=time)
         )
         F = xr.DataArray(
             [np.reshape(np.repeat(-20, 100), (1, 100))],
-            coords=dict(sublink_id=sublink_id, cml_id=cml_id, time=time)
+            coords=dict(channel_id=channel_id, cml_id=cml_id, time=time)
         )
         F[0, 0, 20] = -44
 

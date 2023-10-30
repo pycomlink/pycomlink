@@ -316,8 +316,8 @@ class Test_nearby_wetdry_approach(unittest.TestCase):
         pcmin, pcmax = nearby_rain.nearby_correct_received_signals(
             pmin, pmax, wet, pref)
         length = 5
-        f_GHz = xr.DataArray([25])
-        pol = xr.DataArray(['Vertical'])
+        f_GHz = xr.DataArray([[25]])
+        pol = xr.DataArray([['Vertical']])
 
         R = nearby_rain.nearby_rainfall_retrival(
             pref=pref,

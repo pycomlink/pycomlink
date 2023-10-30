@@ -35,7 +35,6 @@ def nearby_determine_reference_level(pmin, pmax, wet, n_average_dry=96):
 
     dry = (wet == 0).where(~np.isnan(wet))
 
-
     pmean = ((pmin + pmax) / 2).where(dry == 1)
 
     pref = pmean.rolling(time=96, min_periods=1).median()
@@ -43,7 +42,7 @@ def nearby_determine_reference_level(pmin, pmax, wet, n_average_dry=96):
     return pref
 
 
-def nearby_correct_recieved_signals(pmin, pmax, wet, pref):
+def nearby_correct_received_signals(pmin, pmax, wet, pref):
     """
     Determine reference/baseline level during rain events.
     ----------
@@ -71,9 +70,6 @@ def nearby_correct_recieved_signals(pmin, pmax, wet, pref):
     network, Atmos. Meas. Tech., 9, 2425–2444,
     https://doi.org/10.5194/amt-9-2425-2016, 2016.
     """
-
-    if pmax is None:
-        pmax = pmin.copy()
 
     p_c_min = xr.where(
         cond=(pmin < pref) & (wet == 1),

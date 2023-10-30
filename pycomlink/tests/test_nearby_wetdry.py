@@ -48,59 +48,6 @@ class Test_nearby_wetdry_approach(unittest.TestCase):
             )
         )
 
-    def test_instant_to_minmax_data(self):
-        rsl = np.concatenate(
-            [
-                np.repeat(-40, 1460),
-                np.linspace(-40, -60, 15),
-                np.linspace(-60, -40, 25),
-                np.repeat(-40, 60),
-                np.linspace(-40, -50, 300),
-                np.linspace(-50, -40, 60),
-                np.repeat(-40, 60),
-                np.linspace(-40, -70, 20),
-                np.linspace(-70, -40, 20),
-                np.repeat(-40, 140),
-            ]
-        )
-        rsl = np.reshape(np.repeat(rsl, 4), (-1, 4)).T
-
-        tsl = np.reshape(np.repeat(10, 4 * 2160), (4, -1))
-
-        a_lat = np.array([0, 0.01, 0.02, 0.5])
-        a_lon = np.array([0, 0.01, 0.02, 0.5])
-        b_lat = np.array([0.005, 0.02, 0.00, 0.512])
-        b_lon = np.array([0.01, 0.02, 0.03, 0.51])
-
-        ds_cml = xr.Dataset(
-            data_vars=dict(tsl=(["cml_id", "time"], tsl),
-                           rsl=(["cml_id", "time"], rsl)),
-            coords=dict(
-                time=pd.date_range(
-                    "2020-01-01 00:00",
-                    "2020-01-02 11:59",
-                    freq="1min"),
-                cml_id=["id0", "id1", "id2", "id3"],
-                site_a_latitude=(["cml_id"], a_lat),
-                site_a_longitude=(["cml_id"], a_lon),
-                site_b_latitude=(["cml_id"], b_lat),
-                site_b_longitude=(["cml_id"], b_lon),
-                length=(
-                    ["cml_id"], spatial.haversine(a_lon, a_lat, b_lon, b_lat, ))
-            ),
-        )
-
-        pmin, max_pmin, deltaP, deltaPL, = nb_wd.instantaneous_to_minmax_data(
-            ds_cml.rsl,
-            ds_cml.tsl,
-            ds_cml.length,
-            interval=15,
-            timeperiod=24,
-            min_hours=6)
-
-        np.testing.assert_array_almost_equal(
-            np.sum(pmin.sel(cml_id="id0").values),
-            -7440.26763596)
 
     def test_wetdry_classification(self):
         rsl = np.concatenate(

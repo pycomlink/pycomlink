@@ -12,8 +12,8 @@ def nearby_determine_reference_level(pmin, pmax, wet, n_average_dry=96):
          Time series of pmin.
     pmax : xarray.DataArray
         Time series of pmax. If not available e.g. because the min-max data
-        is derived from instanteanous sampled CML data and has the same
-        temporal resolution as the instanteanous CML data, substitute pmax
+        is derived from instantaneous sampled CML data and has the same
+        temporal resolution as the instantaneous CML data, substitute pmax
         with pmin so pmin and pmax are identical.
     wet : xarray.DataArray
          DataArray consisting of time series with wet-dry classification.
@@ -50,8 +50,8 @@ def nearby_correct_received_signals(pmin, pmax, wet, pref):
          Time series of pmin.
     pmax : xarray.DataArray
         Time series of pmax. If not available e.g. because the min-max data
-        is derived from instanteanous sampled CML data and has the same
-        temporal resolution as the instanteanous CML data, substitute pmax
+        is derived from instantaneous sampled CML data and has the same
+        temporal resolution as the instantaneous CML data, substitute pmax
         with pmin so pmin and pmax are identical.
     wet : xarray.DataArray
          DataArray consisting of time series with wet-dry classification.

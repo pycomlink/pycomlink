@@ -16,9 +16,9 @@ def calc_distance_between_cml_endpoints(
     Calculating the distance from and to all start and endpoints of a network
     of CMLs using the Haversine distance formula. This includes the start and
     endpoint of each CML (which equals its length). The distance between start
-    and endpoint of a CML will be set to 0 for the case when r (the radius for
-    which CMLs are considered to be "nearby") is smaller than the actual length
-    of the CML
+    and endpoint of a CML will be set to 0. This is done for the case when r
+    (the radius for  which CMLs are considered to be "nearby") is smaller than
+    the actual length  of the CML.
     ----------
     cml_ids : list of str or int
          ids of CMLs
@@ -102,22 +102,24 @@ def nearby_wetdry(
          Distance matrix between all CML endpoints calculated with
          `calc_distance_between_cml_endpoints()`, must include cml_id.
     radius : float
-        Radius for which surrounding CMLs (both end points are within a chosen
-        radius r from either end of the selected link).
+        Radius for which surrounding CMLs are considered for the wet-dry
+        detection (both end points have to be within the chosen radius from
+        either end of the selected link).
     thresh_median_P : float
         Threshold for median_P. Is dependent on the spatial correlation of
-        rainfall.
+        rainfall. Default is value -1.4.
     thresh_median_PL : float
         Threshold for median_PL. Is dependent on the spatial correlation of
-        rainfall.
+        rainfall. Default values is -0.7.
     min_links : int
-        minimum number of CMLs within r needed to perform wet-dry classification
+        minimum number of CMLs within radius needed to perform wet-dry
+        classification.
     interval: int
-         Interval of pmin in minutes
+         Interval of pmin in minutes.
     timeperiod : int
-        Number of previous hours over which max(pmin) is to be computed
+        Number of previous hours over which max(pmin) should be computed.
     min_hours : int
-        Minimum number of hours needed to compute max(pmin)
+        Minimum number of hours needed to compute max(pmin).
     Returns
     -------
     tuple of two xarray.Datasets
@@ -144,7 +146,7 @@ def nearby_wetdry(
     deltaP = pmin - max_pmin
     deltaPL = deltaP / pmin.length
 
-    # get number of CMLs within r for each CML
+    # get number of CMLs within radius for each CML
     ds_dist["within_r"] = (
         (ds_dist.a_to_all_a < radius)
         & (ds_dist.a_to_all_b < radius)
@@ -163,7 +165,7 @@ def nearby_wetdry(
     medianPL_out = xr.full_like(ds_cml.pmin, np.nan)
 
     for cmlid in tqdm(ds_cml.cml_id):
-        # only make wet dry detection if min_links is reached within r
+        # only make wet dry detection if min_links is reached within radius
         if sum(ds_dist.within_r.sel(cml_id1=cmlid).values) > min_links:
             # select all CMLs within r
             ds_nearby_cmls = ds_cml.isel(
@@ -210,9 +212,8 @@ def nearby_wetdry(
                         (wet_tmp.loc[dict(cml_id=cmlid)] == 1)
                         & (ds_nearby_cmls.sel(cml_id=cmlid).deltaP < -2)
                     ).shift(
-                        time=shift
-                    ),  ##
-                    # shift here
+                        time=shift  # shift here
+                    ),
                     x=1,
                     y=wet.loc[dict(cml_id=cmlid.values)],
                 )

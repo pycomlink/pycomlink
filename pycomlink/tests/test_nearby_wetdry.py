@@ -5,7 +5,6 @@ import pandas as pd
 
 import pycomlink.processing.wet_dry.nearby_wetdry as nb_wd
 import pycomlink.spatial.helper as spatial
-import pycomlink.processing.nearby_rain_retrival as nearby_rain
 
 
 class Test_nearby_wetdry_approach(unittest.TestCase):

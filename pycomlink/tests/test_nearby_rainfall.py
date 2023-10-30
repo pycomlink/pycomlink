@@ -15,7 +15,7 @@ class Test_nearby_wetdry_approach(unittest.TestCase):
             np.concatenate([np.repeat(1, 100), np.repeat(0, 100)]),
             coords=dict(time=time))
         pmin = xr.DataArray(np.linspace(0, -30, len(wet)),
-                             coords=dict(time=time))
+                            coords=dict(time=time))
         pmax = xr.DataArray(np.linspace(0, 10, len(wet)),
                             coords=dict(time=time))
 
@@ -67,7 +67,6 @@ class Test_nearby_wetdry_approach(unittest.TestCase):
             res.values,
             result
         )
-
 
     def test_nearby_p_correction(self):
         time = pd.date_range("2020-01-01 00:00", periods=100)

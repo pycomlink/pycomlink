@@ -5,7 +5,9 @@ from pycomlink.processing.k_R_relation import a_b
 
 def nearby_determine_reference_level(pmin, pmax, wet, n_average_dry=96):
     """
-    Determine reference/baseline level during rain events.
+    Determine reference/baseline level during rain events as Overeem et al.
+    (2016). The baseline ist the median of all dry time steps during the last
+    `n_average_dry` dry time steps.
     ----------
     pmin : xarray.DataArray
          Time series of pmin.
@@ -36,14 +38,15 @@ def nearby_determine_reference_level(pmin, pmax, wet, n_average_dry=96):
 
     pmean = ((pmin + pmax) / 2).where(dry == 1)
 
-    pref = pmean.rolling(time=96, min_periods=1).median()
+    pref = pmean.rolling(time=n_average_dry, min_periods=1).median()
 
     return pref
 
 
 def nearby_correct_received_signals(pmin, pmax, wet, pref):
     """
-    Determine reference/baseline level during rain events.
+    Correcting pmin and pmax to prevent rainfall estimation during dry time
+    steps.
     ----------
     pmin : xarray.DataArray
          Time series of pmin.
@@ -93,6 +96,12 @@ def nearby_rainfall_retrival(
     F_value_correction=True,
 ):
     """
+    Calculating R from corrected pmin and pmax values using the `k-R`-relation.
+    Wet antenna is derived via Schleiss et al. (2010), the factor `alpha`
+    determines the contribution of the minimum and maximum path-averaged
+    rainfall intensity to the returend rain rate. Optionally, the F-Score
+    derived from `nearby_wetdry()` can be used to remove outliers.
+    ----------
     pref : xr.DataArray
        Reference signal level, sometimes also called baseline
     p_c_min : xr.DataArray

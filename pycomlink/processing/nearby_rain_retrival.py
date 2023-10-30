@@ -1,6 +1,5 @@
 import numpy as np
 import xarray as xr
-
 from pycomlink.processing.k_R_relation import a_b
 
 
@@ -71,33 +70,27 @@ def nearby_correct_received_signals(pmin, pmax, wet, pref):
     https://doi.org/10.5194/amt-9-2425-2016, 2016.
     """
 
-    p_c_min = xr.where(
-        cond=(pmin < pref) & (wet == 1),
-        x=pmin,
-        y=pref)
+    p_c_min = xr.where(cond=(pmin < pref) & (wet == 1), x=pmin, y=pref)
 
-    p_c_max = xr.where(
-        cond=(p_c_min < pref) & (pmin < pref),
-        x=pmax,
-        y=pref)
+    p_c_max = xr.where(cond=(p_c_min < pref) & (pmin < pref), x=pmax, y=pref)
 
     return p_c_min, p_c_max
 
 
 def nearby_rainfall_retrival(
-        pref,
-        p_c_min,
-        p_c_max,
-        F,
-        length,
-        f_GHz=None,
-        pol=None,
-        a=None,
-        b=None,
-        a_b_approximation="ITU_2005",
-        waa_max=2.3,
-        alpha=0.33,
-        F_value_correction=True
+    pref,
+    p_c_min,
+    p_c_max,
+    F,
+    length,
+    f_GHz=None,
+    pol=None,
+    a=None,
+    b=None,
+    a_b_approximation="ITU_2005",
+    waa_max=2.3,
+    alpha=0.33,
+    F_value_correction=True,
 ):
     """
     pref : xr.DataArray
@@ -132,9 +125,7 @@ def nearby_rainfall_retrival(
 
     # Make sure that we only continue if a correct combination of optional
     # args is used
-    if (f_GHz is not None) and (pol is not None) and (a is None) and (
-            b is None):
-
+    if (f_GHz is not None) and (pol is not None) and (a is None) and (b is None):
         if type(f_GHz) is not np.ndarray:
             f_GHz = f_GHz.values
         if type(pol) is not np.ndarray:
@@ -146,8 +137,9 @@ def nearby_rainfall_retrival(
 
             a, b = [], []
             for i_freq, i_pol in zip(f_GHz.flatten(), pol.flatten()):
-                a_tmp, b_tmp = a_b(f_GHz=i_freq, pol=i_pol,
-                                   approx_type=a_b_approximation)
+                a_tmp, b_tmp = a_b(
+                    f_GHz=i_freq, pol=i_pol, approx_type=a_b_approximation
+                )
                 a.append(a_tmp)
                 b.append(b_tmp)
             a = np.reshape(np.array(a), shape_save)
@@ -155,22 +147,21 @@ def nearby_rainfall_retrival(
 
             # turn a and b values to xarray.DataArray and check whether
             # no or the dim channel_id is available
-            if 'channel_id' in list(pref.dims):
-                a = xr.DataArray(a, coords=dict(cml_id=pref.cml_id,
-                                                channel_id=pref.channel_id))
-                b = xr.DataArray(b, coords=dict(cml_id=pref.cml_id,
-                                                channel_id=pref.channel_id))
+            if "channel_id" in list(pref.dims):
+                a = xr.DataArray(
+                    a, coords=dict(cml_id=pref.cml_id, channel_id=pref.channel_id)
+                )
+                b = xr.DataArray(
+                    b, coords=dict(cml_id=pref.cml_id, channel_id=pref.channel_id)
+                )
             else:
                 a = xr.DataArray(a, coords=dict(cml_id=pref.cml_id))
                 b = xr.DataArray(b, coords=dict(cml_id=pref.cml_id))
 
         else:
-            raise IndexError(
-                "Size of `f_GHz` and `pol` must be identical."
-            )
+            raise IndexError("Size of `f_GHz` and `pol` must be identical.")
 
-    elif (a is not None) and (b is not None) and (f_GHz is None) and (
-            pol is None):
+    elif (a is not None) and (b is not None) and (f_GHz is None) and (pol is None):
         # in this case we use `a` and `b` from args
         pass
     else:
@@ -199,5 +190,3 @@ def nearby_rainfall_retrival(
         R = R.where(~(F <= -32.5))
 
     return R
-
-

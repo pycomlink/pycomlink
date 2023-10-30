@@ -1,16 +1,16 @@
-import xarray as xr
 import numpy as np
+import xarray as xr
+
+from ... spatial import helper as spatial
 from tqdm import tqdm
-# from ... spatial import helper as spatial
-from pycomlink.spatial import helper as spatial
 
 
 def calc_distance_between_cml_endpoints(
-        cml_ids,
-        site_a_latitude,
-        site_a_longitude,
-        site_b_latitude,
-        site_b_longitude,
+    cml_ids,
+    site_a_latitude,
+    site_a_longitude,
+    site_b_latitude,
+    site_b_longitude,
 ):
     """
     Calculating the distance from and to all start and endpoints of a network
@@ -40,14 +40,10 @@ def calc_distance_between_cml_endpoints(
     n_cmls = len(cml_ids)
     ds = xr.Dataset(
         data_vars=dict(
-            a_to_all_a=(
-            ["cml_id1", "cml_id2"], np.full([n_cmls, n_cmls], np.nan)),
-            a_to_all_b=(
-            ["cml_id1", "cml_id2"], np.full([n_cmls, n_cmls], np.nan)),
-            b_to_all_a=(
-            ["cml_id1", "cml_id2"], np.full([n_cmls, n_cmls], np.nan)),
-            b_to_all_b=(
-            ["cml_id1", "cml_id2"], np.full([n_cmls, n_cmls], np.nan)),
+            a_to_all_a=(["cml_id1", "cml_id2"], np.full([n_cmls, n_cmls], np.nan)),
+            a_to_all_b=(["cml_id1", "cml_id2"], np.full([n_cmls, n_cmls], np.nan)),
+            b_to_all_a=(["cml_id1", "cml_id2"], np.full([n_cmls, n_cmls], np.nan)),
+            b_to_all_b=(["cml_id1", "cml_id2"], np.full([n_cmls, n_cmls], np.nan)),
         ),
         coords=dict(cml_id1=cml_ids, cml_id2=cml_ids),
     )
@@ -81,23 +77,20 @@ def calc_distance_between_cml_endpoints(
     # which defines nearby CMLs is larger than the distance between endpoints
     # of a CML (aka its length). Otherwise, the signal levels of CMLs with
     # length > r will not be considered in the nearby approach
-    ds = xr.where(
-        ds.cml_id1 == ds.cml_id2,
-        0,
-        ds)
+    ds = xr.where(ds.cml_id1 == ds.cml_id2, 0, ds)
     return ds
 
 
 def nearby_wetdry(
-        pmin,
-        ds_dist,
-        radius=15,
-        thresh_median_P=-1.4,
-        thresh_median_PL=-0.7,
-        min_links=3,
-        interval=15,
-        timeperiod=24,
-        min_hours=6
+    pmin,
+    ds_dist,
+    radius=15,
+    thresh_median_P=-1.4,
+    thresh_median_PL=-0.7,
+    min_links=3,
+    interval=15,
+    timeperiod=24,
+    min_hours=6,
 ):
     """
     Classification of rainy and dry periods from diagnostic (min-max) CML signal
@@ -153,13 +146,13 @@ def nearby_wetdry(
 
     # get number of CMLs within r for each CML
     ds_dist["within_r"] = (
-            (ds_dist.a_to_all_a < radius)
-            & (ds_dist.a_to_all_b < radius)
-            & (ds_dist.b_to_all_a < radius)
-            & (ds_dist.b_to_all_b < radius)
+        (ds_dist.a_to_all_a < radius)
+        & (ds_dist.a_to_all_b < radius)
+        & (ds_dist.b_to_all_a < radius)
+        & (ds_dist.b_to_all_b < radius)
     )
 
-    ds_cml = pmin.to_dataset(name='pmin')
+    ds_cml = pmin.to_dataset(name="pmin")
     ds_cml["max_pmin"] = max_pmin
     ds_cml["deltaP"] = deltaP
     ds_cml["deltaPL"] = deltaPL
@@ -172,7 +165,6 @@ def nearby_wetdry(
     for cmlid in tqdm(ds_cml.cml_id):
         # only make wet dry detection if min_links is reached within r
         if sum(ds_dist.within_r.sel(cml_id1=cmlid).values) > min_links:
-
             # select all CMLs within r
             ds_nearby_cmls = ds_cml.isel(
                 cml_id=ds_dist.within_r.sel(cml_id1=cmlid).values
@@ -182,14 +174,14 @@ def nearby_wetdry(
             # .where checks if the minimal require number of CMLs has data
             medianP = (
                 ds_nearby_cmls.deltaP.where(
-                    ds_nearby_cmls.deltaP.count("cml_id") > min_links)
+                    ds_nearby_cmls.deltaP.count("cml_id") > min_links
+                )
                 .median(dim="cml_id", skipna=True)
                 .values
             )
             medianP_out.loc[dict(cml_id=cmlid)] = medianP
             medianPL = (
-                ds_nearby_cmls.where(
-                    ds_nearby_cmls.deltaP.count("cml_id") > min_links)
+                ds_nearby_cmls.where(ds_nearby_cmls.deltaP.count("cml_id") > min_links)
                 .deltaPL.median(dim="cml_id", skipna=True)
                 .values
             )
@@ -205,7 +197,8 @@ def nearby_wetdry(
             # calculate the F values which can be used as outlier filter
             F_val = ds_nearby_cmls.deltaPL.sel(cml_id=cmlid) - medianPL
             F.loc[dict(cml_id=cmlid)] = F_val.rolling(time=timeperiod * 4).sum(
-                skipna=True) * (interval / 60)
+                skipna=True
+            ) * (interval / 60)
 
             wet_tmp = wet.copy()
 
@@ -213,10 +206,12 @@ def nearby_wetdry(
             # one after to wet
             for shift in [1, -1, -2]:
                 wet.loc[dict(cml_id=cmlid.values)] = xr.where(
-                    ((wet_tmp.loc[dict(cml_id=cmlid)] == 1) & (
-                            ds_nearby_cmls.sel(
-                                cml_id=cmlid).deltaP < -2)).shift(
-                        time=shift),  ##
+                    (
+                        (wet_tmp.loc[dict(cml_id=cmlid)] == 1)
+                        & (ds_nearby_cmls.sel(cml_id=cmlid).deltaP < -2)
+                    ).shift(
+                        time=shift
+                    ),  ##
                     # shift here
                     x=1,
                     y=wet.loc[dict(cml_id=cmlid.values)],
@@ -225,6 +220,6 @@ def nearby_wetdry(
             wet.loc[dict(cml_id=cmlid.values)] = xr.where(
                 np.isnan(wet_tmp.loc[dict(cml_id=cmlid.values)]),
                 np.nan,
-                wet.loc[dict(cml_id=cmlid.values)]
+                wet.loc[dict(cml_id=cmlid.values)],
             )
     return wet, F

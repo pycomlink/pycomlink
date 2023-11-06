@@ -184,8 +184,8 @@ def nearby_rainfall_retrival(
     A_max = pref - p_c_min
 
     # retrieve rainfall intensities
-    r_min = ((1 / a) ** (1 / b) * (((A_min - waa_max) / length))) ** b
-    r_max = ((1 / a) ** (1 / b) * (((A_max - waa_max) / length))) ** b
+    r_min = ((A_min - waa_max)/(a*length))**(1/b)
+    r_max = ((A_max - waa_max)/(a*length))**(1/b)
 
     # not allowing negative rain intensities
     r_min = xr.where(A_min - waa_max < 0, 0, r_min)

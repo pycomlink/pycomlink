@@ -120,7 +120,6 @@ def nearby_rainfall_retrival(
     are not the same values as used in (3) Overeem et al. 2016 who derived
     a and b by fitting a R-k relation to their DSD data. Therefore, there is a
     deviation between a_overeem and 1/a_ITU if b is not equal to 1.
-    deviation between a_overeem and 1/a_ITU if b is not equal to 1.
     Wet antenna is derived via Schleiss et al. (2010), the factor `alpha`
     determines the contribution of the minimum and maximum path-averaged
     rainfall intensity to the returend rain rate. The F-Score
@@ -143,13 +142,13 @@ def nearby_rainfall_retrival(
         Polarization, that is either 'H' for horizontal or 'V' for vertical. Has
         to be provided together with `f_GHz`. It will be used to derive the
         parameters a and b for the k-R power law.
-    a : xr.DataArray, np.array, int, float or iterable of those, optional
+    a : xr.DataArray, np.array, or iterable of those, optional
         Parameter of k-R relationship which can be taken from ITU (1) or (2).
         Note that it is not equal to 1/a used in Overeem et al. 2016 who used a
         R-k relation and own DSD data to derive values for a and b.
-    b : xr.DataArray, np.array, int, float or iterable of those, optional
+    b : xr.DataArray, np.array, or iterable of those, optional
         Parameter of k-R relationship which can be taken from ITU (1) or (2).
-        Note that it is not equal to 1/a used in Overeem et al. 2016 who used a
+        Note that it is not equal to 1/b used in Overeem et al. 2016 who used a
         R-k relation and own DSD data to derive values for a and b.
     a_b_approximation : string
         Specifies which approximation for the k-R power law shall be used. See
@@ -157,7 +156,8 @@ def nearby_rainfall_retrival(
     waa_max : float
         Maximum value of wet antenna attenuation
     alpha : float
-        Between 0 and 1. B
+        Between 0 and 1, determines the contribution of the minimum and maximum
+        path-averaged rainfall intensity derive from p_c_min and p_c_max.
     F_value_threshold: float
         Outlier detection value calculated in `nearby_wetdry()` can be used to
         remove outliers. Set to `None` if it should not be used.

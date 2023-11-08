@@ -117,7 +117,7 @@ def nearby_rainfall_retrival(
     a_b_approximation="ITU_2005",
     waa_max=2.3,
     alpha=0.33,
-    F_value=-32.5,
+    F_value_threshold=-32.5,
 ):
     """
     Calculating R from corrected pmin and pmax values using the `k-R`-relation
@@ -163,7 +163,7 @@ def nearby_rainfall_retrival(
         Maximum value of wet antenna attenuation
     alpha : float
         Between 0 and 1. B
-    F_value: float
+    F_value_threshold: float
         Outlier detection value calculated in `nearby_wetdry()` can be used to
         remove outliers. Set to `None` if it should not be used.
 
@@ -174,14 +174,14 @@ def nearby_rainfall_retrival(
 
     References:
     ----------
-    (1) & (1) Specific attenuation model for rain for use in prediction
+    (1) & (2) Specific attenuation model for rain for use in prediction
     methods. Geneva, Switzerland: ITU-R.
     Versions within pycomlink:
     (1) P.838-2 (04/2003)
     (2) P.838-3 (03/2005)
     Retrieved from https://www.itu.int/rec/R-REC-P.838
 
-    (2) Overeem, A., Leijnse, H., & Uijlenhoet, R. (2016). Retrieval algorithm
+    (3) Overeem, A., Leijnse, H., & Uijlenhoet, R. (2016). Retrieval algorithm
     for rainfall mapping from microwave links in a cellular communication
     network. Atmospheric Measurement Techniques, 9(5), 2425–2444.
     https://doi.org/10.5194/amt-9-2425-2016
@@ -250,7 +250,7 @@ def nearby_rainfall_retrival(
     R = (alpha * r_max) + ((1 - alpha) * r_min)
 
     # correct rainfall intensities by removing outliers defined by the F score
-    if F_value is not None:
-        R = R.where(~(F <= F_value))
+    if F_value_threshold is not None:
+        R = R.where(~(F <= F_value_threshold))
 
     return R

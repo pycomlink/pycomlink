@@ -234,17 +234,21 @@ def nearby_rainfall_retrival(
             "other combination is not allowed."
         )
 
-    # calculate minimum and maximum rain-induced attenuation
+        # calculate minimum and maximum rain-induced attenuation
     A_min = pref - p_c_max
     A_max = pref - p_c_min
 
-    # retrieve rainfall intensities
-    r_min = ((A_min - waa_max)/(a*length))**(1/b)
-    r_max = ((A_max - waa_max)/(a*length))**(1/b)
+    # remove wet antenna attenuation
+    A_min = A_min - waa_max
+    A_max = A_max - waa_max
 
-    # not allowing negative rain intensities
-    r_min = xr.where(r_min < 0, 0, r_min)
-    r_max = xr.where(r_max < 0, 0, r_max)
+    # remove negative attenuation
+    A_min = xr.where(A_min < 0, 0, A_min)
+    A_max = xr.where(A_max < 0, 0, A_max)
+
+    # retrieve rainfall intensities
+    r_min = ((A_min) / (a * length)) ** (1 / b)
+    r_max = ((A_max) / (a * length)) ** (1 / b)
 
     # weighted mean path averaged rainfall intensity
     R = (alpha * r_max) + ((1 - alpha) * r_min)

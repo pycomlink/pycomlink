@@ -16,9 +16,11 @@ def calc_distance_between_cml_endpoints(
     Calculating the distance from and to all start and endpoints of a network
     of CMLs using the Haversine distance formula. This includes the start and
     endpoint of each CML (which equals its length). The distance between start
-    and endpoint of a CML will be set to 0. This is done for the case when r
-    (the radius for  which CMLs are considered to be "nearby") is smaller than
-    the actual length  of the CML.
+    and endpoint of a CML will be set to 0. This has to be done to correctly
+    handle the case when r (the radius for  which CMLs are considered to be
+    "nearby") is smaller than the actual length  of the CML.
+
+    Parameters
     ----------
     cml_ids : list of str or int
          ids of CMLs
@@ -30,6 +32,7 @@ def calc_distance_between_cml_endpoints(
         latitude values of site b
     site_b_longitude : list or array
         longitude values of site b
+
     Returns
     -------
     xarray.Dataset
@@ -94,7 +97,10 @@ def nearby_wetdry(
 ):
     """
     Classification of rainy and dry periods from diagnostic (min-max) CML signal
-    levels following the nearby link approach.
+    levels following the nearby link approach from Overeem et al. (2016).
+    Variable names are adopted from them.
+
+    Parameters
     ----------
     pmin : xarray.DataArray
          Time series of pmin, must include cml_id and time as dimensions.
@@ -120,11 +126,13 @@ def nearby_wetdry(
         Number of previous hours over which max(pmin) should be computed.
     min_hours : int
         Minimum number of hours needed to compute max(pmin).
+
     Returns
     -------
     tuple of two xarray.Datasets
         Time series of wet-dry classification and F-score used for quality
         control.
+
     References
     ----------
     .. [1] Overeem, A., Leijnse, H., and Uijlenhoet, R.: Retrieval algorithm
@@ -204,23 +212,27 @@ def nearby_wetdry(
 
             wet_tmp = wet.copy()
 
-            # if wet is true and deltaP < -2db then set two timesteps before and
-            # one after to wet
+            # If wet is true (condition 1) and deltaP < -2db  (condition 2)
+            # then set the two time steps before and the one after the
+            # considered time step to wet.
+
             for shift in [1, -1, -2]:
                 wet.loc[dict(cml_id=cmlid.values)] = xr.where(
                     (
-                        (wet_tmp.loc[dict(cml_id=cmlid)] == 1)
-                        & (ds_nearby_cmls.sel(cml_id=cmlid).deltaP < -2)
+                        (wet_tmp.loc[dict(cml_id=cmlid)] == 1)  # condition 1
+                        & (ds_nearby_cmls.sel(cml_id=cmlid).deltaP < -2)  # condition 2
                     ).shift(
                         time=shift  # shift here
                     ),
-                    x=1,
-                    y=wet.loc[dict(cml_id=cmlid.values)],
+                    x=1,  # if condition 1 and 2 are true, set value to 1 (wet)
+                    y=wet.loc[dict(cml_id=cmlid.values)],  # else, keep value
                 )
-
+            # this adds nans at all time steps where the shift overwrote
+            # previous nans
             wet.loc[dict(cml_id=cmlid.values)] = xr.where(
                 np.isnan(wet_tmp.loc[dict(cml_id=cmlid.values)]),
                 np.nan,
                 wet.loc[dict(cml_id=cmlid.values)],
             )
+
     return wet, F

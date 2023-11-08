@@ -3,12 +3,7 @@ import xarray as xr
 from pycomlink.processing.k_R_relation import a_b
 
 
-def nearby_determine_reference_level(
-        pmin,
-        pmax,
-        wet,
-        n_average_dry=96,
-        min_periods=1):
+def nearby_determine_reference_level(pmin, pmax, wet, n_average_dry=96, min_periods=1):
     """
     Determine reference/baseline level during rain events as Overeem et al.
     (2016). The baseline ist the median of all dry time steps during the last
@@ -148,11 +143,11 @@ def nearby_rainfall_retrival(
         Polarization, that is either 'H' for horizontal or 'V' for vertical. Has
         to be provided together with `f_GHz`. It will be used to derive the
         parameters a and b for the k-R power law.
-    a : float, optional
+    a : xr.DataArray, np.array, int, float or iterable of those, optional
         Parameter of k-R relationship which can be taken from ITU (1) or (2).
         Note that it is not equal to 1/a used in Overeem et al. 2016 who used a
         R-k relation and own DSD data to derive values for a and b.
-    b : float, optional
+    b : xr.DataArray, np.array, int, float or iterable of those, optional
         Parameter of k-R relationship which can be taken from ITU (1) or (2).
         Note that it is not equal to 1/a used in Overeem et al. 2016 who used a
         R-k relation and own DSD data to derive values for a and b.
@@ -234,7 +229,7 @@ def nearby_rainfall_retrival(
             "other combination is not allowed."
         )
 
-        # calculate minimum and maximum rain-induced attenuation
+    # calculate minimum and maximum rain-induced attenuation
     A_min = pref - p_c_max
     A_max = pref - p_c_min
 

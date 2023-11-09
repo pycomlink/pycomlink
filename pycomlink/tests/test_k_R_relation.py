@@ -120,6 +120,29 @@ class Test_a_b(unittest.TestCase):
             expected_b,
             calculated_b,
         )
+    def test_with_f_GHz_mulidim_xarray(self):
+        A = 5
+        L_km = 5
+        A, Z = np.array(["A", "Z"]).view("int32")
+        cml_ids = np.random.randint(low=A, high=Z, size=198 * 4,
+                                    dtype="int32").view(f"U{4}")
+        f_GHz = xr.DataArray(
+            data=[np.arange(1, 100, 0.5)],
+            dims=['sublin_id', 'cml_id'],
+            coords=dict(
+                sublink_id='sublink_1',
+                cml_id=cml_ids, ))
+        pol = "H"
+        expected_a, expected_b = k_R_relation.a_b(f_GHz, pol, approx_type="ITU_2005")
+
+        assert_almost_equal(
+            expected_a.sum(),
+            128.67885799,
+        )
+        assert_almost_equal(
+            expected_b.sum(),
+            175.58906864,
+        )
 
     def test_interpolation(self):
         f_GHz = np.array([1.7, 28.9, 82.1])

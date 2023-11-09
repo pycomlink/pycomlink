@@ -187,13 +187,14 @@ def a_b(f_GHz, pol, approx_type="ITU_2005"):
     """
     if isinstance(f_GHz, xr.DataArray):
         return_xarray = True
+        f_GHz_coords = f_GHz.coords
     else:
         return_xarray = False
 
     f_GHz = xr.DataArray(f_GHz)
 
     if isinstance(pol, str):
-        pol = np.full_like(f_GHz, pol, dtype=object)
+        pol = xr.full_like(f_GHz, pol, dtype=object)
     pol = xr.DataArray(pol)
 
     tmp_dims_f_GHz = f_GHz.dims
@@ -244,8 +245,9 @@ def a_b(f_GHz, pol, approx_type="ITU_2005"):
     b[pol_mask_v] = b_v[pol_mask_v]
 
     if return_xarray:
-        a = xr.DataArray(a, dims=tmp_dims_f_GHz)
-        b = xr.DataArray(b, dims=tmp_dims_f_GHz)
+        if tmp_dims_f_GHz != ():
+            a = xr.DataArray(a, coords=f_GHz_coords)
+            b = xr.DataArray(b, coords=f_GHz_coords)
 
     return a, b
 

@@ -197,6 +197,7 @@ class Test_a_b(unittest.TestCase):
             k_R_relation.a_b(30, "H", approx_type="ITU_2000")
 
 
+
 class Test_calc_R_from_A(unittest.TestCase):
     def test_with_int(self):
         A = 5
@@ -245,7 +246,7 @@ class Test_calc_R_from_A(unittest.TestCase):
         with self.assertRaises(ValueError):
             # pol and F_GHz as xr.DataArray but with different size
             calculated_R = k_R_relation.calc_R_from_A(
-                A=2, L_km=42, f_GHz=xr.DataArray([10,10]), pol=xr.DataArray("H"), a=1)
+                A=2, L_km=42, f_GHz=xr.DataArray([10,10]), pol=xr.DataArray("H"))
 
     def test_different_power_law_approximation_types(self):
         A = 5

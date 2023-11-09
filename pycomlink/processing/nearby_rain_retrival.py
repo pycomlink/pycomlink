@@ -135,10 +135,10 @@ def nearby_rainfall_retrival(
         Corrected pmax
     F : xr.DataArray
         Computed filter to remove outliers
-    f_GHz : float, optional
+    f_GHz : xr.DataArray or np.array, optional
         Frequency in GHz. If provided together with `pol`, it will be used to
         derive the parameters a and b for the k-R power law.
-    pol : string, optional
+    pol : xr.DataArray or np.array of strings, optional
         Polarization, that is either 'H' for horizontal or 'V' for vertical. Has
         to be provided together with `f_GHz`. It will be used to derive the
         parameters a and b for the k-R power law.

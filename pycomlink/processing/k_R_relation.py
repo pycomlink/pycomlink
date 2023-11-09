@@ -232,8 +232,8 @@ def a_b(f_GHz, pol, approx_type="ITU_2005"):
     a_h = interp_a_h(f_GHz)
     b_h = interp_b_h(f_GHz)
 
-    a = np.full_like(f_GHz, fill_value=np.nan)
-    b = np.full_like(f_GHz, fill_value=np.nan)
+    a = np.full_like(f_GHz, fill_value=np.nan, dtype=float)
+    b = np.full_like(f_GHz, fill_value=np.nan, dtype=float)
 
     pol_mask_v = np.isin(pol, pol_v_str_variants)
     pol_mask_h = np.isin(pol, pol_h_str_variants)

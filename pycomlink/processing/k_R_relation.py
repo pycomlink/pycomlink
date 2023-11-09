@@ -1,5 +1,7 @@
 from __future__ import division
 import numpy as np
+import xarray as xr
+from scipy.interpolate import interp1d
 
 from .xarray_wrapper import xarray_apply_along_time_dim
 
@@ -36,8 +38,8 @@ def calc_R_from_A(
         Frequency in GHz. If provided together with `pol`, it will be used to
         derive the parameters a and b for the k-R power law.
     pol : string, optional
-        Polarization, that is either 'H' for horizontal or 'V' for vertical. Has 
-        to be provided together with `f_GHz`. It will be used to derive the 
+        Polarization, that is either 'H' for horizontal or 'V' for vertical. Has
+        to be provided together with `f_GHz`. It will be used to derive the
         parameters a and b for the k-R power law.
     a : float, optional
         Parameter of A-R relationship
@@ -183,32 +185,68 @@ def a_b(f_GHz, pol, approx_type="ITU_2005"):
         prediction methods", International Telecommunication Union, P.838-2 (04/2003) P.838-3 (03/2005)
 
     """
-    from scipy.interpolate import interp1d
+    if isinstance(f_GHz, xr.DataArray):
+        return_xarray = True
+    else:
+        return_xarray = False
 
-    f_GHz = np.asarray(f_GHz)
+    f_GHz = xr.DataArray(f_GHz)
+
+    if isinstance(pol, str):
+        pol = np.full_like(f_GHz, pol, dtype=object)
+    pol = xr.DataArray(pol)
+
+    tmp_dims_f_GHz = f_GHz.dims
+    tmp_dims_pol = pol.dims
+
+    if tmp_dims_f_GHz != tmp_dims_pol:
+        raise ValueError("Frequency and polarization must have identical "
+                         "dimensions.")
+
+    f_GHz = np.atleast_1d(f_GHz)
+    pol = np.atleast_1d(pol)
+
+    pol_v_str_variants = ['v','V','vertical','Vertical']
+    pol_h_str_variants = ['h','H','horizontal','Horizontal']
 
     if f_GHz.min() < 1 or f_GHz.max() > 100:
         raise ValueError("Frequency must be between 1 Ghz and 100 GHz.")
+    if not np.isin(pol,pol_v_str_variants+pol_h_str_variants).all():
+        raise ValueError("Polarization must be V, v, Vertical, vertical, H,"
+                         "Horizontal or horizontal.")
+    # select ITU table
+    if approx_type == "ITU_2003":
+        ITU_table = ITU_table_2003.copy()
+    elif approx_type == "ITU_2005":
+        ITU_table = ITU_table_2005.copy()
     else:
-        # select ITU table
-        if approx_type == "ITU_2003":
-            ITU_table = ITU_table_2003.copy()
-        elif approx_type == "ITU_2005":
-            ITU_table = ITU_table_2005.copy()
-        else:
-            raise ValueError("Approximation type not available.")
+        raise ValueError("Approximation type not available.")
 
-        if pol == "V" or pol == "v" or pol == 'Vertical' or pol == "vertical":
-            f_a = interp1d(ITU_table[0, :], ITU_table[2, :], kind="cubic")
-            f_b = interp1d(ITU_table[0, :], ITU_table[4, :], kind="cubic")
-        elif pol == "H" or pol == "h" or pol == "Horizontal" or pol == "horizontal":
-            f_a = interp1d(ITU_table[0, :], ITU_table[1, :], kind="cubic")
-            f_b = interp1d(ITU_table[0, :], ITU_table[3, :], kind="cubic")
-        else:
-            raise ValueError("Polarization must be V, v, Vertical, vertical, H,"
-                             "Horizontal or horizontal.")
-        a = f_a(f_GHz)
-        b = f_b(f_GHz)
+    interp_a_v = interp1d(ITU_table[0, :], ITU_table[2, :], kind="cubic")
+    interp_b_v = interp1d(ITU_table[0, :], ITU_table[4, :], kind="cubic")
+    interp_a_h = interp1d(ITU_table[0, :], ITU_table[1, :], kind="cubic")
+    interp_b_h = interp1d(ITU_table[0, :], ITU_table[3, :], kind="cubic")
+
+    a_v = interp_a_v(f_GHz)
+    b_v = interp_b_v(f_GHz)
+    a_h = interp_a_h(f_GHz)
+    b_h = interp_b_h(f_GHz)
+
+    a = np.full_like(f_GHz, fill_value=np.nan)
+    b = np.full_like(f_GHz, fill_value=np.nan)
+
+    pol_mask_v = np.isin(pol, pol_v_str_variants)
+    pol_mask_h = np.isin(pol, pol_h_str_variants)
+
+    a[pol_mask_h] = a_h[pol_mask_h]
+    a[pol_mask_v] = a_v[pol_mask_v]
+    b[pol_mask_h] = b_h[pol_mask_h]
+    b[pol_mask_v] = b_v[pol_mask_v]
+
+    if return_xarray:
+        a = xr.DataArray(a, dims=tmp_dims_f_GHz)
+        b = xr.DataArray(b, dims=tmp_dims_f_GHz)
+
     return a, b
 
 
@@ -337,3 +375,4 @@ ITU_table_2003 = np.array(
 )
 
 # fmt: on
+

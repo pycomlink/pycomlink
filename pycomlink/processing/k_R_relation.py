@@ -67,15 +67,24 @@ def calc_R_from_A(
 
     """
 
+
+
     # Make sure that we only continue if a correct combination of optional args is used
     if (f_GHz is not None) and (pol is not None) and (a is None) and (b is None):
+        # f_GHz and pol must be np.arrays within this function before fed to
+        # a_b(), otherwise a_b() can return a xr.DataArray with non-matching
+        # dimensions in certain cases. That interferes with our xarray-wrapper
+        # decorator.
+        f_GHz = np.atleast_1d(f_GHz).astype(float)
+        pol = np.atleast_1d(pol)
         a, b = a_b(f_GHz, pol=pol, approx_type=a_b_approximation)
     elif (a is not None) and (b is not None) and (f_GHz is None) and (pol is None):
         # in this case we use `a` and `b` from args
         pass
     else:
         raise ValueError(
-            "Either `f_GHz` and `pol` or `a` and `b` have to be passed. Any other combination is not allowed."
+            "Either `f_GHz` and `pol` or `a` and `b` have to be passed. "
+            "Any other combination is not allowed."
         )
 
     A = np.atleast_1d(A).astype(float)
@@ -154,9 +163,10 @@ def a_b(f_GHz, pol, approx_type="ITU_2005"):
 
     Parameters
     ----------
-    f_GHz : int, float or np.array of these
-            Frequency of the microwave link in GHz
-    pol : str
+    f_GHz : int, float, np.array or xr.DataArray or iterable of these
+            Frequency of the microwave link in GHz. The data type of pol depends
+            on the data type of F_GHz.
+    pol : str, np.array 
             Polarization of the microwave link
     approx_type : str, optional
             Approximation type (the default is 'ITU_2005', which implies parameter
@@ -197,12 +207,8 @@ def a_b(f_GHz, pol, approx_type="ITU_2005"):
         pol = xr.full_like(f_GHz, pol, dtype=object)
     pol = xr.DataArray(pol)
 
-    tmp_dims_f_GHz = f_GHz.dims
-    tmp_dims_pol = pol.dims
-
-    if tmp_dims_f_GHz != tmp_dims_pol:
-        raise ValueError("Frequency and polarization must have identical "
-                         "dimensions.")
+    if f_GHz.shape != pol.shape:
+        raise ValueError("Frequency and polarization must have identical shape.")
 
     f_GHz = np.atleast_1d(f_GHz)
     pol = np.atleast_1d(pol)
@@ -244,10 +250,11 @@ def a_b(f_GHz, pol, approx_type="ITU_2005"):
     b[pol_mask_h] = b_h[pol_mask_h]
     b[pol_mask_v] = b_v[pol_mask_v]
 
+    # If f_GHz is a xr.DataArray a and b should be also returned as xr.DataArray
+    # with identical coordinates
     if return_xarray:
-        if tmp_dims_f_GHz != ():
-            a = xr.DataArray(a, coords=f_GHz_coords)
-            b = xr.DataArray(b, coords=f_GHz_coords)
+        a = xr.DataArray(a, coords=f_GHz_coords)
+        b = xr.DataArray(b, coords=f_GHz_coords)
 
     return a, b
 

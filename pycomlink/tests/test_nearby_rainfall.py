@@ -427,7 +427,7 @@ class Test_nearby_wetdry_approach(unittest.TestCase):
                 F_value_threshold=-32.5
             )
 
-        with self.assertRaises(IndexError):
+        with self.assertRaises(ValueError):
             nearby_rain.nearby_rainfall_retrival(
                 pref=pref,
                 p_c_min=pcmin,

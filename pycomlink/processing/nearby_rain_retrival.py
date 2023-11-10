@@ -182,51 +182,22 @@ def nearby_rainfall_retrival(
     https://doi.org/10.5194/amt-9-2425-2016
     """
 
-    # Make sure that we only continue if a correct combination of optional
-    # args is used
+    # Make sure that we only continue if a correct combination of optional args is used
     if (f_GHz is not None) and (pol is not None) and (a is None) and (b is None):
-        if type(f_GHz) is not np.ndarray:
-            f_GHz = f_GHz.values
-        if type(pol) is not np.ndarray:
-            pol = pol.values
-
-        # check if freq and pol have the same size
-        if f_GHz.shape == pol.shape:
-            shape_save = f_GHz.shape
-
-            a, b = [], []
-            for i_freq, i_pol in zip(f_GHz.flatten(), pol.flatten()):
-                a_tmp, b_tmp = a_b(
-                    f_GHz=i_freq, pol=i_pol, approx_type=a_b_approximation
-                )
-                a.append(a_tmp)
-                b.append(b_tmp)
-            a = np.reshape(np.array(a), shape_save)
-            b = np.reshape(np.array(b), shape_save)
-
-            # turn a and b values to xarray.DataArray and check whether
-            # no or the dim channel_id is available
-            if "channel_id" in list(pref.dims):
-                a = xr.DataArray(
-                    a, coords=dict(cml_id=pref.cml_id, channel_id=pref.channel_id)
-                )
-                b = xr.DataArray(
-                    b, coords=dict(cml_id=pref.cml_id, channel_id=pref.channel_id)
-                )
-            else:
-                a = xr.DataArray(a, coords=dict(cml_id=pref.cml_id))
-                b = xr.DataArray(b, coords=dict(cml_id=pref.cml_id))
-
-        else:
-            raise IndexError("Size of `f_GHz` and `pol` must be identical.")
-
+        # f_GHz and pol must be np.arrays within this function before fed to
+        # a_b(), otherwise a_b() can return a xr.DataArray with non-matching
+        # dimensions in certain cases. That interferes with our xarray-wrapper
+        # decorator.
+        f_GHz = np.atleast_1d(f_GHz).astype(float)
+        pol = np.atleast_1d(pol)
+        a, b = a_b(f_GHz, pol=pol, approx_type=a_b_approximation)
     elif (a is not None) and (b is not None) and (f_GHz is None) and (pol is None):
         # in this case we use `a` and `b` from args
         pass
     else:
         raise ValueError(
-            "Either `f_GHz` and `pol` or `a` and `b` have to be passed. Any "
-            "other combination is not allowed."
+            "Either `f_GHz` and `pol` or `a` and `b` have to be passed. "
+            "Any other combination is not allowed."
         )
 
     # calculate minimum and maximum rain-induced attenuation

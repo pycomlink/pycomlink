@@ -33,7 +33,7 @@ Usage
    :maxdepth: 1
    :caption: Examples
 
-   notebooks/Basic CML processing workflow
+   ../notebooks/Basic CML processing workflow
 
 .. toctree::
   :maxdepth: 1

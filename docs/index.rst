@@ -25,10 +25,15 @@ Usage
 
 .. toctree::
    :maxdepth: 1
-   :hidden:
    :caption: User Guide
 
    API <source/pycomlink>
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Examples
+
+   notebooks/Basic CML processing workflow
 
 .. toctree::
   :maxdepth: 1

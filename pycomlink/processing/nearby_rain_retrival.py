@@ -1,9 +1,10 @@
 import numpy as np
 import xarray as xr
 from pycomlink.processing.k_R_relation import a_b
+from pycomlink.processing.xarray_wrapper import xarray_apply_along_time_dim
 
-
-def nearby_determine_reference_level(pmin, pmax, wet, n_average_dry=96, min_periods=1):
+def nearby_determine_reference_level(
+        pmin, pmax, wet, n_average_dry=96, min_periods=1):
     """
     Determine reference/baseline level during rain events as Overeem et al.
     (2016). The baseline ist the median of all dry time steps during the last
@@ -98,7 +99,6 @@ def nearby_correct_received_signals(pmin, pmax, wet, pref):
 
     return p_c_min, p_c_max
 
-from pycomlink.processing.xarray_wrapper import xarray_apply_along_time_dim
 @xarray_apply_along_time_dim()
 def nearby_rainfall_retrival(
     pref,

@@ -3,6 +3,24 @@ What's New
 **********************
 
 
+v0.3.10
+-------
+
+Enhancements
+~~~~~~~~~~~~
+* added more flexible handling of input for `a_b()` function (by maxmargraf in PR #141)
+* updaetd WAA example notebook with WAA example with method from Pastorek (by cchwala in PR #136)
+
+Maintenance
+~~~~~~~~~~~~
+* Refactoring of nearby-link approach code (by maxmargraf in PR #139)
+
+Bug fixes
+~~~~~~~~~
+* Fixed some errors in the nearby-link approach code (by maxmargraf in PR #139)
+* Fixed bug in `read_cmlh5_file_to_xarray()` (by maxmargraf in PR #138)
+
+
 v0.3.9
 ------
 

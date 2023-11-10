@@ -43,7 +43,7 @@ def calc_R_from_A(
         are also allowed. Has to be provided together with `f_GHz`. It will be
         used to derive the parameters a and b for the k-R power law. Must have
         same shape as f_GHz or be a str. If it is a str, it will be expanded to
-        the shape of g_GHz.
+        the shape of f_GHz.
     a : float, optional
         Parameter of A-R relationship
     b : float, optional

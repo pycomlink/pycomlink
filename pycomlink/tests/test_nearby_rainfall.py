@@ -4,7 +4,8 @@ import numpy as np
 import xarray as xr
 
 import pycomlink.processing.nearby_rain_retrival as nearby_rain
-
+import pycomlink.processing.wet_dry.nearby_wetdry as nearby_wetdry
+from pycomlink.io.examples import get_example_data_path
 
 class Test_nearby_wetdry_approach(unittest.TestCase):
 
@@ -376,6 +377,114 @@ class Test_nearby_wetdry_approach(unittest.TestCase):
             R.values,
             result
         )
+
+    def test_with_real_data(self):
+        # get data
+        data_path = get_example_data_path()
+        cmls = xr.open_dataset(data_path + "/example_cml_data.nc")
+        cmls = cmls.isel(cml_id=range(100)).sel(time=slice("2018-05-13 12:00", "2018-05-14 12:00"))
+        # prepare data
+        cmls["rsl"] = cmls["rsl"].where(cmls.rsl > -99.9)
+        cmls["tsl"] = cmls["tsl"].where(cmls.tsl < 255.0)
+        cmls["rsl"] = cmls.rsl.interpolate_na(dim="time", method="linear", max_gap="5min")
+        cmls["tsl"] = cmls.tsl.interpolate_na(dim="time", method="linear", max_gap="5min")
+        rstl = cmls.rsl - cmls.tsl
+        pmin = rstl.resample(time="15min").min()
+        pmax = rstl.resample(time="15min").max()
+        # wet dry detection
+        ds_dist = nearby_wetdry.calc_distance_between_cml_endpoints(
+            cml_ids=cmls.cml_id.values,
+            site_a_latitude=cmls.site_a_latitude,
+            site_a_longitude=cmls.site_a_longitude,
+            site_b_latitude=cmls.site_b_latitude,
+            site_b_longitude=cmls.site_b_longitude,
+        )
+        r = 15  # radius in km
+        ds_dist["within_r"] = (
+            (ds_dist.a_to_all_a < r)
+            & (ds_dist.a_to_all_b < r)
+            & (ds_dist.b_to_all_a < r)
+            & (ds_dist.b_to_all_b < r)
+        )
+        wet, F = nearby_wetdry.nearby_wetdry(
+            pmin=pmin,
+            ds_dist=ds_dist,
+            radius=15,
+            thresh_median_P=-1.4,
+            thresh_median_PL=-0.7,
+            min_links=3,
+            interval=15,
+            timeperiod=24,
+        )
+        # baseline
+        pref = nearby_rain.nearby_determine_reference_level(pmin, pmax, wet, n_average_dry=96, min_periods=1)
+        # p correction
+        p_c_min, p_c_max = nearby_rain.nearby_correct_received_signals(pmin, pmax, wet, pref)
+        # rainfall retrival
+        R_calculated = nearby_rain.nearby_rainfall_retrival(
+            pref,
+            p_c_min,
+            p_c_max,
+            F,
+            length=pmin.length,
+            f_GHz=pmin.frequency / 1e9,
+            pol=pmin.polarization,
+            waa_max=2.3,
+            alpha=0.33,
+            F_value_threshold =-32.5,
+        )
+        np.testing.assert_array_almost_equal(
+            R_calculated.shape,
+            (2, 100, 97)
+        )
+        R_calculated.shape
+        R_sum_time_expected=np.array([[
+            41.90965929, 30.81230363, 42.27260361,  0.        , 76.03876161,
+            66.08282092, 46.36603486, 62.87213183, 57.58080548, 51.27198303,
+             0.        ,  0.        , 29.63752437, 38.56509215, 46.19928983,
+             0.        ,  0.        , 58.52898827, 47.79559598,  0.        ,
+             0.        , 44.40474887, 85.92727433,  0.        ,  0.        ,
+            74.92346778,  0.        ,  0.        , 58.5559156 ,  0.        ,
+            26.18794222, 29.4832387 , 39.05399955,  0.        ,  0.        ,
+             0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+            36.4470238 , 52.96669035,  0.        ,  0.        ,  0.        ,
+             0.        ,  0.        , 85.77647073,  0.        ,  0.        ,
+            64.25433464, 76.43354689, 83.69074307,  0.        ,  0.        ,
+             0.        ,  0.        , 53.77075543,  0.        ,  0.        ,
+             0.        ,  0.        , 15.82877295,  0.        ,  0.        ,
+             6.51377856,  0.        ,  0.        ,  0.        ,  0.        ,
+             0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+             0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+            18.66728697,  0.        ,  0.        , 43.46232702,  0.        ,
+             0.        ,  0.        ,  0.        , 69.24545576, 50.77061707,
+             0.        ,  0.        , 41.45100524,  0.        ,  0.        ,
+             0.        ,  0.        ,  0.        ,  0.        ,  0.        ],
+            [46.18260008, 36.28838243, 46.00223947,  0.        , 87.43020587,
+            71.27052955, 44.93293929, 65.74056063, 55.28587772, 53.31173911,
+             0.        ,  0.        , 35.35763306, 41.51196592, 46.56380559,
+             0.        ,  0.        , 71.04911487, 50.2374038 ,  0.        ,
+             0.        , 48.21782928, 83.95550245,  0.        ,  0.        ,
+            82.38917753,  0.        ,  0.        , 48.97362551,  0.        ,
+            25.75600752, 32.21408015, 36.54471132,  0.        ,  0.        ,
+             0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+            34.57063941, 50.31299284,  0.        ,  0.        ,  0.        ,
+             0.        ,  0.        , 78.58860383,  0.        ,  0.        ,
+            61.92381488, 83.28080822, 81.21570599,  0.        ,  0.        ,
+             0.        ,  0.        , 52.32298068,  0.        ,  0.        ,
+             0.        ,  0.        , 15.32280994,  0.        ,  0.        ,
+             6.24706586,  0.        ,  0.        ,  0.        ,  0.        ,
+             0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+             0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+            16.7221373 ,  0.        ,  0.        , 40.58670524,  0.        ,
+             0.        ,  0.        ,  0.        , 69.59247934, 52.1466364 ,
+             0.        ,  0.        , 43.21924184,  0.        ,  0.        ,
+             0.        ,  0.        ,  0.        ,  0.        ,  0.        ]])
+
+        np.testing.assert_array_almost_equal(
+            R_calculated.sum(dim='time'),
+            R_sum_time_expected
+        )
+
 
     def test_raises(self):
         time = pd.date_range("2020-01-01 00:00", periods=100)

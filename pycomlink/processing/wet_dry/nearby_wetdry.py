@@ -1,7 +1,8 @@
-import xarray as xr
 import numpy as np
-from tqdm import tqdm
+import xarray as xr
+
 from ... spatial import helper as spatial
+from tqdm import tqdm
 
 
 def calc_distance_between_cml_endpoints(
@@ -15,9 +16,11 @@ def calc_distance_between_cml_endpoints(
     Calculating the distance from and to all start and endpoints of a network
     of CMLs using the Haversine distance formula. This includes the start and
     endpoint of each CML (which equals its length). The distance between start
-    and endpoint of a CML will be set to 0 for the case when r (the radius for
-    which CMLs are considered to be "nearby") is smaller than the actual length
-    of the CML
+    and endpoint of a CML will be set to 0. This has to be done to correctly
+    handle the case when r (the radius for  which CMLs are considered to be
+    "nearby") is smaller than the actual length  of the CML.
+
+    Parameters
     ----------
     cml_ids : list of str or int
          ids of CMLs
@@ -29,6 +32,7 @@ def calc_distance_between_cml_endpoints(
         latitude values of site b
     site_b_longitude : list or array
         longitude values of site b
+
     Returns
     -------
     xarray.Dataset
@@ -76,126 +80,89 @@ def calc_distance_between_cml_endpoints(
     # which defines nearby CMLs is larger than the distance between endpoints
     # of a CML (aka its length). Otherwise, the signal levels of CMLs with
     # length > r will not be considered in the nearby approach
-    ds = xr.where(
-        ds.cml_id1 == ds.cml_id2,
-        0,
-        ds)
+    ds = xr.where(ds.cml_id1 == ds.cml_id2, 0, ds)
     return ds
 
 
-def instantaneous_to_minmax_data(rsl, tsl, length, interval=15, timeperiod=24, min_hours=6):
+def nearby_wetdry(
+    pmin,
+    ds_dist,
+    radius=15,
+    thresh_median_P=-1.4,
+    thresh_median_PL=-0.7,
+    min_links=3,
+    interval=15,
+    timeperiod=24,
+    min_hours=6,
+):
     """
-    calculating pmin from instanteanousy measured rsl and tsl values
+    Classification of rainy and dry periods from diagnostic (min-max) CML signal
+    levels following the nearby link approach from Overeem et al. (2016).
+    Variable names are adopted from them.
+
+    Parameters
     ----------
-    rsl : xarray.DataArray
-         Time series of received signal levels (rsl)
-    tsl : xarray.DataArray
-         Time series of transmitted signal levels (tsl)
-    length : xarray.Dataset,float64
-        Lengths of CML(s) which are provided
-    interval : int
-        Interval of pmin in minutes
+    pmin : xarray.DataArray
+         Time series of pmin, must include cml_id and time as dimensions.
+    ds_dist : xarray.Dataset
+         Distance matrix between all CML endpoints calculated with
+         `calc_distance_between_cml_endpoints()`, must include cml_id.
+    radius : float
+        Radius for which surrounding CMLs are considered for the wet-dry
+        detection (both end points have to be within the chosen radius from
+        either end of the selected link).
+    thresh_median_P : float
+        Threshold for median_P. Is dependent on the spatial correlation of
+        rainfall. Default is value -1.4.
+    thresh_median_PL : float
+        Threshold for median_PL. Is dependent on the spatial correlation of
+        rainfall. Default values is -0.7.
+    min_links : int
+        minimum number of CMLs within radius needed to perform wet-dry
+        classification.
+    interval: int
+         Interval of pmin in minutes.
     timeperiod : int
-        Number of previous hours over which max(pmin) is to be computed
+        Number of previous hours over which max(pmin) should be computed.
     min_hours : int
-        Minimum number of hours needed to compute max(pmin)
+        Minimum number of hours needed to compute max(pmin).
+
     Returns
     -------
-    tuple of xarray.Datasets
-        Time series of pmin, max_pmin, deltaP and deltaPL
+    tuple of two xarray.Datasets
+        Time series of wet-dry classification and F-score used for quality
+        control.
+
     References
     ----------
     .. [1] Overeem, A., Leijnse, H., and Uijlenhoet, R.: Retrieval algorithm
-    for rainfall mapping from microwave links in a cellular communication network,
-    Atmos. Meas. Tech., 9, 2425–2444, https://doi.org/10.5194/amt-9-2425-2016, 2016.
+    for rainfall mapping from microwave links in a cellular communication
+    network, Atmos. Meas. Tech., 9, 2425–2444,
+    https://doi.org/10.5194/amt-9-2425-2016, 2016.
     """
-    pmin = rsl - tsl
-    pmin = pmin.resample(time=str(interval) + "min").min()
-    pmax = pmin.resample(time=str(interval) + "min").max()
 
     # rolling window * 60min/interval(in minutes)
     period = int(timeperiod * 60 / interval)
     # min hours for calculation * 60min/interval(in minutes)
     hours_needed = int(min_hours * 60 / interval)
+
     max_pmin = pmin.rolling(
         time=period,
         min_periods=hours_needed,
     ).max(skipna=False)
 
     deltaP = pmin - max_pmin
-    deltaPL = deltaP / length
+    deltaPL = deltaP / pmin.length
 
-    return (
-        pmin,
-        max_pmin,
-        deltaP,
-        deltaPL,
-    )
-
-
-def nearby_wetdry(
-        pmin,
-        max_pmin,
-        deltaP,
-        deltaPL,
-        ds_dist,
-        r=15,
-        thresh_median_P=-1.4,
-        thresh_median_PL=-0.7,
-        min_links=3,
-        interval=15,
-        timeperiod=24,
-):
-    """
-    Classification of rainy and dry periods from diagnostic (min-max) CML signal
-    levels following the nearby link approach.
-    ----------
-    pmin : xarray.DataArray
-         Time series of pmin, must include cml_id and time as dimensions
-    max_pmin: xarray.DataArray
-        Time series of max_pmin, must include cml_id and time as dimensions
-    deltaP : xarray.DataArray
-        Time series of deltaP, must include cml_id and time as dimensions
-    deltaPL : xarray.DataArray
-        Time series of deltaPL, must include cml_id and time as dimensions
-    ds_dist : xarray.Dataset
-         Distance matrix between all CML endpoints calculated with
-         `calc_distance_between_cml_endpoints()`, must include cml_id
-    r : float
-        Radius for which surrounding CMLs (both end points are within a chosen
-        radius r from either end of the selected link)
-    thresh_median_P : float
-        Threshold for median_P. Is dependent on the spatial correlation of rainfall.
-    thresh_median_PL : float
-        Threshold for median_PL. Is dependent on the spatial correlation of rainfall.
-    min_links : int
-        minimum number of CMLs within r needed to perform wet-dry classification
-    Returns
-    -------
-    tuple of four xarray.Datasets
-        Time series of wet-dry classification as well as three variable for
-        later quality control
-    References
-    ----------
-    .. [1] Overeem, A., Leijnse, H., and Uijlenhoet, R.: Retrieval algorithm
-    for rainfall mapping from microwave links in a cellular communication network,
-    Atmos. Meas. Tech., 9, 2425–2444, https://doi.org/10.5194/amt-9-2425-2016, 2016.
-    """
-    # get number of CMLs within r for each CML
+    # get number of CMLs within radius for each CML
     ds_dist["within_r"] = (
-            (ds_dist.a_to_all_a < r)
-            & (ds_dist.a_to_all_b < r)
-            & (ds_dist.b_to_all_a < r)
-            & (ds_dist.b_to_all_b < r)
+        (ds_dist.a_to_all_a < radius)
+        & (ds_dist.a_to_all_b < radius)
+        & (ds_dist.b_to_all_a < radius)
+        & (ds_dist.b_to_all_b < radius)
     )
 
-    if not ((pmin.cml_id.values == max_pmin.cml_id.values).all() and (
-            deltaP.cml_id.values == deltaPL.cml_id.values
-    ).all() and (deltaP.cml_id.values == max_pmin.cml_id.values).all()):
-        raise ValueError(
-            "All input variables must contain the same cml_ids.")
-
-    ds_cml = pmin.to_dataset(name='pmin')
+    ds_cml = pmin.to_dataset(name="pmin")
     ds_cml["max_pmin"] = max_pmin
     ds_cml["deltaP"] = deltaP
     ds_cml["deltaPL"] = deltaPL
@@ -206,9 +173,8 @@ def nearby_wetdry(
     medianPL_out = xr.full_like(ds_cml.pmin, np.nan)
 
     for cmlid in tqdm(ds_cml.cml_id):
-        # only make wet dry detection if min_links is reached within r
+        # only make wet dry detection if min_links is reached within radius
         if sum(ds_dist.within_r.sel(cml_id1=cmlid).values) > min_links:
-
             # select all CMLs within r
             ds_nearby_cmls = ds_cml.isel(
                 cml_id=ds_dist.within_r.sel(cml_id1=cmlid).values
@@ -218,14 +184,14 @@ def nearby_wetdry(
             # .where checks if the minimal require number of CMLs has data
             medianP = (
                 ds_nearby_cmls.deltaP.where(
-                    ds_nearby_cmls.deltaP.count("cml_id") > min_links)
+                    ds_nearby_cmls.deltaP.count("cml_id") > min_links
+                )
                 .median(dim="cml_id", skipna=True)
                 .values
             )
             medianP_out.loc[dict(cml_id=cmlid)] = medianP
             medianPL = (
-                ds_nearby_cmls.where(
-                    ds_nearby_cmls.deltaP.count("cml_id") > min_links)
+                ds_nearby_cmls.where(ds_nearby_cmls.deltaP.count("cml_id") > min_links)
                 .deltaPL.median(dim="cml_id", skipna=True)
                 .values
             )
@@ -241,26 +207,32 @@ def nearby_wetdry(
             # calculate the F values which can be used as outlier filter
             F_val = ds_nearby_cmls.deltaPL.sel(cml_id=cmlid) - medianPL
             F.loc[dict(cml_id=cmlid)] = F_val.rolling(time=timeperiod * 4).sum(
-                skipna=True) * (interval / 60)
+                skipna=True
+            ) * (interval / 60)
 
             wet_tmp = wet.copy()
 
-            # if wet is true and deltaP < -2db then set two timesteps before and
-            # one after to wet
+            # If wet is true (condition 1) and deltaP < -2db  (condition 2)
+            # then set the two time steps before and the one after the
+            # considered time step to wet.
+
             for shift in [1, -1, -2]:
                 wet.loc[dict(cml_id=cmlid.values)] = xr.where(
-                    ((wet_tmp.loc[dict(cml_id=cmlid)] == 1) & (
-                            ds_nearby_cmls.sel(
-                                cml_id=cmlid).deltaP < -2)).shift(
-                        time=shift),  ##
-                    # shift here
-                    x=1,
-                    y=wet.loc[dict(cml_id=cmlid.values)],
+                    (
+                        (wet_tmp.loc[dict(cml_id=cmlid)] == 1)  # condition 1
+                        & (ds_nearby_cmls.sel(cml_id=cmlid).deltaP < -2)  # condition 2
+                    ).shift(
+                        time=shift  # shift here
+                    ),
+                    x=1,  # if condition 1 and 2 are true, set value to 1 (wet)
+                    y=wet.loc[dict(cml_id=cmlid.values)],  # else, keep value
                 )
-
+            # this adds nans at all time steps where the shift overwrote
+            # previous nans
             wet.loc[dict(cml_id=cmlid.values)] = xr.where(
                 np.isnan(wet_tmp.loc[dict(cml_id=cmlid.values)]),
                 np.nan,
-                wet.loc[dict(cml_id=cmlid.values)]
+                wet.loc[dict(cml_id=cmlid.values)],
             )
-    return wet, F, medianP_out, medianPL_out
+
+    return wet, F

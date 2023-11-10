@@ -2,6 +2,7 @@ import unittest
 
 import numpy as np
 from numpy.testing import assert_almost_equal
+import xarray as xr
 
 from pycomlink.processing import k_R_relation
 
@@ -24,7 +25,7 @@ class Test_a_b(unittest.TestCase):
         assert_almost_equal(0.2403, calculated_a)
         assert_almost_equal(0.9485, calculated_b)
 
-    def test_with_array(self):
+    def test_with_f_GHz_array(self):
         f_GHz = np.arange(1, 100, 0.5)
 
         pol = "V"
@@ -55,6 +56,92 @@ class Test_a_b(unittest.TestCase):
         assert_almost_equal(
             expected_b,
             calculated_b,
+        )
+    def test_with_f_GHz_pol_array(self):
+        f_GHz = np.arange(1, 100, 0.5)
+        pol = np.repeat("V", len(f_GHz))
+        a, b = k_R_relation.a_b(f_GHz, pol, approx_type="ITU_2005")
+        calculated_a = a[2::40]
+        calculated_b = b[2::40]
+        expected_a = np.array([0.0000998, 0.117, 0.4712, 0.8889, 1.1915])
+        expected_b = np.array([0.949, 0.97, 0.8296, 0.7424, 0.6988])
+        assert_almost_equal(
+            expected_a,
+            calculated_a,
+        )
+        assert_almost_equal(
+            expected_b,
+            calculated_b,
+        )
+
+        pol = np.repeat("H", len(f_GHz))
+        a, b = k_R_relation.a_b(f_GHz, pol, approx_type="ITU_2005")
+        calculated_a = a[2::40]
+        calculated_b = b[2::40]
+        expected_a = np.array([0.0000847, 0.1155, 0.4865, 0.8974, 1.1946])
+        expected_b = np.array([1.0664, 1.0329, 0.8539, 0.7586, 0.7077])
+        assert_almost_equal(
+            expected_a,
+            calculated_a,
+        )
+        assert_almost_equal(
+            expected_b,
+            calculated_b,
+        )
+
+    def test_with_f_GHz_pol_xarray(self):
+        f_GHz = xr.DataArray(np.arange(1, 100, 0.5))
+        pol = "V"
+        a, b = k_R_relation.a_b(f_GHz, pol, approx_type="ITU_2005")
+        calculated_a = a[2::40]
+        calculated_b = b[2::40]
+        expected_a = np.array([0.0000998, 0.117, 0.4712, 0.8889, 1.1915])
+        expected_b = np.array([0.949, 0.97, 0.8296, 0.7424, 0.6988])
+        assert_almost_equal(
+            expected_a,
+            calculated_a,
+        )
+        assert_almost_equal(
+            expected_b,
+            calculated_b,
+        )
+
+        pol = xr.DataArray(np.repeat("H", len(f_GHz)))
+        a, b = k_R_relation.a_b(f_GHz, pol, approx_type="ITU_2005")
+        calculated_a = a[2::40]
+        calculated_b = b[2::40]
+        expected_a = np.array([0.0000847, 0.1155, 0.4865, 0.8974, 1.1946])
+        expected_b = np.array([1.0664, 1.0329, 0.8539, 0.7586, 0.7077])
+        assert_almost_equal(
+            expected_a,
+            calculated_a,
+        )
+        assert_almost_equal(
+            expected_b,
+            calculated_b,
+        )
+    def test_with_f_GHz_mulidim_xarray(self):
+        A = 5
+        L_km = 5
+        A, Z = np.array(["A", "Z"]).view("int32")
+        cml_ids = np.random.randint(low=A, high=Z, size=198 * 4,
+                                    dtype="int32").view(f"U{4}")
+        f_GHz = xr.DataArray(
+            data=[np.arange(1, 100, 0.5)],
+            dims=['sublin_id', 'cml_id'],
+            coords=dict(
+                sublink_id='sublink_1',
+                cml_id=cml_ids, ))
+        pol = "H"
+        expected_a, expected_b = k_R_relation.a_b(f_GHz, pol, approx_type="ITU_2005")
+
+        assert_almost_equal(
+            expected_a.sum(),
+            128.67885799,
+        )
+        assert_almost_equal(
+            expected_b.sum(),
+            175.58906864,
         )
 
     def test_interpolation(self):
@@ -110,6 +197,7 @@ class Test_a_b(unittest.TestCase):
             k_R_relation.a_b(30, "H", approx_type="ITU_2000")
 
 
+
 class Test_calc_R_from_A(unittest.TestCase):
     def test_with_int(self):
         A = 5
@@ -154,6 +242,11 @@ class Test_calc_R_from_A(unittest.TestCase):
             calculated_R = k_R_relation.calc_R_from_A(
                 A=2, L_km=42, f_GHz=10, pol="H", a=1
             )
+
+        with self.assertRaises(ValueError):
+            # pol and F_GHz as xr.DataArray but with different size
+            calculated_R = k_R_relation.calc_R_from_A(
+                A=2, L_km=42, f_GHz=xr.DataArray([10,10]), pol=xr.DataArray("H"))
 
     def test_different_power_law_approximation_types(self):
         A = 5
@@ -205,3 +298,4 @@ class Test_calc_R_from_A(unittest.TestCase):
         expected_R = np.array([0.0, 47.24635411, 71.08341151])
         calculated_R = k_R_relation.calc_R_from_A(A[:3], L_km, f_GHz, pol)
         assert_almost_equal(expected_R, calculated_R)
+

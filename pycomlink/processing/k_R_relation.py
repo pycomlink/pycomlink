@@ -1,5 +1,7 @@
 from __future__ import division
 import numpy as np
+import xarray as xr
+from scipy.interpolate import interp1d
 
 from .xarray_wrapper import xarray_apply_along_time_dim
 
@@ -32,13 +34,16 @@ def calc_R_from_A(
         Path-integrated attenuation of microwave link signal
     L_km : float
         Length of the link in km
-    f_GHz : float, optional
+    f_GHz : float, np.array, or xr.DataArray optional
         Frequency in GHz. If provided together with `pol`, it will be used to
         derive the parameters a and b for the k-R power law.
-    pol : string, optional
-        Polarization, that is either 'H' for horizontal or 'V' for vertical. Has 
-        to be provided together with `f_GHz`. It will be used to derive the 
-        parameters a and b for the k-R power law.
+    pol : string, np.array or xr.DataArray optional
+        Polarization, that is either 'horizontal' for horizontal or 'vertical'
+        for vertical. 'H', 'h' and 'Horizontal' as well as 'V', 'v' and 'Vertical'
+        are also allowed. Has to be provided together with `f_GHz`. It will be
+        used to derive the parameters a and b for the k-R power law. Must have
+        same shape as f_GHz or be a str. If it is a str, it will be expanded to
+        the shape of f_GHz.
     a : float, optional
         Parameter of A-R relationship
     b : float, optional
@@ -65,15 +70,24 @@ def calc_R_from_A(
 
     """
 
+
+
     # Make sure that we only continue if a correct combination of optional args is used
     if (f_GHz is not None) and (pol is not None) and (a is None) and (b is None):
+        # f_GHz and pol must be np.arrays within this function before fed to
+        # a_b(), otherwise a_b() can return a xr.DataArray with non-matching
+        # dimensions in certain cases. That interferes with our xarray-wrapper
+        # decorator.
+        f_GHz = np.atleast_1d(f_GHz).astype(float)
+        pol = np.atleast_1d(pol)
         a, b = a_b(f_GHz, pol=pol, approx_type=a_b_approximation)
     elif (a is not None) and (b is not None) and (f_GHz is None) and (pol is None):
         # in this case we use `a` and `b` from args
         pass
     else:
         raise ValueError(
-            "Either `f_GHz` and `pol` or `a` and `b` have to be passed. Any other combination is not allowed."
+            "Either `f_GHz` and `pol` or `a` and `b` have to be passed. "
+            "Any other combination is not allowed."
         )
 
     A = np.atleast_1d(A).astype(float)
@@ -152,14 +166,17 @@ def a_b(f_GHz, pol, approx_type="ITU_2005"):
 
     Parameters
     ----------
-    f_GHz : int, float or np.array of these
-            Frequency of the microwave link in GHz
-    pol : str
-            Polarization of the microwave link
+    f_GHz : int, float, np.array or xr.DataArray
+        Frequency of the microwave link(s) in GHz.
+    pol : str, np.array or xr.DataArray
+        Polarization, that is either 'horizontal' for horizontal or 'vertical'
+        for vertical. 'H', 'h' and 'Horizontal' as well as 'V', 'v' and 'Vertical'
+        are also allowed. Must have same shape as f_GHz or be a str. If it is a
+        str, it will be expanded to the shape of f_GHz.
     approx_type : str, optional
-            Approximation type (the default is 'ITU_2005', which implies parameter
-            approximation using a table recommanded by ITU in 2005. An older version
-            of 2003 is available via 'ITU_2003'.)
+        Approximation type (the default is 'ITU_2005', which implies parameter
+        approximation using a table recommanded by ITU in 2005. An older version
+        of 2003 is available via 'ITU_2003'.)
 
     Returns
     -------
@@ -183,32 +200,67 @@ def a_b(f_GHz, pol, approx_type="ITU_2005"):
         prediction methods", International Telecommunication Union, P.838-2 (04/2003) P.838-3 (03/2005)
 
     """
-    from scipy.interpolate import interp1d
+    if isinstance(f_GHz, xr.DataArray):
+        return_xarray = True
+        f_GHz_coords = f_GHz.coords
+    else:
+        return_xarray = False
 
-    f_GHz = np.asarray(f_GHz)
+    f_GHz = xr.DataArray(f_GHz)
+
+    if isinstance(pol, str):
+        pol = xr.full_like(f_GHz, pol, dtype=object)
+    pol = xr.DataArray(pol)
+
+    if f_GHz.shape != pol.shape:
+        raise ValueError("Frequency and polarization must have identical shape.")
+
+    f_GHz = np.atleast_1d(f_GHz)
+    pol = np.atleast_1d(pol)
+
+    pol_v_str_variants = ['v','V','vertical','Vertical']
+    pol_h_str_variants = ['h','H','horizontal','Horizontal']
 
     if f_GHz.min() < 1 or f_GHz.max() > 100:
         raise ValueError("Frequency must be between 1 Ghz and 100 GHz.")
+    if not np.isin(pol,pol_v_str_variants+pol_h_str_variants).all():
+        raise ValueError("Polarization must be V, v, Vertical, vertical, H,"
+                         "Horizontal or horizontal.")
+    # select ITU table
+    if approx_type == "ITU_2003":
+        ITU_table = ITU_table_2003.copy()
+    elif approx_type == "ITU_2005":
+        ITU_table = ITU_table_2005.copy()
     else:
-        # select ITU table
-        if approx_type == "ITU_2003":
-            ITU_table = ITU_table_2003.copy()
-        elif approx_type == "ITU_2005":
-            ITU_table = ITU_table_2005.copy()
-        else:
-            raise ValueError("Approximation type not available.")
+        raise ValueError("Approximation type not available.")
 
-        if pol == "V" or pol == "v" or pol == 'Vertical' or pol == "vertical":
-            f_a = interp1d(ITU_table[0, :], ITU_table[2, :], kind="cubic")
-            f_b = interp1d(ITU_table[0, :], ITU_table[4, :], kind="cubic")
-        elif pol == "H" or pol == "h" or pol == "Horizontal" or pol == "horizontal":
-            f_a = interp1d(ITU_table[0, :], ITU_table[1, :], kind="cubic")
-            f_b = interp1d(ITU_table[0, :], ITU_table[3, :], kind="cubic")
-        else:
-            raise ValueError("Polarization must be V, v, Vertical, vertical, H,"
-                             "Horizontal or horizontal.")
-        a = f_a(f_GHz)
-        b = f_b(f_GHz)
+    interp_a_v = interp1d(ITU_table[0, :], ITU_table[2, :], kind="cubic")
+    interp_b_v = interp1d(ITU_table[0, :], ITU_table[4, :], kind="cubic")
+    interp_a_h = interp1d(ITU_table[0, :], ITU_table[1, :], kind="cubic")
+    interp_b_h = interp1d(ITU_table[0, :], ITU_table[3, :], kind="cubic")
+
+    a_v = interp_a_v(f_GHz)
+    b_v = interp_b_v(f_GHz)
+    a_h = interp_a_h(f_GHz)
+    b_h = interp_b_h(f_GHz)
+
+    a = np.full_like(f_GHz, fill_value=np.nan, dtype=float)
+    b = np.full_like(f_GHz, fill_value=np.nan, dtype=float)
+
+    pol_mask_v = np.isin(pol, pol_v_str_variants)
+    pol_mask_h = np.isin(pol, pol_h_str_variants)
+
+    a[pol_mask_h] = a_h[pol_mask_h]
+    a[pol_mask_v] = a_v[pol_mask_v]
+    b[pol_mask_h] = b_h[pol_mask_h]
+    b[pol_mask_v] = b_v[pol_mask_v]
+
+    # If f_GHz is a xr.DataArray a and b should be also returned as xr.DataArray
+    # with identical coordinates
+    if return_xarray:
+        a = xr.DataArray(a, coords=f_GHz_coords)
+        b = xr.DataArray(b, coords=f_GHz_coords)
+
     return a, b
 
 
@@ -337,3 +389,4 @@ ITU_table_2003 = np.array(
 )
 
 # fmt: on
+

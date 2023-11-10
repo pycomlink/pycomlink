@@ -34,13 +34,16 @@ def calc_R_from_A(
         Path-integrated attenuation of microwave link signal
     L_km : float
         Length of the link in km
-    f_GHz : float, optional
+    f_GHz : float, np.array, or xr.DataArray optional
         Frequency in GHz. If provided together with `pol`, it will be used to
         derive the parameters a and b for the k-R power law.
-    pol : string, optional
-        Polarization, that is either 'H' for horizontal or 'V' for vertical. Has
-        to be provided together with `f_GHz`. It will be used to derive the
-        parameters a and b for the k-R power law.
+    pol : string, np.array or xr.DataArray optional
+        Polarization, that is either 'horizontal' for horizontal or 'vertical'
+        for vertical. 'H', 'h' and 'Horizontal' as well as 'V', 'v' and 'Vertical'
+        are also allowed. Has to be provided together with `f_GHz`. It will be
+        used to derive the parameters a and b for the k-R power law. Must have
+        same shape as f_GHz or be a str. If it is a str, it will be expanded to
+        the shape of g_GHz.
     a : float, optional
         Parameter of A-R relationship
     b : float, optional
@@ -163,15 +166,17 @@ def a_b(f_GHz, pol, approx_type="ITU_2005"):
 
     Parameters
     ----------
-    f_GHz : int, float, np.array or xr.DataArray or iterable of these
-            Frequency of the microwave link in GHz. The data type of pol depends
-            on the data type of F_GHz.
-    pol : str, np.array 
-            Polarization of the microwave link
+    f_GHz : int, float, np.array or xr.DataArray
+        Frequency of the microwave link(s) in GHz.
+    pol : str, np.array or xr.DataArray
+        Polarization, that is either 'horizontal' for horizontal or 'vertical'
+        for vertical. 'H', 'h' and 'Horizontal' as well as 'V', 'v' and 'Vertical'
+        are also allowed. Must have same shape as f_GHz or be a str. If it is a
+        str, it will be expanded to the shape of f_GHz.
     approx_type : str, optional
-            Approximation type (the default is 'ITU_2005', which implies parameter
-            approximation using a table recommanded by ITU in 2005. An older version
-            of 2003 is available via 'ITU_2003'.)
+        Approximation type (the default is 'ITU_2005', which implies parameter
+        approximation using a table recommanded by ITU in 2005. An older version
+        of 2003 is available via 'ITU_2003'.)
 
     Returns
     -------

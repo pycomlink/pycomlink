@@ -98,7 +98,8 @@ def nearby_correct_received_signals(pmin, pmax, wet, pref):
 
     return p_c_min, p_c_max
 
-
+from pycomlink.processing.xarray_wrapper import xarray_apply_along_time_dim
+@xarray_apply_along_time_dim()
 def nearby_rainfall_retrival(
     pref,
     p_c_min,
@@ -135,13 +136,18 @@ def nearby_rainfall_retrival(
         Corrected pmax
     F : xr.DataArray
         Computed filter to remove outliers
-    f_GHz : xr.DataArray or np.array, optional
+    f_GHz : xr.DataArray or np.array optional
         Frequency in GHz. If provided together with `pol`, it will be used to
-        derive the parameters a and b for the k-R power law.
-    pol : xr.DataArray or np.array of strings, optional
+        derive the parameters a and b for the k-R power law. If xr.DataArray,
+        the coords must match those of pref, p_c_min, p_c_max and F. If np.array,
+        the shape must match the shape of pref, p_c_min, p_c_max and F.
+    pol : xr.DataArray, np.array or string, optional
         Polarization, that is either 'H' for horizontal or 'V' for vertical. Has
         to be provided together with `f_GHz`. It will be used to derive the
-        parameters a and b for the k-R power law.
+        parameters a and b for the k-R power law. If xr.DataArray,
+        the coords must match those of pref, p_c_min, p_c_max and F. If np.array,
+        the shape must match the shape of pref, p_c_min, p_c_max and F. If it is
+        a str, it will be expanded to the shape of f_GHz.
     a : xr.DataArray, np.array, or iterable of those, optional
         Parameter of k-R relationship which can be taken from ITU (1) or (2).
         Note that it is not equal to 1/a used in Overeem et al. 2016 who used a
@@ -221,6 +227,6 @@ def nearby_rainfall_retrival(
 
     # correct rainfall intensities by removing outliers defined by the F score
     if F_value_threshold is not None:
-        R = R.where(~(F <= F_value_threshold))
+        R[F <= F_value_threshold] = np.nan
 
     return R

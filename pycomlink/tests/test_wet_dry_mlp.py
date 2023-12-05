@@ -3,8 +3,12 @@ import numpy as np
 from pycomlink.processing.wet_dry.mlp import mlp_wet_dry
 
 class Testmlppred(unittest.TestCase):
+    """
+    This runs the same tests as test_wet_dry_cnn.py but with different 
+    content in truth_raw.
+    """
+    
     def test_mlppred(self):
-        # generate random array
         trsl_channel_1 = np.arange(0, 60 * 8).astype(float)
         trsl_channel_2 = np.arange(0, 60 * 8).astype(float)
 
@@ -63,6 +67,4 @@ class Testmlppred(unittest.TestCase):
         )
 
         np.testing.assert_almost_equal(pred[280:293], truth)   
-        np.testing.assert_almost_equal(
-            np.round(pred_raw, decimals=7)[280:293], truth_raw
-        )
+        np.testing.assert_almost_equal(pred_raw[280:293], truth_raw, decimal=7)

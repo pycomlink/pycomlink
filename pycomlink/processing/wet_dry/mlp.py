@@ -25,7 +25,8 @@ def mlp_wet_dry(
     trsl_channel_2 : iterable of float
          Time series of received signal level of channel 2
     threshold : float 
-        Threshold (0 - 1) for setting event as wet or dry. 
+        Threshold (0 - 1) for setting event as wet or dry. Default None uses 
+        the continuous output from the logistic function.
     
 
     Returns
@@ -66,12 +67,12 @@ def mlp_wet_dry(
     mlp_pred = np.zeros([x_fts.shape[0], 2])*np.nan
     indices = np.argwhere(~np.isnan(x_fts).any(axis = 1)).ravel()
     
-    if indices.size > 0: # everything is nan, mlp_pred is then all nan
+    if indices.size > 0: # else: predictions are kept as nan
         mlp_pred_ = model.predict(x_fts[indices], verbose=0)
         mlp_pred[indices] = mlp_pred_        
     
     if threshold == None:
-        return mlp_pred #
+        return mlp_pred 
     else:
         mlp_pred = mlp_pred[:, 1]
         mlp_pred[indices] = mlp_pred[indices] > threshold

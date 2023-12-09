@@ -11,12 +11,29 @@ def get_model_file_path():
 model = tf.keras.models.load_model(str(get_model_file_path() + "/model_mlp.keras"))
 
 def mlp_wet_dry(
-    trsl_channel_1,
+    trsl_channel_1, 
     trsl_channel_2,
     threshold=None, # 0.5 is often good, or argmax
 ):
     """
-    Wet dry classification using a simple neural network based on channel 1 and channel 2 of a CML
+    Wet dry classification using a simple neural network:
+    
+    This MLP calculates wet and dry periods using a 40 minutes rolling window 
+    for the CML signal loss from two sublinks (trsl_channel_1 and 
+    trsl_channel_2) with temporal resolution equal to 1 minute. It consists of 
+    two fully connected hidden layers with 13 and 5 neurons using the relu 
+    activation function. The MLP was trained to predict rainfall recorded 
+    at narby disdrometers at 10 minute resolution for one month of data with 6 
+    pairs of CMLs and disdrometers from different locations in Norway. The MLP 
+    was trained using MLPClassifier from sklearn and then transformed 
+    to tensorflow to be compatible with the pycomlink environment. 
+    
+    If only one channel is available from the CML, use that channel for both
+    trsl_channel_1 and trsl_channel_2. 
+    
+    The error "WARNING:absl:Skipping variable loading for optimizer 'Adam', 
+    because it has 13 variables whereas the saved optimizer has 1 variables." 
+    can safely be ignored. 
 
     Parameters
     ----------
@@ -25,9 +42,9 @@ def mlp_wet_dry(
     trsl_channel_2 : iterable of float
          Time series of received signal level of channel 2
     threshold : float 
-        Threshold (0 - 1) for setting event as wet or dry. Default None uses 
-        the continuous output from the logistic function.
-    
+        Threshold (0 - 1) for setting event as wet or dry. If set to None 
+        (default), returns the continuous probability of wet [0, 1] from the 
+        logistic activation function.
 
     Returns
     -------

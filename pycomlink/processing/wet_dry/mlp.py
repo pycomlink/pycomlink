@@ -2,6 +2,7 @@ import numpy as np
 from numpy.lib.stride_tricks import sliding_window_view 
 import tensorflow as tf
 import pkg_resources
+import pandas as pd
 
 def get_model_file_path():
     return pkg_resources.resource_filename(
@@ -21,9 +22,9 @@ def mlp_wet_dry(
     This MLP calculates wet and dry periods using a 40 minutes rolling window 
     for the CML signal loss from two sublinks (trsl_channel_1 and 
     trsl_channel_2) with temporal resolution equal to 1 minute. It consists of 
-    two fully connected hidden layers with 13 and 5 neurons using the relu 
+    one fully connected hidden layers with 20 neurons using the relu 
     activation function. The MLP was trained to predict rainfall recorded 
-    at narby disdrometers at 10 minute resolution for one month of data with 6 
+    at narby disdrometers at 10 minute resolution for one month of data with 14 
     pairs of CMLs and disdrometers from different locations in Norway. The MLP 
     was trained using MLPClassifier from sklearn and then transformed 
     to tensorflow to be compatible with the pycomlink environment. 
@@ -58,7 +59,7 @@ def mlp_wet_dry(
 
     """
     # Normalization 
-    trsl_channel_1_norm = (trsl_channel_1 - np.nanmean(trsl_channel_1)) / np.nanstd(trsl_channel_1)
+    trsl_channel_1_norm =  (trsl_channel_1 - np.nanmean(trsl_channel_1)) / np.nanstd(trsl_channel_1)
     trsl_channel_2_norm = (trsl_channel_2 - np.nanmean(trsl_channel_2)) / np.nanstd(trsl_channel_2)
 
     # add nan to start and end

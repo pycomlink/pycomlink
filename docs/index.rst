@@ -21,18 +21,12 @@ Usage
 
    README <readme_link>
 
-
 .. toctree::
    :maxdepth: 1
-   :caption: User Guide
-
-   API <source/pycomlink>
-
-.. toctree::
-   :maxdepth: 1
+   :hidden:
    :caption: Examples
 
-   Basic CML processing workflow
+   notebooks/Basic CML processing workflow
 
 .. toctree::
   :maxdepth: 1

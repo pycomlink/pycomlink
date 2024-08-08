@@ -14,13 +14,12 @@ A Python library to process commercial microwave link data.
 Usage
 -----
 
-.. ifconfig:: internal
-  .. toctree::
-     :maxdepth: 1
-     :hidden:
-     :caption: Getting Started
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+   :caption: Getting Started
 
-     README <readme_link>
+   README <readme_link>
 
 
 .. toctree::

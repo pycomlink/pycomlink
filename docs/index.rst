@@ -19,7 +19,7 @@ Usage
    :hidden:
    :caption: Getting Started
 
-   README <readme_link>
+   README
 
 .. toctree::
    :maxdepth: 1
@@ -33,4 +33,5 @@ Usage
   :hidden:
   :caption: Help & reference
 
+   API <source/pycomlink>
    What's new <whats-new>

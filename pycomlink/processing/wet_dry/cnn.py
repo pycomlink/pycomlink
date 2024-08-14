@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras.models import model_from_json
+from tensorflow.keras.models import load_model
 from tensorflow.keras.optimizers import SGD
 import pkg_resources
 
@@ -13,13 +13,10 @@ def get_model_file_path():
 
 
 modelh5_fn = str(get_model_file_path() + "/model_2020.002.180m.h5")
-modeljson_fn = str(get_model_file_path() + "/model_2020.002.180m.json")
+modelkeras_fn = str(get_model_file_path() + "/model_2020.002.180m.keras")
 
-# load json and create model
-json_file = open(modeljson_fn, "r")
-loaded_model_json = json_file.read()
-json_file.close()
-model = model_from_json(loaded_model_json)
+# load model
+model = load_model(modelkeras_fn)
 # load weights into new model
 model.load_weights(modelh5_fn)
 model.compile()

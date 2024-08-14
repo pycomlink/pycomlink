@@ -3,16 +3,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras.models import model_from_json
 from tensorflow.keras.optimizers import SGD
-from tensorflow.compat.v1.keras.backend import set_session
 import pkg_resources
-
-
-# Limit GPU memory usage to avoid processes to run out of memory.
-# For a list of processes blocking GPU memory on an nvidia GPU type 'nvidia-smi' in the terminal.
-config = tf.compat.v1.ConfigProto()
-config.gpu_options.per_process_gpu_memory_fraction = 0.4
-config.gpu_options.visible_device_list = "0"
-set_session(tf.compat.v1.Session(config=config))
 
 
 def get_model_file_path():

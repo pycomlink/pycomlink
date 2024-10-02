@@ -15,7 +15,6 @@ dependencies:
  - pyproj
  - tqdm
  - pykrige
- - tensorflow
  - bottleneck
  - future
  - pip

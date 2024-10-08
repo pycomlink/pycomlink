@@ -53,7 +53,7 @@ def created_blackout_gap_mask_from_start_end_markers(rsl, gap_start, gap_end):
 
     """
 
-    mask = np.zeros(rsl.shape, dtype=bool)
+    mask = np.zeros(rsl.shape, dtype=np.bool)
     in_blackout_gap = False
     for i in range(len(rsl)):
         if gap_start[i] == True:

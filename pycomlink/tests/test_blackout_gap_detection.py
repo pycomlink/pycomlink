@@ -1,5 +1,5 @@
 import unittest
-import numpy as np
+import numpy as np  
 import pycomlink.processing.blackout_gap_detection as gap_detec
 
 

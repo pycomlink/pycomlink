@@ -11,6 +11,6 @@ shapely
 pyproj
 tqdm
 pykrige
+scikit-learn
 future
-tensorflow
 bottleneck

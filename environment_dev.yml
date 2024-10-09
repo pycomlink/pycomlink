@@ -15,6 +15,7 @@ dependencies:
  - pyproj
  - tqdm
  - pykrige
+ - scikit-learn
  - future
  - jupyterlab
  - notebook

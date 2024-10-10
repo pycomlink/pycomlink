@@ -14,25 +14,24 @@ A Python library to process commercial microwave link data.
 Usage
 -----
 
-.. ifconfig:: internal
-  .. toctree::
-     :maxdepth: 1
-     :hidden:
-     :caption: Getting Started
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+   :caption: Getting Started
 
-     README <readme_link>
-
+   README
 
 .. toctree::
    :maxdepth: 1
    :hidden:
-   :caption: User Guide
+   :caption: Examples
 
-   API <source/pycomlink>
+   notebooks/Basic CML processing workflow
 
 .. toctree::
   :maxdepth: 1
   :hidden:
   :caption: Help & reference
 
+   API <source/pycomlink>
    What's new <whats-new>

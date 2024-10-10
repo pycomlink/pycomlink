@@ -33,7 +33,7 @@ release = '0.3.0'
 extensions = [
     "sphinx.ext.autodoc",
     'sphinx.ext.napoleon',
-    'myst-parser'
+    'myst_parser'
 ]
 
 napoleon_google_docstring = False

@@ -14,3 +14,5 @@ pykrige
 scikit-learn
 future
 bottleneck
+poligrain
+

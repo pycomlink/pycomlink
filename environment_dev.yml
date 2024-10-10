@@ -21,3 +21,5 @@ dependencies:
  - notebook
  - bottleneck
  - pytest
+ - poligrain
+

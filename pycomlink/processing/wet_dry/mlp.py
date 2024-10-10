@@ -1,97 +1,147 @@
 import numpy as np
 from numpy.lib.stride_tricks import sliding_window_view 
-import tensorflow as tf
-import pkg_resources
-import pandas as pd
+import pickle
+from importlib.resources import files
 
+# Open pickled scikit-learn models
 def get_model_file_path():
-    return pkg_resources.resource_filename(
-        "pycomlink", "/processing/wet_dry/mlp_model_files"
-    )
+    return files("pycomlink").joinpath("processing/wet_dry/mlp_model_files")
 
-model = tf.keras.models.load_model(str(get_model_file_path() + "/model_mlp.keras"))
-
+with open(get_model_file_path() / "model_rg.pkl", 'rb') as f:
+    model_rg = pickle.load(f)
+    
+with open(get_model_file_path() / "model_rad.pkl", 'rb') as f:
+    model_rad = pickle.load(f)
+    
+with open(get_model_file_path() / "model_rg_online.pkl", 'rb') as f:
+    model_rg_online = pickle.load(f)
+    
+with open(get_model_file_path() / "model_rad_online.pkl", 'rb') as f:
+    model_rad_online = pickle.load(f)
+    
+    
 def mlp_wet_dry(
     trsl_channel_1, 
     trsl_channel_2,
-    threshold=None, # 0.5 is often good, or argmax
+    model_sel = 'rad_online',
 ):
     """
-    Wet dry classification using a simple neural network:
+    Wet dry classification using a simple neural network (MLP):
     
-    This MLP calculates wet and dry periods using a 40 minutes rolling window 
+    Calculates wet and dry periods using a 40 minutes rolling window 
     for the CML signal loss from two sublinks (trsl_channel_1 and 
-    trsl_channel_2) with temporal resolution equal to 1 minute. It consists of 
-    one fully connected hidden layers with 20 neurons using the relu 
-    activation function. The MLP was trained to predict rainfall recorded 
-    at narby disdrometers at 10 minute resolution for one month of data with 14 
-    pairs of CMLs and disdrometers from different locations in Norway. The MLP 
-    was trained using MLPClassifier from sklearn and then transformed 
-    to tensorflow to be compatible with the pycomlink environment. 
+    trsl_channel_2) with temporal resolution equal to 1 minute. See notebook
+    under ./pycomlink/notebooks/Rain event detection methods.ibynp for examples
+    on how to run.
     
-    If only one channel is available from the CML, use that channel for both
-    trsl_channel_1 and trsl_channel_2. 
+    This module contains 4 MLP models: 
+        - rg: Model that was trained on rain gauge data using 6 hour rolling 
+        median for detrending. 
+        - rad: Model that was trained on radar data using 6 hour rolling 
+        median for detrending. 
+        - rg_online: Model that was trained on rain gauge data using the first
+        order derivative for detrending. 
+        - rad_online: Model that was trained on radar data using the first 
+        order derivative for detrending. 
+        
+    The models that utilize a 6-hour rolling median for detrending are 
+    documented in this publication: https://doi.org/10.5194/egusphere-2024-647. 
+    Please note that the models which employ the 1st order derivative for 
+    detrending have not yet been published or undergone extensive testing.
     
-    The error "WARNING:absl:Skipping variable loading for optimizer 'Adam', 
-    because it has 13 variables whereas the saved optimizer has 1 variables." 
-    can safely be ignored. 
-
+    For access to training data see: https://github.com/eoydvin/cml_wd_mlp. 
+    This data can be used to train new MLPs, for instance using CMLs with 5
+    minute resolution, or entirely different models. 
+    
     Parameters
     ----------
-    trsl_channel_1 : iterable of float
-         Time series of received signal level of channel 1
-    trsl_channel_2 : iterable of float
-         Time series of received signal level of channel 2
-    threshold : float 
-        Threshold (0 - 1) for setting event as wet or dry. If set to None 
-        (default), returns the continuous probability of wet [0, 1] from the 
-        logistic activation function.
-
+    trsl_channel_1: xarray.DataArray 
+         Time series of received signal level of sublink 1
+    trsl_channel_2: xarray.DataArray
+         Time series of received signal level of sublink 2
+    model_sel : str
+        MLP model to use. Set to 'rg', 'rad', 'rg_online' or 'rad_online'. 
+        
     Returns
     -------
     iterable of float
         Time series of wet/dry probability or (if threshold is provided) 
-        wet dry classification 
+        wet dry classification. Run np.argmax(mlp_out, axis = 1) on the 
+        probability output to get optimal wet dry classification. 
         
     References
     ----------
 
-
     """
-    # Normalization 
-    trsl_channel_1_norm =  (trsl_channel_1 - np.nanmean(trsl_channel_1)) / np.nanstd(trsl_channel_1)
-    trsl_channel_2_norm = (trsl_channel_2 - np.nanmean(trsl_channel_2)) / np.nanstd(trsl_channel_2)
-
-    # add nan to start and end
-    windowsize = 40 # use two channels 
-    x_start = np.ones([int(windowsize/2), windowsize*2])*np.nan
-    x_end = np.ones([int(windowsize/2)- 1, windowsize*2])*np.nan
     
-    # sliding window
-    sliding_window_ch1 = sliding_window_view(
-        trsl_channel_1_norm, 
-        window_shape = windowsize
-    )
+    # Select MLP model
+    if model_sel == 'rg':
+        model = model_rg    
+        
+    elif model_sel == 'rad':
+        model = model_rad        
+  
+    elif model_sel == 'rad_online':
+        model = model_rad_online        
+        
+    elif model_sel == 'rg_online':
+        model = model_rg_online        
+        
+    else:
+        raise ValueError('Did not recognize model')
+        
+    # Detrending of CML time series
+    if (model_sel == 'rad') | (model_sel == 'rg'):
+        # Detrending channel 1 using rolling median        
+        trsl1 =  trsl_channel_1 - trsl_channel_1.rolling(
+            time = 12*60, 
+            min_periods=2 * 60, 
+            center = True
+        ).median().data
+        
+        # Detrending channel 2 using rolling median   
+        trsl2 =  trsl_channel_2 - trsl_channel_2.rolling(
+            time = 12*60, 
+            min_periods=2 * 60, 
+            center = True
+        ).median().data
+        
+        # add nan to start and end of design matrix
+        windowsize = 40 # use two channels 
+        x_start = np.ones([int(windowsize/2), windowsize*2])*np.nan
+        x_end = np.ones([int(windowsize/2)- 1, windowsize*2])*np.nan
+        
+        # sliding window
+        sw_ch1 = sliding_window_view(trsl1, window_shape = windowsize)
+        sw_ch2 = sliding_window_view(trsl2, window_shape = windowsize)
     
-    sliding_window_ch2 = sliding_window_view(
-        trsl_channel_2_norm, 
-        window_shape = windowsize
-    )
-
-    x_fts = np.vstack(
-        [x_start, np.hstack([sliding_window_ch1, sliding_window_ch2]), x_end]
-    )
+        # Create design matrix
+        x_fts = np.vstack([x_start, np.hstack([sw_ch1, sw_ch2]), x_end])        
+        
+    elif (model_sel == 'rg_online') | (model_sel == 'rad_online'):
+        # Detrending using 1st order derivative    
+        trsl1 = trsl_channel_1.diff(dim = 'time', n = 1).data
+        trsl2 = trsl_channel_2.diff(dim = 'time', n = 1).data
     
-    mlp_pred = np.zeros([x_fts.shape[0], 2])*np.nan
+        # add nan to start of design matrix
+        windowsize = 40 # use two channels 
+        x_start = np.ones([int(windowsize), windowsize*2])*np.nan 
+        
+        # sliding window
+        sw_ch1 = sliding_window_view(trsl1, window_shape = windowsize)
+        sw_ch2 = sliding_window_view(trsl2, window_shape = windowsize)
+    
+        # Create design matrix
+        x_fts = np.vstack([x_start, np.hstack([sw_ch1, sw_ch2])])        
+    
+    # Create matrix for storing estimates
+    mlp_pred = np.full([x_fts.shape[0], 2], np.nan)
+    
+    # Get indices of timesteps to do prediction
     indices = np.argwhere(~np.isnan(x_fts).any(axis = 1)).ravel()
     
+    # predic using MLP model
     if indices.size > 0: # else: predictions are kept as nan
-        mlp_pred_ = model.predict(x_fts[indices], verbose=0)
-        mlp_pred[indices] = mlp_pred_        
+        mlp_pred[indices] = model.predict_proba(x_fts[indices])   
     
-    if threshold == None:
-        return mlp_pred 
-    else:
-        mlp_pred = mlp_pred[:, 1]
-        mlp_pred[indices] = mlp_pred[indices] > threshold
-        return mlp_pred
+    return mlp_pred

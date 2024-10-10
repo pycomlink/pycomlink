@@ -17,6 +17,7 @@ dependencies:
  - pykrige
  - bottleneck
  - future
+ - poligrain
  - pip
  - pip:
    - git+https://github.com/pycomlink/pycomlink.git#egg=pycomlink

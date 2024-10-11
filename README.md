@@ -34,7 +34,7 @@ If you want to clone the repository for developing purposes follow these steps (
 
     $ git clone https://github.com/pycomlink/pycomlink.git
     $ cd pycomlink
-    $ conda env create environment_dev.yml
+    $ conda env create -f environment_dev.yml
     $ conda activate pycomlink-dev
     $ cd ..
     $ pip install -e pycomlink

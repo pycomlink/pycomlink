@@ -46,8 +46,10 @@ def mlp_wet_dry(
         
     The models that utilize a 6-hour rolling median for detrending are 
     documented in this publication: https://doi.org/10.5194/egusphere-2024-647. 
-    Please note that the models which employ the 1st order derivative for 
-    detrending have not yet been published or undergone extensive testing.
+    Please note that the MLPs provided in this module are retrained versions 
+    of the MLPs used in the publication. The classifications might thus differ
+    slightly. Also note that the models which employ the 1st order derivative 
+    for detrending have not yet been published or undergone extensive testing.
     
     For access to training data see: https://github.com/eoydvin/cml_wd_mlp. 
     This data can be used to train new MLPs, for instance using CMLs with 5

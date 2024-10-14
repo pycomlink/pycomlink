@@ -2,6 +2,27 @@
 What's New
 **********************
 
+v0.4.10
+-------
+
+The main change here is that we dropped tensorflow as dependency and removed all related code 
+because there were complicated issues with using outdated tensorflow code.
+
+This release should hopefully be easiert to install now because of easiert to resolve dependencies.
+
+Enhancements
+~~~~~~~~~~~~
+* Add MLP-based rainfall detection with scikit-learn backend (by eoydvin #156)
+
+Maintenance
+~~~~~~~~~~~~
+* switch from m2r2 to myst-parser for readthedocs (by cchwala #155)
+* Add poligrain as dependency and remove overlapping code (by nblettner #153)
+* Remove tensorflow as dependency (by nblettner #151)
+
+Bug fixes
+~~~~~~~~~
+
 
 v0.3.10
 -------

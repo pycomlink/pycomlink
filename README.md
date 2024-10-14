@@ -25,7 +25,7 @@ Installation via `pip` is also possible:
 
     $ pip install pycomlink
 
-If you install via `pip`, there might be problems with some dependencies, though. E.g. the dependency `pykrige` may only install if `scipy`, `numpy` and `matplotlib` have been installed before.
+At the time of writing, with `pycomlink v0.4.0` which dropped `tensorflow` as dependency, `pip` install works fine. But, if we add new dependencies in the future, we might again run into issues with `pip` install.
 
 To run the example notebooks you will also need the [Jupyter Notebook](https://jupyter.org/)
 and `ipython`, both also available via `conda` or `pip`.
@@ -58,7 +58,7 @@ Features
 
  * Perform all required CML data processing steps to derive rainfall information from raw signal levels:
     * data sanity checks
-    * anomaly detection
+    * ~~anomaly detection~~ (removed because using outdated `tensorflow` code)
     * wet/dry classification
     * baseline calculation
     * wet antenna correction
@@ -66,6 +66,6 @@ Features
  * Generate rainfall maps from the data of a CML network
  * Validate you results against gridded rainfall data or rain gauges networks
  
- Documentation
---------
+Documentation
+-------------
 The documentation is hosted by readthedocs.org: [https://pycomlink.readthedocs.io/en/latest/](https://pycomlink.readthedocs.io/en/latest/)

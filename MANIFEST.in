@@ -8,7 +8,7 @@ recursive-include notebooks *.py
 recursive-include pycomlink/io/example_data *
 recursive-include pycomlink/tests/test_data *
 
-recursive-include pycomlink/processing/wet_dry/cnn_model_files *
+recursive-include pycomlink/processing/wet_dry/mlp_model_files *
 
 recursive-exclude notebooks __init__.py
 recursive-exclude notebooks *.pyc

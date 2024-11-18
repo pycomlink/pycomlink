@@ -2,7 +2,21 @@
 What's New
 **********************
 
-v0.4.10
+v0.4.1
+-------
+
+Enhancements
+~~~~~~~~~~~~
+
+Maintenance
+~~~~~~~~~~~~
+
+Bug fixes
+~~~~~~~~~
+* added MLP model files to MANIFEST.in so that they are available in pypi package
+
+
+v0.4.0
 -------
 
 The main change here is that we dropped tensorflow as dependency and removed all related code 

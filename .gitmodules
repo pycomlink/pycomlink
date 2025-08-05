@@ -1,0 +1,3 @@
+[submodule "pycomlink/processing/wet_dry/cml_wd_pytorch"]
+	path = pycomlink/processing/wet_dry/cml_wd_pytorch
+	url = https://github.com/jpolz/cml_wd_pytorch.git

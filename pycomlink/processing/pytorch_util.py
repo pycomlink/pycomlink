@@ -31,8 +31,8 @@ import sys, os
 # -------------------- Local temporary solution ------------------------------
 # TODO: cnn model will be loaded from url given as a func input
 from pathlib import Path
-sys.path.append(os.path.abspath(os.path.join('C:/Users/lukas/OneDrive - VUT/TelcoSense/')))
-from temp_for_cnn_models.cnn_polz_pytorch_2025 import cnn
+sys.path.append(os.path.abspath(os.path.join('C:/Users/lukas/Documents/OpenSense/temp_for_cnn_models/')))
+from cnn_polz_pytorch_2025 import cnn
 # ----------------------------------------------------------------------------
 
 

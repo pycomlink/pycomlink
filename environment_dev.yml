@@ -2,7 +2,7 @@ name: pycomlink-dev
 channels:
   - conda-forge
 dependencies:
- - numpy
+ - numpy=2.2.0
  - scipy
  - pandas
  - matplotlib

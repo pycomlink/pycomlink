@@ -48,7 +48,7 @@ def create_rain_labels(ds, rainrate_var="R_radolan", threshold=0.1):
     """
     return (ds[rainrate_var] > threshold).astype(np.int8)
 
-def create_lstm_samples(ds, rain, cml_ids, interp_vars, seq_len=4, rainrate_var="rr"):
+def create_samples(ds, rain, cml_ids, interp_vars, seq_len=4, rainrate_var="rr"):
     """
     Create LSTM input sequences and corresponding labels from a dataset.
 
@@ -101,15 +101,15 @@ def scale_features(X_train_seq, X_val_seq, interp_vars):
         train_feat = X_train_seq[:, :, i].reshape(-1, 1)
         val_feat = X_val_seq[:, :, i].reshape(-1, 1)
 
-        X_train_scaled[:, :, i] = scaler.fit_transform(train_feat).reshape(X_train_seq.shape[0],            X_train_seq.shape[1])
-        X_val_scaled[:, :, i] = scaler.transform(val_feat).reshape(X_val_seq.shape[0],                      X_val_seq.shape[1])
+        X_train_scaled[:, :, i] = scaler.fit_transform(train_feat).reshape(X_train_seq.shape[0],                                    X_train_seq.shape[1])
+        X_val_scaled[:, :, i] = scaler.transform(val_feat).reshape(X_val_seq.shape[0],                                              X_val_seq.shape[1])
 
         scalers[var] = scaler
 
     return X_train_scaled, X_val_scaled, scalers
 
 
-def balance_lstm_data(X, y, interp_vars, seq_len=4, method="smote", random_state=42):
+def balance_data(X, y, interp_vars, seq_len=4, method="smote", random_state=42):
     """
     Balance time-series LSTM data using SMOTE, ADASYN, or repetition.
 

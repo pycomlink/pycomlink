@@ -14,8 +14,19 @@ from tensorflow.keras.losses import MeanSquaredError, MeanAbsoluteError
 import tensorflow.keras.backend as K
 from tensorflow.keras.models import model_from_json
 from tqdm import tqdm
+import requests
+import tempfile
+import hashlib
+import urllib.request
+from pathlib import Path
+import requests
+import tempfile
+import shutil
 
 
+
+
+######################################################################################################
 # ✅ CNN Builder
 def build_cnn(
     window,
@@ -80,20 +91,20 @@ def build_cnn(
         raise ValueError("task must be 'classification' or 'regression'")
 
     return Model(inputs=input1, outputs=out)
-
+######################################################################################################
 # Custom regression metrics
 def rmse(y_true, y_pred):
     return K.sqrt(K.mean(K.square(y_pred - y_true)))
-
+######################################################################################################
 def bias(y_true, y_pred):
     return K.mean(y_pred - y_true)
-
+######################################################################################################
 def r2_score(y_true, y_pred):
     SS_res = K.sum(K.square(y_true - y_pred))
     SS_tot = K.sum(K.square(y_true - K.mean(y_true)))
     return 1 - SS_res / (SS_tot + K.epsilon())
 
-
+######################################################################################################
 def train_model(
     model,
     X_train,
@@ -184,53 +195,162 @@ def train_model(
     return history
 
 
-def run_inference(X_input, json_path, weights_path, threshold=0.1):
-    """
-    Load a single model, run prediction, and return probabilities and binary predictions.
+######################################################################################################
 
+def is_url(path):
+    return path.startswith("http://") or path.startswith("https://")
+######################################################################################################
+def download_and_cache(url, cache_dir, force_download=False):
+    """
+    Download a file from a URL and cache it locally with its original filename.
+    
     Parameters
     ----------
-    X_input : np.ndarray
-        Input array with shape (samples, timesteps, features)
-    json_path : str
-        Path to the model architecture (.json)
-    weights_path : str
-        Path to the model weights (.h5)
-    threshold : float
-        Threshold for binary classification decision
+    url : str
+        The URL of the file to download.
+    cache_dir : str or Path
+        Directory where the file should be saved.
+    force_download : bool
+        If True, force re-download even if file exists.
 
     Returns
     -------
-    y_prob : np.ndarray
-        Predicted probabilities (flattened)
-    y_pred : np.ndarray
-        Boolean predictions (prob > threshold)
+    Path
+        Path to the cached file.
     """
-    with open(json_path, 'r') as f:
+    cache_dir = Path(cache_dir)
+    cache_dir.mkdir(parents=True, exist_ok=True)
+
+    # Extract filename from URL
+    filename = url.split("/")[-1]
+    cached_path = cache_dir / filename
+
+    if not cached_path.exists() or force_download:
+        print(f"[↓] Downloading {filename} from {url}")
+        urllib.request.urlretrieve(url, cached_path)
+        print(f"[✓] Saved to: {cached_path}")
+    else:
+        print(f"[→] Using cached file: {cached_path}")
+
+    return cached_path
+    
+######################################################################################################
+def resolve_model_paths(json_source, weights_source, cache_dir="model_cnn", force_download=False):
+    """
+    Resolves model architecture and weights paths from local files or URLs.
+
+    If URLs are provided, downloads and caches them into a persistent directory.
+
+    Parameters
+    ----------
+    json_source : str
+        Path or URL to the model JSON file.
+    weights_source : str
+        Path or URL to the weights H5 file.
+    cache_dir : str
+        Directory to use for caching downloaded files (default: 'model_cnn').
+    force_download : bool
+        If True, re-download even if files exist.
+
+    Returns
+    -------
+    json_path : Path
+        Resolved path to the model JSON file.
+    weights_path : Path
+        Resolved path to the model weights file.
+    """
+    # Ensure cache directory exists
+    cache_dir = Path(os.getcwd()) / cache_dir
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    print(f"[🗂️] Using model cache directory: {cache_dir}")
+
+    # Resolve JSON path
+    if is_url(json_source):
+        json_path = download_and_cache(json_source, cache_dir=cache_dir, force_download=force_download)
+    else:
+        json_path = Path(json_source)
+
+    # Resolve weights path
+    if is_url(weights_source):
+        weights_path = download_and_cache(weights_source, cache_dir=cache_dir, force_download=force_download)
+    else:
+        weights_path = Path(weights_source)
+
+    return str(json_path), str(weights_path)
+
+######################################################################################################
+def load_model_from_local(
+    json_path=None,
+    weights_path=None,
+    full_keras=None,
+    lr=0.05,
+    loss="binary_crossentropy",
+    optimizer=None
+):
+    """
+    Load a Keras model from local files.
+    Supports:
+    - Full model file (.full.keras)
+    - Architecture (.json) + Weights (.h5)
+
+    Parameters
+    ----------
+    json_path : str or Path, optional
+        Path to model architecture file (.json)
+    weights_path : str or Path, optional
+        Path to weights file (.h5)
+    full_keras : str or Path, optional
+        Path to full model file (.full.keras)
+    lr : float, optional
+        Learning rate used if optimizer is not provided.
+    loss : str or callable, optional
+        Loss function to use for model compilation.
+    optimizer : tf.keras.optimizers.Optimizer, optional
+        Optimizer instance. If None, defaults to SGD with given learning rate.
+    """
+    # Case 1: Full model path (PROD mode)
+    if full_keras is not None and full_keras.endswith(".full.keras") and weights_path is None and json_path is None:
+        model = tf.keras.models.load_model(full_keras)
+        print(f"[✓] Full PROD model loaded from: {full_keras}")
+        return model
+
+    # Case 2: JSON + weights (RESTORE mode)
+    with open(json_path, "r") as f:
         model_json = f.read()
+
     model = model_from_json(model_json)
     model.load_weights(weights_path)
 
-    model.compile(
-        loss='binary_crossentropy',
-        optimizer=SGD(learning_rate=0.005, decay=1e-3, momentum=0.9, nesterov=True),
-        metrics=['accuracy']
-    )
+    if optimizer is None:
+        optimizer = SGD(learning_rate=lr, decay=1e-3, momentum=0.9, nesterov=True)
 
-    y_prob = np.ravel(model.predict(X_input, verbose=0))
+    model.compile(
+        loss=loss,
+        optimizer=optimizer,
+        metrics=["accuracy"],
+    )
+    print(f"[✓] Model loaded from architecture + weights (RESTORE mode).")
+    return model
+
+######################################################################################################
+def run_inference(model,X_input, threshold=0.1, lr=0.05, batch_size=128, force_download=False):
+    """
+    Run inference using a Keras model from local paths or URLs (JSON + H5).
+    If URLs are used, the files are cached into a visible local 'model_cache/' directory.
+    """
+
+    y_prob = np.ravel(model.predict(X_input, batch_size=batch_size, verbose=1))
     y_pred = y_prob > threshold
 
-    print(f"[✓] Prediction completed — {len(y_pred)} samples.")
-
+    print(f"[✓] Prediction Completed — {len(y_pred)} Samples.")
     return y_prob, y_pred
 
-
-
-
-def store_predictions_single_model(
+######################################################################################################
+def store_predictions(
     merged: xr.Dataset,
     y_prob: np.ndarray,
     cml_ids: np.ndarray,
+    
     model_name: str = "model",
     var_name: str = None,
     time_dim: str = "time",
@@ -308,36 +428,60 @@ def store_predictions_single_model(
 
     return merged
 
-import os
-import json
 
-def save_model_to_local(model, name_prefix="cnn_model"):
+######################################################################################################
+def save_model(model, name_prefix="cnn_model", mode="PROD"):
     """
-    Saves a Keras model's architecture (.json) and weights (.h5)
-    to a 'Models/' directory in the current working directory.
+    Saves a Keras model to disk in different modes:
+    - 'PROD'     : full restore (full model + arch + weights)
+    - 'RESTORE'  : architecture (.json) + weights (.h5)
+    - 'MIN'      : only weights (.h5)
 
     Parameters
     ----------
     model : tf.keras.Model
-        Trained Keras model to be saved.
+        The trained Keras model to save.
     name_prefix : str
-        Prefix to use for the saved files (default: 'cnn_model').
-        Resulting files: Models/{name_prefix}.json and .weights.h5
+        Prefix for saved files.
+    mode : str
+        One of ['PROD', 'RESTORE', 'MIN'].
     """
-    # Create directory if it doesn't exist
+    mode = mode.upper()
+    valid_modes = ["PROD", "RESTORE", "MIN"]
+    if mode not in valid_modes:
+        raise ValueError(f"Invalid mode '{mode}'. Choose from {valid_modes}.")
+
+    # Create directory
     save_dir = os.path.join(os.getcwd(), "Models")
     os.makedirs(save_dir, exist_ok=True)
 
-    # Define paths
-    json_path = os.path.join(save_dir, f"{name_prefix}.json")
-    weights_path = os.path.join(save_dir, f"{name_prefix}.weights.h5")
+    saved_files = []
 
-    # Save architecture
-    model_json = model.to_json()
-    with open(json_path, "w") as json_file:
-        json_file.write(model_json)
+    if mode in ["PROD", "RESTORE"]:
+        # Save architecture
+        json_path = os.path.join(save_dir, f"{name_prefix}.json")
+        with open(json_path, "w") as json_file:
+            json_file.write(model.to_json())
+        saved_files.append(json_path)
 
-    # Save weights
-    model.save_weights(weights_path)
+        # Save weights
+        weights_path = os.path.join(save_dir, f"{name_prefix}.weights.h5")
+        model.save_weights(weights_path)
+        saved_files.append(weights_path)
 
-    print(f"[✓] Model saved to '{save_dir}':\n- {os.path.basename(json_path)}\n- {os.path.basename(weights_path)}")
+    if mode == "PROD":
+        # Save full model (weights + architecture + optimizer)
+        full_path = os.path.join(save_dir, f"{name_prefix}.full.keras")
+        model.save(full_path, include_optimizer=True)
+        saved_files.append(full_path)
+
+    if mode == "MIN":
+        # Save only weights
+        weights_path = os.path.join(save_dir, f"{name_prefix}.weights.h5")
+        model.save_weights(weights_path)
+        saved_files.append(weights_path)
+
+    print(f"[✓] Model saved in '{mode}' mode to '{save_dir}':")
+    for f in saved_files:
+        print(f" - {os.path.basename(f)}")
+

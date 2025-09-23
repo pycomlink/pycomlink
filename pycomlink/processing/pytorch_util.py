@@ -325,7 +325,7 @@ def cnn_wd(model_path_or_run_id, data, batch_size=32, config_path=None):
     results = run_inference(model, data, batch_size, reflength)
     # Convert xarray DataArray to Dataset if needed
     if isinstance(data, xr.DataArray):
-        data = data.to_dataset(name="tl")  
+        data = data.to_dataset(name="TL")  
     final_results = redistribute_results(results, data)
     return final_results
 

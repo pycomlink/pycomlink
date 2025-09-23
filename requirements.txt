@@ -15,4 +15,5 @@ scikit-learn
 future
 bottleneck
 poligrain
+torchinfo 
 

@@ -139,7 +139,7 @@ def batchify_windows(data, window_size, batch_size, reflength=60):
     for cml in cml_ids:
         cml_data = data.sel(cml_id=cml)
         # iterate over time dimension
-        timeseries = np.transpose(cml_data.tl.values)         # total loss values, added: .tl
+        timeseries = cml_data.values
         valid_times = cml_data.time.values
         windowed_series, timestep_indices = rolling_window(
             timeseries, valid_times, window_size, reflength
@@ -217,7 +217,7 @@ def redistribute_results(results, data):
         xarray.Dataset: Dataset with predictions added as a new variable
     """
     predictions = (
-        results["predictions"].np().squeeze()
+        results["predictions"].numpy().squeeze()
     )  # Remove any extra dimensions
     cml_ids = results["cml_ids"]  # Already numpy array
     times = results["times"]  # Already numpy array

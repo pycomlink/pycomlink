@@ -26,8 +26,15 @@ import torch
 
 # TEMPORARY: import cnn model, then move this into function and load it from url
 import sys, os
+
+
+# -------------------- Local temporary solution ------------------------------
+# TODO: cnn model will be loaded from url given as a func input
+from pathlib import Path
 sys.path.append(os.path.abspath(os.path.join('C:/Users/lukas/OneDrive - VUT/TelcoSense/')))
 from temp_for_cnn_models.cnn_polz_pytorch_2025 import cnn
+# ----------------------------------------------------------------------------
+
 
 
 
@@ -42,7 +49,8 @@ def load_config():
     package_path = Path(
         os.path.abspath(__file__)
     ).parent.parent.absolute()
-    config_path = str(package_path) + "\\config\\config.yml"            # warning: changed / to \\ for windows usage 
+    #config_path = str(package_path) + "/config/config.yml"            # warning: changed / to \\ for windows usage 
+    config_path = str(Path(package_path) / "config" / "config.yml")
 
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)

@@ -66,11 +66,11 @@ def set_device():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     return device
 
-
+''' 
+# dont use the default dir
 def load_config():
     """
     Load configuration from default config.yml file.
-
     Returns:
         dict: Configuration dictionary.
     """
@@ -81,7 +81,7 @@ def load_config():
         config = yaml.safe_load(f)
 
     return config
-
+'''
 
 def download_and_cache_model(
     model_url, cache_dir="~/.cml_wd_pytorch/models", force_download=False
@@ -211,7 +211,8 @@ def _load_model_from_url(model_url, force_download=False):
     # Load model with weights
     model = load_model(str(model_path), device)
     # Load config
-    config = _load_config_from_path(model_path)
+    config = _load_config_from_path(model_path+"config.yml")
+
 
     return model, config
 
@@ -222,9 +223,12 @@ def _load_model_from_local_path(model_path, config_path=None):
 
     # Load the model
     model = load_model(model_path, device)
-
     # Load config
-    config = _load_config_from_path(config_path)
+    
+    if config_path is None:
+        config = _load_config_from_path(model_path+"config.yml")
+    else:
+        config = _load_config_from_path(config_path)
 
     return model, config
 

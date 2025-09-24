@@ -49,7 +49,7 @@ def wet_dry_1d_cnn(
     xr.Dataset or xr.DataArray
         Dataset with prediction added or just the prediction array.
     """
-    import pycomlink.processing.tensorflow_utils.cnn_refrectored as cnn
+    import pycomlink.processing.tensorflow_utils.cnn as cnn
 
     tf = cnn.get_tf()
 

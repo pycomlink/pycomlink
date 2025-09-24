@@ -3,6 +3,20 @@ from sklearn.preprocessing import StandardScaler
 import numpy as np
 from imblearn.over_sampling import SMOTE, ADASYN
 from sklearn.utils import resample
+from sklearn.preprocessing import StandardScaler
+from tensorflow.keras.layers import (
+    Input, Conv1D, MaxPooling1D, GlobalAveragePooling1D,
+    Dense, Dropout
+)
+from tensorflow.keras.models import Model
+import tensorflow as tf
+from tensorflow.keras.callbacks import EarlyStopping
+from tensorflow.keras.optimizers import SGD
+from tensorflow.keras import metrics
+from tensorflow.keras.losses import MeanSquaredError, MeanAbsoluteError
+import tensorflow.keras.backend as K
+from tensorflow.keras.models import model_from_json
+from tqdm import tqdm
 
 # ✅ CNN Builder
 def build_cnn(

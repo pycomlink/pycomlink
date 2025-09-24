@@ -4,110 +4,172 @@ import numpy as np
 from imblearn.over_sampling import SMOTE, ADASYN
 from sklearn.utils import resample
 
+# ✅ CNN Builder
+def build_cnn(
+    window,
+    n_filters,
+    kernel_size=3,
+    n_fc_neurons=128,
+    dropout=0.3,
+    task='classification',
+    n_features=1
+):
+    assert len(n_filters) == 6, "n_filters must contain 6 values."
 
-def split_cml_ids(cml_ids, n_train):
+    input1 = Input(shape=(window, n_features))
+    x = input1
+
+    # Block 1
+    x = Conv1D(n_filters[0], kernel_size, padding='same', activation='relu')(x)
+    x = Conv1D(n_filters[0], kernel_size, padding='same', activation='relu')(x)
+    x = MaxPooling1D(pool_size=2)(x)
+
+    # Block 2
+    x = Conv1D(n_filters[1], kernel_size, padding='same', activation='relu')(x)
+    x = Conv1D(n_filters[1], kernel_size, padding='same', activation='relu')(x)
+    x = MaxPooling1D(pool_size=2)(x)
+
+    # Block 3
+    x = Conv1D(n_filters[2], kernel_size, padding='same', activation='relu')(x)
+    x = Conv1D(n_filters[2], kernel_size, padding='same', activation='relu')(x)
+    if window >= 32:
+        x = MaxPooling1D(pool_size=2)(x)
+
+    # Block 4
+    x = Conv1D(n_filters[3], kernel_size, padding='same', activation='relu')(x)
+    x = Conv1D(n_filters[3], kernel_size, padding='same', activation='relu')(x)
+    if window >= 64:
+        x = MaxPooling1D(pool_size=2)(x)
+
+    # Block 5
+    x = Conv1D(n_filters[4], kernel_size, padding='same', activation='relu')(x)
+    x = Conv1D(n_filters[4], kernel_size, padding='same', activation='relu')(x)
+    if window >= 96:
+        x = MaxPooling1D(pool_size=2)(x)
+
+    # Block 6
+    x = Conv1D(n_filters[5], kernel_size, padding='same', activation='relu')(x)
+    x = GlobalAveragePooling1D()(x)
+
+    # Fully connected
+    x = Dense(n_fc_neurons, activation='relu')(x)
+    x = Dropout(dropout)(x)
+    x = Dense(n_fc_neurons, activation='relu')(x)
+    x = Dropout(dropout)(x)
+    x = Dense(n_fc_neurons // 2, activation='relu')(x)
+    x = Dropout(dropout)(x)
+
+    # Output layer
+    if task == 'classification':
+        out = Dense(1, activation='sigmoid')(x)
+    elif task == 'regression':
+        out = Dense(1, activation='linear')(x)
+    else:
+        raise ValueError("task must be 'classification' or 'regression'")
+
+    return Model(inputs=input1, outputs=out)
+######################################################################################################
+# Custom regression metrics
+def rmse(y_true, y_pred):
+    return K.sqrt(K.mean(K.square(y_pred - y_true)))
+######################################################################################################
+def bias(y_true, y_pred):
+    return K.mean(y_pred - y_true)
+######################################################################################################
+def r2_score(y_true, y_pred):
+    SS_res = K.sum(K.square(y_true - y_pred))
+    SS_tot = K.sum(K.square(y_true - K.mean(y_true)))
+    return 1 - SS_res / (SS_tot + K.epsilon())
+
+######################################################################################################
+def train_model(
+    model,
+    X_train,
+    y_train=None,
+    X_val=None,
+    y_val=None,
+    task='classification',
+    batch_size=32,
+    epochs=10,
+    learning_rate=0.005,
+    decay=1e-3,
+    momentum=0.9,
+    patience=5
+):
     """
-    Split a list of CML IDs into training and validation sets.
-
-    Parameters
-    ----------
-    cml_ids : list or np.ndarray
-        List of CML IDs (strings or integers).
-    n_train : int
-        Number of IDs to include in training set.
-
-    Returns
-    -------
-    train_ids : list
-        List of training CML IDs.
-    val_ids : list
-        List of validation CML IDs.
+    Train a Keras model on either NumPy arrays or tf.data.Dataset.
     """
-    cml_ids = list(cml_ids)  # ensure list
-    train_ids = cml_ids[:n_train]
-    val_ids = cml_ids[n_train:]
-    return train_ids, val_ids
 
-def create_rain_labels(ds, rainrate_var="R_radolan", threshold=0.1):
-    """
-    Create binary rain labels from a continuous rain rate variable.
+    # Select loss and metrics
+    if task == 'classification':
+        loss = 'binary_crossentropy'
+        selected_metrics = [
+            'accuracy',
+            'mse',
+            tf.keras.metrics.Precision(name="precision"),
+            tf.keras.metrics.Recall(name="recall"),
+            tf.keras.metrics.TruePositives(name="tp"),
+            tf.keras.metrics.TrueNegatives(name="tn"),
+            tf.keras.metrics.FalsePositives(name="fp"),
+            tf.keras.metrics.FalseNegatives(name="fn")
+        ]
+        monitor_metric = 'val_precision'
+        monitor_mode = 'max'
 
-    Parameters
-    ----------
-    ds : xarray.Dataset
-        Dataset containing the rain rate variable.
-    rainrate_var : str
-        Name of the rain rate variable in the dataset.
-    threshold : float
-        Threshold above which rain is considered present.
+    elif task == 'regression':
+        loss = tf.keras.losses.MeanSquaredError()
+        selected_metrics = [
+            tf.keras.metrics.MeanAbsoluteError(name="mae"),
+            tf.keras.metrics.MeanSquaredError(name="mse"),
+            rmse,
+            bias,
+            r2_score
+        ]
+        monitor_metric = 'val_rmse'
+        monitor_mode = 'min'
 
-    Returns
-    -------
-    xarray.DataArray
-        Binary rain label (1 if rain > threshold, else 0).
-    """
-    return (ds[rainrate_var] > threshold).astype(np.int8)
+    else:
+        raise ValueError("task must be either 'classification' or 'regression'")
 
-def create_samples(ds, rain, cml_ids, interp_vars, seq_len=4, rainrate_var="rr"):
-    """
-    Create LSTM input sequences and corresponding labels from a dataset.
+    model.compile(
+        loss=loss,
+        optimizer=SGD(learning_rate=learning_rate, decay=decay, momentum=momentum, nesterov=True),
+        metrics=selected_metrics
+    )
 
-    Returns:
-        X, y, ids, rainrates
-    """
-    X, y, ids, rainrates = [], [], [], []
+    early_stopping = EarlyStopping(
+        monitor=monitor_metric,
+        patience=patience,
+        verbose=1,
+        mode=monitor_mode,
+        restore_best_weights=True
+    )
 
-    for cml in cml_ids:
-        try:
-            ds_cml = ds.sel(cml_id=cml)
-            rain_cml = rain.sel(cml_id=cml)
+    # Device detection
+    device = '/GPU:0' if tf.config.list_physical_devices('GPU') else '/CPU:0'
+    print(f"Training on: {device} | Task: {task}")
 
-            inputs = np.stack([ds_cml[var].values for var in interp_vars], axis=-1)
-            labels = rain_cml.values
-            rainrate_vals = ds_cml[rainrate_var].values
-        except KeyError:
-            continue
+    # Fit depending on input type
+    with tf.device(device):
+        if isinstance(X_train, tf.data.Dataset):
+            history = model.fit(
+                X_train,
+                validation_data=X_val,
+                epochs=epochs,
+                callbacks=[early_stopping],
+                verbose=1
+            )
+        else:
+            history = model.fit(
+                X_train, y_train,
+                validation_data=(X_val, y_val),
+                batch_size=batch_size,
+                epochs=epochs,
+                callbacks=[early_stopping],
+                verbose=1
+            )
 
-        if len(inputs) < seq_len:
-            continue
-
-        for t in range(seq_len - 1, len(inputs)):
-            x_seq = inputs[t - seq_len + 1:t + 1]
-            y_label = labels[t]
-            rr = rainrate_vals[t]
-
-            if np.all(np.isfinite(x_seq)) and np.isfinite(y_label) and np.isfinite(rr):
-                X.append(x_seq)
-                y.append(y_label)
-                ids.append(cml)
-                rainrates.append(rr)
-
-    return np.array(X), np.array(y), np.array(ids), np.array(rainrates)
-
-
-def scale_features(X_train_seq, X_val_seq, interp_vars):
-    """
-    Standardize features per variable using training data statistics.
-
-    Returns:
-        X_train_scaled, X_val_scaled, scalers
-    """
-    scalers = {}
-    X_train_scaled = np.empty_like(X_train_seq)
-    X_val_scaled = np.empty_like(X_val_seq)
-
-    for i, var in enumerate(interp_vars):
-        scaler = StandardScaler()
-        train_feat = X_train_seq[:, :, i].reshape(-1, 1)
-        val_feat = X_val_seq[:, :, i].reshape(-1, 1)
-
-        X_train_scaled[:, :, i] = scaler.fit_transform(train_feat).reshape(X_train_seq.shape[0],                                    X_train_seq.shape[1])
-        X_val_scaled[:, :, i] = scaler.transform(val_feat).reshape(X_val_seq.shape[0],                                              X_val_seq.shape[1])
-
-        scalers[var] = scaler
-
-    return X_train_scaled, X_val_scaled, scalers
-
+    return history
 
 def balance_data(X, y, interp_vars, seq_len=4, method="smote", random_state=42):
     """

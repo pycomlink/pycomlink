@@ -66,8 +66,8 @@ def set_device():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     return device
 
-''' 
-# dont use the default dir
+
+# TODO: dont use the default dir
 def load_config():
     """
     Load configuration from default config.yml file.
@@ -81,7 +81,7 @@ def load_config():
         config = yaml.safe_load(f)
 
     return config
-'''
+
 
 def download_and_cache_model(
     model_url, cache_dir="~/.cml_wd_pytorch/models", force_download=False

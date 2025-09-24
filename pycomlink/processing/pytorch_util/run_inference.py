@@ -1,69 +1,99 @@
 """
-Takes an xarray dataarray and runs inference on it using a PyTorch model.
-Workflow:
-1. Load the model.
-2. Prepare the data.
-3. Run inference in batches.
-4. Collect and return predictions.
+CML Wet/Dry Classification Inference Engine.
 
-Dataarray shape is expected to be (time, channels, cml_id).
-Output shape will be (time, channels, cml_id) with predictions for each time step.
-Model input is of shape (batch_size, channels, time_window), where target time and
-cml_id are captured in the batch.
+This module provides the main inference pipeline for Commercial Microwave Link (CML)
+wet/dry classification using trained CNN models. It handles the complete workflow from
+raw xarray data to predictions, including data preprocessing, windowing, batching,
+model inference, and result reconstruction.
 
+Core Functionality:
+    The module implements a sliding window approach for time series classification,
+    where each prediction is made based on a temporal window of CML measurements.
+    The main entry point is the `cnn_wd()` function which provides a high-level
+    interface for running inference on CML data.
+
+Data Flow:
+    1. Input: xarray.DataArray with shape (time, channels, cml_id)
+    2. Preprocessing: Create sliding windows across time dimension
+    3. Batching: Group windows into batches for efficient GPU processing
+    4. Inference: Run CNN model on batches to get predictions
+    5. Reconstruction: Map predictions back to original time/cml_id grid
+    6. Output: xarray.Dataset with original data + predictions
+
+Key Components:
+
+Data Preprocessing:
+    - rolling_window(): Creates sliding windows from time series data
+    - batchify_windows(): Organizes windows across all CML links
+    - build_dataloader(): Creates PyTorch DataLoader for batch processing
+
+Inference Pipeline:
+    - predict_batch(): Runs model inference on a single batch
+    - run_inference(): Orchestrates the complete inference process
+    - redistribute_results(): Maps batch predictions back to original structure
+
+Main Interface:
+    - cnn_wd(): High-level function for wet/dry classification
+    - Supports multiple model sources (local files, URLs, run IDs)
+    - Automatic model downloading and caching
+    - Configurable batch sizes and processing parameters
+
+Data Shapes and Transformations:
+    Input DataArray:    (time, channels, cml_id)
+    Windowed Data:      (n_windows, channels, window_size)
+    Model Input:        (batch_size, channels, window_size)
+    Model Output:       (batch_size, 1) - binary wet/dry predictions
+    Final Output:       (time, cml_id) - predictions mapped to original grid
+
+Configuration:
+    The module uses configuration parameters from YAML files to control:
+    - Window sizes and temporal offsets (reflength parameter)
+    - Model architecture and preprocessing parameters
+    - Batch sizes for efficient memory usage
+
+Example Usage:
+    # Basic usage with local model
+    import xarray as xr
+    data = xr.open_dataarray("cml_data.nc")
+    results = cnn_wd("path/to/model.pth", data)
+
+    # Usage with remote model (auto-download and cache)
+    results = cnn_wd("https://example.com/model.pth", data)
+
+    # Usage with training run ID
+    results = cnn_wd("2025-01-15_12-34-56abc123", data)
+
+    # Access predictions
+    wet_dry_predictions = results['predictions']
+    original_data = results['TL']
+
+Notes:
+    - The module assumes CML data follows specific naming conventions
+    - Window size is typically 180 time steps (3 hours for 1-minute data)
+    - Predictions are binary (0=dry, 1=wet) with sigmoid activation
+    - Missing data is handled gracefully with NaN placeholders
+    - GPU acceleration is used automatically when available
+
+Dependencies:
+    - PyTorch for model inference
+    - xarray for data handling
+    - numpy for numerical operations
+    - Custom inference_utils for model loading and device management
 """
 
-import os
-from pathlib import Path
-
 import numpy as np
+import torch
 import xarray as xr
-import yaml
 
-# pytorch dependence is not wanted
-import torch            
-
-
-# TEMPORARY: import cnn model, then move this into function and load it from url
-import sys, os
-
-
-# -------------------- Local temporary solution ------------------------------
-# TODO: cnn model will be loaded from url given as a func input
-from pathlib import Path
-sys.path.append(os.path.abspath(os.path.join('C:/Users/lukas/Documents/OpenSense/temp_for_cnn_models/')))
-from cnn_polz_pytorch_2025 import cnn
-# ----------------------------------------------------------------------------
-
-
-
-
-
-
-def load_config():
-    """
-    Load configuration from config.yml file.
-    Returns:
-        dict: Configuration dictionary
-    """
-    package_path = Path(
-        os.path.abspath(__file__)
-    ).parent.parent.absolute()
-    #config_path = str(package_path) + "/config/config.yml"            # warning: changed / to \\ for windows usage 
-    config_path = str(Path(package_path) / "config" / "config.yml")
-
-    with open(config_path, "r") as f:
-        config = yaml.safe_load(f)
-
-    return config
-
-
-def set_device():
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    return device
+from cml_wd_pytorch.inference.inference_utils import (
+    get_model,
+    list_cached_models,
+    set_device,
+)
 
 
 def predict_batch(model, batch, device):
+    """Run model inference on a single batch."""
     model.eval()
     with torch.no_grad():
         inputs = batch.to(device)
@@ -71,34 +101,8 @@ def predict_batch(model, batch, device):
     return outputs
 
 
-# TODO: so this function should load specific model from url
-def load_model(model_path, device):
-    """
-    Loads a PyTorch model from the specified path.
-    Args:
-        model_path (str): Path to the model file.
-        device (torch.device): Device to load the model on.
-    Returns:
-        model (torch.nn.Module): The loaded PyTorch model.
-    """
-    # Create the model instance first
-    model = cnn(
-        final_act="sigmoid"
-    )  # Default to sigmoid, might need to be configurable
-
-    # Load the state dict
-    state_dict = torch.load(model_path, map_location=device)
-    model.load_state_dict(state_dict)
-
-    # Move model to device
-    model.to(device)
-
-    # Add window_size attribute (based on the data preprocessing, it's 180)
-    model.window_size = 180
-
-    return model
-
-
+# TODO: Add unit tests for these functions
+# TODO: move to general utils?
 def rolling_window(timeseries, valid_times, window_size, reflength=60):
     """
     Splits the time series into batches of specified size.
@@ -265,75 +269,37 @@ def redistribute_results(results, data):
     return data.assign(predictions=pred_data)
 
 
-def cnn_wd(model_path_or_run_id, data, batch_size=32, config_path=None):
+def cnn_wd(
+    model_path_or_run_id_or_url,
+    data,
+    batch_size=32,
+    config_path=None,
+    force_download=False,
+):
     """
     Function to run wet/dry inference on input data using a trained CNN model.
     Args:
-        model_path_or_run_id (str): Either a path to the trained PyTorch model or a run_id.
-                                   If run_id, will look for model and config in results/{run_id}/
+        model_path_or_run_id_or_url (str): Either a path to the trained PyTorch model, a run_id,
+                                          or a URL to download the model from.
+                                          If run_id, will look for model and config in results/{run_id}/
+                                          If URL, will download and cache the model locally.
         data (xarray.DataArray): The input data array.
         batch_size (int): The number of samples in each batch.
         config_path (str, optional): Path to config file. If None, uses default config location
                                     or looks for config in results/{run_id}/config.yml if run_id is provided.
+        force_download (bool): Force re-download of model if it's a URL (default: False).
     Returns:
         xarray.Dataset: Dataset with predictions added as a new variable.
     """
-    device = set_device()
 
-    # Determine if input is a run_id or model path
-    if model_path_or_run_id.endswith(".pth") or "/" in model_path_or_run_id:
-        # It's a model path
-        model_path = model_path_or_run_id
-        model = load_model(model_path, device)
-
-        # Load config to get reflength parameter
-        if config_path is None:
-            config = load_config()
-        else:
-            with open(config_path, "r") as f:
-                config = yaml.safe_load(f)
-    else:
-        # It's a run_id
-        run_id = model_path_or_run_id
-        package_path = Path(
-            os.path.abspath(__file__)
-        ).parent.parent.parent.parent.absolute()
-        results_dir = Path(package_path) / "results" / run_id
-
-        # Find the latest model file in the models directory
-        models_dir = results_dir / "models"
-        if not models_dir.exists():
-            raise FileNotFoundError(f"Models directory not found: {models_dir}")
-
-        model_files = list(models_dir.glob("model_epoch_*.pth"))
-        if not model_files:
-            raise FileNotFoundError(f"No model files found in: {models_dir}")
-
-        # Sort by epoch number and get the latest
-        model_files.sort(key=lambda x: int(x.stem.split("_")[-1]))
-        latest_model = model_files[-1]
-        print(f"Using model: {latest_model}")
-
-        model = load_model(str(latest_model), device)
-
-        # Load config from results directory
-        config_file = results_dir / "config.yml"
-        if config_file.exists():
-            with open(config_file, "r") as f:
-                config = yaml.safe_load(f)
-            print(f"Using config from: {config_file}")
-        else:
-            print(f"Config file not found at {config_file}, using default config")
-            config = load_config()
+    model, config = get_model(model_path_or_run_id_or_url, config_path, force_download)
 
     reflength = config.get("data", {}).get(
         "reflength", 60
     )  # Default to 60 if not found
 
     results = run_inference(model, data, batch_size, reflength)
-    # Convert xarray DataArray to Dataset if needed
-    if isinstance(data, xr.DataArray):
-        data = data.to_dataset(name="TL")  
+    data = data.to_dataset(name="TL")  # Convert xarray DataArray to Dataset if needed
     final_results = redistribute_results(results, data)
     return final_results
 
@@ -343,15 +309,9 @@ def test_cnn_wd():
     Test function to run inference with a sample model and data.
     This is for demonstration purposes and should be replaced with actual data and model paths.
     """
-    from pathlib import Path
 
-    # Get repository root directory
-    repo_root = Path(__file__).parent.parent.parent.parent
-
-    # Example usage with model path
-    model_path = (
-        repo_root / "data/dummy_model/model_epoch_0.pth"
-    )  # Relative path to model
+    # Example usage with model URL
+    model_url = "https://github.com/jpolz/cml_wd_pytorch/raw/main/data/dummy_model/model_epoch_15.pth"  # Relative path to model
     data = xr.DataArray(
         np.random.rand(1000, 2, 5),
         dims=["time", "channels", "cml_id"],
@@ -361,7 +321,7 @@ def test_cnn_wd():
             "cml_id": ["A", "B", "C", "D", "E"],
         },
     )
-    final_dataset = cnn_wd(str(model_path), data, batch_size=32)
+    final_dataset = cnn_wd(str(model_url), data, batch_size=32)
     import logging
 
     logging.basicConfig(level=logging.INFO)
@@ -377,7 +337,8 @@ def test_cnn_wd():
     # Example usage with run_id (this would fail in test but shows the interface)
     # final_dataset_from_run_id = cnn_wd("2025-01-15_12-34-56abc123", data, batch_size=32)
 
-
+    print("Test completed successfully!")
+    print(f"Cached models: {len(list_cached_models())}")
 
 
 if __name__ == "__main__":

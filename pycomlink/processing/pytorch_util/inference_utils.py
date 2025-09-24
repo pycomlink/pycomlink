@@ -53,9 +53,9 @@ import yaml
 # TEMPORARY: import cnn model, then move this into function and load it from url
 import sys, os
 # TODO: cnn model will be loaded from url given as a func input
-from pathlib import Path
-sys.path.append(os.path.abspath(os.path.join('C:/Users/lukas/Documents/OpenSense/temp_for_cnn_models/')))
-from cnn_polz_pytorch_2025 import cnn
+#from pathlib import Path
+#sys.path.append(os.path.abspath(os.path.join('C:/Users/lukas/Documents/OpenSense/temp_for_cnn_models/')))
+#from cnn_polz_pytorch_2025 import cnn
 # ----------------------------------------------------------------------------
 
 
@@ -158,19 +158,28 @@ def load_model(model_path, device):
     Returns:
         torch.nn.Module: Loaded PyTorch model.
     """
+
+    # Add the model path into env
+    sys.path.append(os.path.abspath(os.path.join(model_path)))
+    from cnn_polz_pytorch_2025 import cnn           # Temporary solution
+    
     # Create the model instance first
     model = cnn(
         final_act="sigmoid"
     )  # Default to sigmoid, might need to be configurable
 
+    # temporarily hardcoded ----------------------------------------------------------------------------
+    weights_path = model_path + "model_epoch_15.pth"
+    # --------------------------------------------------------------------------------------------------
+
     # Load the state dict
     try:
         # First try with weights_only=True for security
-        state_dict = torch.load(model_path, map_location=device, weights_only=True)
+        state_dict = torch.load(weights_path, map_location=device, weights_only=True)
     except Exception:
         # Fall back to weights_only=False for compatibility with older model files
         # This should only be used with trusted model files
-        state_dict = torch.load(model_path, map_location=device, weights_only=False)
+        state_dict = torch.load(weights_path, map_location=device, weights_only=False)
     model.load_state_dict(state_dict)
 
     # Move model to device
@@ -191,16 +200,18 @@ def _load_config_from_path(config_path):
             return yaml.safe_load(f)
 
 
-def _load_model_from_url(model_url, config_path=None, force_download=False):
-    """Load model from URL by downloading and caching it."""
+
+def _load_model_from_url(model_url, force_download=False):
+    """Load model, weights and config from URL by downloading and caching it."""
     device = set_device()
 
     # Download and cache the model
     model_path = download_and_cache_model(model_url, force_download=force_download)
-    model = load_model(str(model_path), device)
 
+    # Load model with weights
+    model = load_model(str(model_path), device)
     # Load config
-    config = _load_config_from_path(config_path)
+    config = _load_config_from_path(model_path)
 
     return model, config
 

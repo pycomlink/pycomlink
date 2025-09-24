@@ -49,64 +49,56 @@ def split_cml_ids(cml_ids, n_train):
     val_ids = cml_ids[n_train:]
     return train_ids, val_ids
 
-def create_rain_labels(ds, rainrate_var="R_radolan", threshold=0.1):
+
+
+def create_samples(ds, cml_ids, input_vars, seq_len=4):
     """
-    Create binary rain labels from a continuous rain rate variable.
+    Create LSTM input sequences from a dataset.
 
     Parameters
     ----------
     ds : xarray.Dataset
-        Dataset containing the rain rate variable.
-    rainrate_var : str
-        Name of the rain rate variable in the dataset.
-    threshold : float
-        Threshold above which rain is considered present.
+        Dataset with interpolated variables.
+    cml_ids : list
+        List of CML identifiers to process.
+    input_vars : list
+        Variables to include as model inputs.
+    seq_len : int, default=4
+        Length of the input sequence.
 
     Returns
     -------
-    xarray.DataArray
-        Binary rain label (1 if rain > threshold, else 0).
+    tuple
+        - X : np.ndarray
+            Input sequences of shape (samples, seq_len, features).
+        - ids : np.ndarray
+            Corresponding CML IDs for each sequence.
     """
-    return (ds[rainrate_var] > threshold).astype(np.int8)
-
-def create_samples(ds, rain, cml_ids, interp_vars, seq_len=4, rainrate_var="rr"):
-    """
-    Create LSTM input sequences and corresponding labels from a dataset.
-
-    Returns:
-        X, y, ids, rainrates
-    """
-    X, y, ids, rainrates = [], [], [], []
+    X, ids = [], []
 
     for cml in cml_ids:
         try:
             ds_cml = ds.sel(cml_id=cml)
-            rain_cml = rain.sel(cml_id=cml)
-
-            inputs = np.stack([ds_cml[var].values for var in interp_vars], axis=-1)
-            labels = rain_cml.values
-            rainrate_vals = ds_cml[rainrate_var].values
+            inputs = np.stack([ds_cml[var].values for var in input_vars], axis=-1)
         except KeyError:
+            # Skip if one of the variables or cml_id is missing
             continue
 
         if len(inputs) < seq_len:
             continue
 
         for t in range(seq_len - 1, len(inputs)):
-            x_seq = inputs[t - seq_len + 1:t + 1]
-            y_label = labels[t]
-            rr = rainrate_vals[t]
+            x_seq = inputs[t - seq_len + 1 : t + 1]
 
-            if np.all(np.isfinite(x_seq)) and np.isfinite(y_label) and np.isfinite(rr):
+            if np.all(np.isfinite(x_seq)):
                 X.append(x_seq)
-                y.append(y_label)
                 ids.append(cml)
-                rainrates.append(rr)
 
-    return np.array(X), np.array(y), np.array(ids), np.array(rainrates)
+    return np.array(X), np.array(ids)
 
 
-def scale_features(X_train_seq, X_val_seq, interp_vars):
+
+def scale_features(input_seq, input_vars):
     """
     Standardize features per variable using training data statistics.
 
@@ -114,28 +106,24 @@ def scale_features(X_train_seq, X_val_seq, interp_vars):
         X_train_scaled, X_val_scaled, scalers
     """
     scalers = {}
-    X_train_scaled = np.empty_like(X_train_seq)
-    X_val_scaled = np.empty_like(X_val_seq)
+    input_scaled = np.empty_like(input_seq)
 
-    for i, var in enumerate(interp_vars):
+    for i, var in enumerate(input_vars):
         scaler = StandardScaler()
-        train_feat = X_train_seq[:, :, i].reshape(-1, 1)
-        val_feat = X_val_seq[:, :, i].reshape(-1, 1)
+        train_feat = input_seq[:, :, i].reshape(-1, 1)
 
-        X_train_scaled[:, :, i] = scaler.fit_transform(train_feat).reshape(X_train_seq.shape[0],                                    X_train_seq.shape[1])
-        X_val_scaled[:, :, i] = scaler.transform(val_feat).reshape(X_val_seq.shape[0],                                              X_val_seq.shape[1])
+        input_scaled[:, :, i] = scaler.fit_transform(train_feat).reshape(input_seq.shape[0],                                    input_seq.shape[1])
 
         scalers[var] = scaler
 
-    return X_train_scaled, X_val_scaled, scalers
+    return input_scaled,  scalers
 
 
-
-######################################################################################################
 
 def is_url(path):
     return path.startswith("http://") or path.startswith("https://")
-######################################################################################################
+
+
 def download_and_cache(url, cache_dir, force_download=False):
     """
     Download a file from a URL and cache it locally with its original filename.
@@ -170,7 +158,7 @@ def download_and_cache(url, cache_dir, force_download=False):
 
     return cached_path
     
-######################################################################################################
+
 def resolve_model_paths(json_source, weights_source, cache_dir="model_cnn", force_download=False):
     """
     Resolves model architecture and weights paths from local files or URLs.
@@ -214,7 +202,7 @@ def resolve_model_paths(json_source, weights_source, cache_dir="model_cnn", forc
 
     return str(json_path), str(weights_path)
 
-######################################################################################################
+
 def load_model_from_local(
     json_path=None,
     weights_path=None,
@@ -268,23 +256,23 @@ def load_model_from_local(
     print(f"[✓] Model loaded from architecture + weights (RESTORE mode).")
     return model
 
-######################################################################################################
-def run_inference(model,X_input, threshold=0.1, lr=0.05, batch_size=128, force_download=False):
+
+def run_inference(model,model_input, threshold=0.1, lr=0.05, batch_size=128, force_download=False):
     """
     Run inference using a Keras model from local paths or URLs (JSON + H5).
     If URLs are used, the files are cached into a visible local 'model_cache/' directory.
     """
 
-    y_prob = np.ravel(model.predict(X_input, batch_size=batch_size, verbose=1))
+    y_prob = np.ravel(model.predict(model_input, batch_size=batch_size, verbose=1))
     y_pred = y_prob > threshold
 
     print(f"[✓] Prediction Completed — {len(y_pred)} Samples.")
     return y_prob, y_pred
 
-######################################################################################################
+
 def store_predictions(
     merged: xr.Dataset,
-    y_prob: np.ndarray,
+    model_prob: np.ndarray,
     cml_ids: np.ndarray,
     
     model_name: str = "model",
@@ -301,10 +289,10 @@ def store_predictions(
     ----------
     merged : xr.Dataset
         Dataset to write into.
-    y_prob : np.ndarray
+    model_prob : np.ndarray
         Flattened prediction probabilities.
     cml_ids : np.ndarray
-        CML ID for each sample in y_prob (must match length).
+        CML ID for each sample in model_prob (must match length).
     model_name : str
         Name of the model, used for annotation.
     var_name : str, optional
@@ -324,9 +312,9 @@ def store_predictions(
     merged : xr.Dataset
         Dataset with added variable containing the CNN predictions.
     """
-    y_prob = np.asarray(y_prob).ravel()
+    model_prob = np.asarray(model_prob).ravel()
     cml_ids = np.asarray(cml_ids).ravel()
-    assert y_prob.shape[0] == cml_ids.shape[0], "Mismatch in y_prob and cml_ids length."
+    assert model_prob.shape[0] == cml_ids.shape[0], "Mismatch in model_prob and cml_ids length."
 
     all_cml_ids = merged[cml_dim].values
     all_time = merged[time_dim].values if time_index is None else time_index
@@ -346,7 +334,7 @@ def store_predictions(
         if not np.any(mask):
             continue
 
-        preds = y_prob[mask]
+        preds = model_prob[mask]
         L = min(len(preds), n_time)
         series = pd.Series(preds[:L], index=all_time[:L]).reindex(all_time)
 
@@ -364,60 +352,4 @@ def store_predictions(
 
     return merged
 
-
-######################################################################################################
-def save_model(model, name_prefix="cnn_model", mode="PROD"):
-    """
-    Saves a Keras model to disk in different modes:
-    - 'PROD'     : full restore (full model + arch + weights)
-    - 'RESTORE'  : architecture (.json) + weights (.h5)
-    - 'MIN'      : only weights (.h5)
-
-    Parameters
-    ----------
-    model : tf.keras.Model
-        The trained Keras model to save.
-    name_prefix : str
-        Prefix for saved files.
-    mode : str
-        One of ['PROD', 'RESTORE', 'MIN'].
-    """
-    mode = mode.upper()
-    valid_modes = ["PROD", "RESTORE", "MIN"]
-    if mode not in valid_modes:
-        raise ValueError(f"Invalid mode '{mode}'. Choose from {valid_modes}.")
-
-    # Create directory
-    save_dir = os.path.join(os.getcwd(), "Models")
-    os.makedirs(save_dir, exist_ok=True)
-
-    saved_files = []
-
-    if mode in ["PROD", "RESTORE"]:
-        # Save architecture
-        json_path = os.path.join(save_dir, f"{name_prefix}.json")
-        with open(json_path, "w") as json_file:
-            json_file.write(model.to_json())
-        saved_files.append(json_path)
-
-        # Save weights
-        weights_path = os.path.join(save_dir, f"{name_prefix}.weights.h5")
-        model.save_weights(weights_path)
-        saved_files.append(weights_path)
-
-    if mode == "PROD":
-        # Save full model (weights + architecture + optimizer)
-        full_path = os.path.join(save_dir, f"{name_prefix}.full.keras")
-        model.save(full_path, include_optimizer=True)
-        saved_files.append(full_path)
-
-    if mode == "MIN":
-        # Save only weights
-        weights_path = os.path.join(save_dir, f"{name_prefix}.weights.h5")
-        model.save_weights(weights_path)
-        saved_files.append(weights_path)
-
-    print(f"[✓] Model saved in '{mode}' mode to '{save_dir}':")
-    for f in saved_files:
-        print(f" - {os.path.basename(f)}")
 

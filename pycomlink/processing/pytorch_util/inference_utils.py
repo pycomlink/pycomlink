@@ -68,6 +68,7 @@ def set_device():
 
 
 # TODO: dont use the default dir
+'''
 def load_config():
     """
     Load configuration from default config.yml file.
@@ -81,7 +82,7 @@ def load_config():
         config = yaml.safe_load(f)
 
     return config
-
+'''
 
 def download_and_cache_model(
     model_url, cache_dir="~/.cml_wd_pytorch/models", force_download=False
@@ -193,11 +194,11 @@ def load_model(model_path, device):
 
 def _load_config_from_path(config_path):
     """Load config from specific path or use default."""
-    if config_path is None:
-        return load_config()
-    else:
-        with open(config_path, "r") as f:
-            return yaml.safe_load(f)
+    #if config_path is None:
+    #    return load_config()
+    #else:
+    with open(config_path, "r") as f:
+        return yaml.safe_load(f)
 
 
 
@@ -268,8 +269,8 @@ def _load_model_from_run_id(run_id, config_path=None):
                 config = yaml.safe_load(f)
             print(f"Using config from: {config_file}")
         else:
-            print(f"Config file not found at {config_file}, using default config")
-            config = load_config()
+            print(f"Config file not found at {config_file}")
+            # config = load_config()
     else:
         config = _load_config_from_path(config_path)
 

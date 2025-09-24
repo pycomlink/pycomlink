@@ -7,13 +7,12 @@ multiple model loading mechanisms including:
 
 - Local file paths (.pth files)
 - Remote URLs with automatic download and caching
-- Run IDs from training results directories
 
 Key Features:
     - Automatic model downloading and caching from URLs
     - Smart model loading with fallback for PyTorch compatibility
     - Configuration management with flexible config loading
-    - Support for different model sources (local, remote, run-based)
+    - Support for different model sources (local, remote)
     - GPU/CPU device detection and management
 
 Main Functions:
@@ -34,9 +33,6 @@ Example Usage:
 
     # Load from URL (with automatic caching)
     model, config = get_model("https://example.com/model.pth")
-
-    # Load from training run ID
-    model, config = get_model("2025-01-15_12-34-56abc123")
 """
 
 import hashlib
@@ -54,23 +50,6 @@ def set_device():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     return device
 
-
-# TODO: dont use the default dir
-'''
-def load_config():
-    """
-    Load configuration from default config.yml file.
-    Returns:
-        dict: Configuration dictionary.
-    """
-    package_path = Path(os.path.abspath(__file__)).parent.parent.parent.absolute()
-    config_path = str(Path(package_path) / "config" / "config.yml")
-
-    with open(config_path, "r") as f:
-        config = yaml.safe_load(f)
-
-    return config
-'''
 
 def download_and_cache_model(
     model_url, cache_dir="~/.cml_wd_pytorch/models", force_download=False
@@ -220,57 +199,15 @@ def _load_model_from_local_path(model_path, config_path=None):
     return model, config
 
 
-def _load_model_from_run_id(run_id, config_path=None):
-    """Load model from training run ID by finding latest model in results directory."""
-    device = set_device()
-
-    # Find the results directory
-    package_path = Path(
-        os.path.abspath(__file__)
-    ).parent.parent.parent.parent.absolute()
-    results_dir = Path(package_path) / "results" / run_id
-
-    # Find the latest model file in the models directory
-    models_dir = results_dir / "models"
-    if not models_dir.exists():
-        raise FileNotFoundError(f"Models directory not found: {models_dir}")
-
-    model_files = list(models_dir.glob("model_epoch_*.pth"))
-    if not model_files:
-        raise FileNotFoundError(f"No model files found in: {models_dir}")
-
-    # Sort by epoch number and get the latest
-    model_files.sort(key=lambda x: int(x.stem.split("_")[-1]))
-    latest_model = model_files[-1]
-    print(f"Using model: {latest_model}")
-
-    # Load the model
-    model = load_model(str(latest_model), device)
-
-    # Load config from results directory (or fallback to provided/default)
-    if config_path is None:
-        config_file = results_dir / "config.yml"
-        if config_file.exists():
-            with open(config_file, "r") as f:
-                config = yaml.safe_load(f)
-            print(f"Using config from: {config_file}")
-        else:
-            print(f"Config file not found at {config_file}")
-            # config = load_config()
-    else:
-        config = _load_config_from_path(config_path)
-
-    return model, config
 
 
-def get_model(model_path_or_run_id_or_url, config_path=None, force_download=False):
+def get_model(model_path_or_url, config_path=None, force_download=False):
     """
     Load a model from a local path, run_id, or URL.
 
     Args:
-        model_path_or_run_id_or_url (str): Either a path to the trained PyTorch model, a run_id,
+        model_path_or_url (str): Either a path to the trained PyTorch model, a run_id,
                                           or a URL to download the model from.
-                                          If run_id, will look for model and config in results/{run_id}/
                                           If URL, will download and cache the model locally.
         config_path (str, optional): Path to config file. If None, uses default config location
                                     or looks for config in results/{run_id}/config.yml if run_id is provided.
@@ -280,17 +217,17 @@ def get_model(model_path_or_run_id_or_url, config_path=None, force_download=Fals
         tuple: (model, config) - The loaded PyTorch model and configuration dictionary.
     """
     # Determine input type and delegate to appropriate handler
-    if model_path_or_run_id_or_url.startswith(("http://", "https://")):
+    if model_path_or_url.startswith(("http://", "https://")):
         # It's a URL
         return _load_model_from_url(
-            model_path_or_run_id_or_url, force_download
+            model_path_or_url, force_download
         )
     elif (
-        model_path_or_run_id_or_url.endswith(".pth")
-        or "/" in model_path_or_run_id_or_url
+        model_path_or_url.endswith(".pth")
+        or "/" in model_path_or_url
     ):
         # It's a local model path
-        return _load_model_from_local_path(model_path_or_run_id_or_url, config_path)
+        return _load_model_from_local_path(model_path_or_url, config_path)
     else:
-        # It's a run_id
-        return _load_model_from_run_id(model_path_or_run_id_or_url, config_path)
+        # It's neithe url, nor path
+        raise Exception(f"Provided string: '{model_path_or_url}' , is neither directory path, nor web url")

@@ -270,7 +270,7 @@ def redistribute_results(results, data):
 
 
 def cnn_wd(
-    model_path_or_run_id_or_url,
+    model_path_or_url,
     data,
     batch_size=32,
     config_path=None,
@@ -279,7 +279,7 @@ def cnn_wd(
     """
     Function to run wet/dry inference on input data using a trained CNN model.
     Args:
-        model_path_or_run_id_or_url (str): Either a path to the trained PyTorch model, a run_id,
+        model_path_or_url (str): Either a path to the trained PyTorch model, a run_id,
                                           or a URL to download the model from.
                                           If run_id, will look for model and config in results/{run_id}/
                                           If URL, will download and cache the model locally.
@@ -292,7 +292,7 @@ def cnn_wd(
         xarray.Dataset: Dataset with predictions added as a new variable.
     """
 
-    model, config = get_model(model_path_or_run_id_or_url, config_path, force_download)
+    model, config = get_model(model_path_or_url, config_path, force_download)
 
     reflength = config.get("data", {}).get(
         "reflength", 60

@@ -85,7 +85,7 @@ import numpy as np
 import torch
 import xarray as xr
 
-from cml_wd_pytorch.inference.inference_utils import (
+from pycomlink.processing.pytorch_util.inference_utils import (
     get_model,
     list_cached_models,
     set_device,

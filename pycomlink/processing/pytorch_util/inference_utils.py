@@ -47,7 +47,18 @@ from pathlib import Path
 import torch
 import yaml
 
-from cml_wd_pytorch.models.cnn import cnn
+
+
+# -------------------- Local temporary solution ------------------------------
+# TEMPORARY: import cnn model, then move this into function and load it from url
+import sys, os
+# TODO: cnn model will be loaded from url given as a func input
+from pathlib import Path
+sys.path.append(os.path.abspath(os.path.join('C:/Users/lukas/Documents/OpenSense/temp_for_cnn_models/')))
+from cnn_polz_pytorch_2025 import cnn
+# ----------------------------------------------------------------------------
+
+
 
 
 def set_device():
@@ -63,8 +74,8 @@ def load_config():
     Returns:
         dict: Configuration dictionary.
     """
-    package_path = Path(os.path.abspath(__file__)).parent.parent.absolute()
-    config_path = str(package_path) + "/config/config.yml"
+    package_path = Path(os.path.abspath(__file__)).parent.parent.parent.absolute()
+    config_path = str(Path(package_path) / "config" / "config.yml")
 
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)

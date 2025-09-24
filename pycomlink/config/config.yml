@@ -1,0 +1,30 @@
+# General experiment configuration
+experiment:
+  name: "NA"
+  debug: False # Set to false for production runs, otherwise true for debugging without saving checkpoints or loss curves
+  run_id: "auto"
+  seed: 42
+
+# Data parameters
+data:
+  path_train: "/path/to/training/data.zarr"  # Path to the training data in Zarr format
+  path_val: "/path/to/validation/data.zarr"    # Path to the validation data in Zarr format
+  num_workers: 40
+  reflength: 60  # Length of the radar data to consider for rainfall rate or wet label calculation
+
+# Model parameters
+model:
+  type: "cnn"
+
+# Training parameters
+training:
+  batch_size: 100
+  epochs: 500
+  optimizer: "AdamW"
+  learning_rate: 0.0001
+  amsgrad: true
+  loss_fns: [
+    "bce",
+  ]
+  loss_weights: [1,]
+  checkpoint_interval: 20

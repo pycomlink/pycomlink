@@ -11,7 +11,6 @@ multiple model loading mechanisms including:
 Key Features:
     - Automatic model downloading and caching from URLs
     - Smart model loading with fallback for PyTorch compatibility
-    - Configuration management with flexible config loading
     - Support for different model sources (local, remote)
     - GPU/CPU device detection and management
 
@@ -19,7 +18,6 @@ Main Functions:
     - get_model(): Universal model loader supporting multiple input types
     - load_model(): Load PyTorch model from local path
     - download_and_cache_model(): Download and cache models from URLs
-    - load_config(): Load YAML configuration files
     - set_device(): Auto-detect and set appropriate device (GPU/CPU)
 
 Cache Management:
@@ -29,10 +27,10 @@ Cache Management:
 
 Example Usage:
     # Load from local path
-    model, config = get_model("path/to/model.pth")
+    model = get_model("path/to/model.pth")
 
     # Load from URL (with automatic caching)
-    model, config = get_model("https://example.com/model.pth")
+    model = get_model("https://example.com/model.pth")
 """
 
 import hashlib
@@ -41,7 +39,6 @@ import urllib.request
 from pathlib import Path
 
 import torch
-import yaml
 
 
 
@@ -193,7 +190,7 @@ def get_model(model_path_or_url, force_download=False):
         force_download (bool): Force re-download of model if it's a URL (default: False).
 
     Returns:
-        tuple: (model, config) - The loaded PyTorch model and configuration dictionary.
+        model - The loaded PyTorch model.
     """
     # Determine input type and delegate to appropriate handler
     if model_path_or_url.startswith(("http://", "https://")):

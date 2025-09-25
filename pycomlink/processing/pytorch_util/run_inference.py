@@ -45,12 +45,6 @@ Data Shapes and Transformations:
     Model Output:       (batch_size, 1) - binary wet/dry predictions
     Final Output:       (time, cml_id) - predictions mapped to original grid
 
-Configuration:
-    The module uses configuration parameters from YAML files to control:
-    - Window sizes and temporal offsets (reflength parameter)
-    - Model architecture and preprocessing parameters
-    - Batch sizes for efficient memory usage
-
 Example Usage:
     # Basic usage with local model
     import xarray as xr
@@ -59,9 +53,6 @@ Example Usage:
 
     # Usage with remote model (auto-download and cache)
     results = cnn_wd("https://example.com/model.pth", data)
-
-    # Usage with training run ID
-    results = cnn_wd("2025-01-15_12-34-56abc123", data)
 
     # Access predictions
     wet_dry_predictions = results['predictions']
@@ -110,7 +101,7 @@ def rolling_window(timeseries, valid_times, window_size, reflength=60):
         timeseries (list or np.array): The time series data to be split.
         valid_times (list): A list of valid time indices.
         window_size (int): The size of each batch.
-        reflength (int): The reference length for timestamp calculation (from config).
+        reflength (int): The reference length for timestamp calculation.
     Returns:
         windowed_series (np.array): A list of batches, each containing a segment of the time series.
         timestep_indices (list): A list of indices corresponding to the target time (end of window - reflength).
@@ -141,7 +132,7 @@ def batchify_windows(data, window_size, batch_size, reflength=60):
         data (xarray.DataArray): The input data array.
         window_size (int): The size of each time series window.
         batch_size (int): The number of samples in each batch.
-        reflength (int): The reference length for timestamp calculation (from config).
+        reflength (int): The reference length for timestamp calculation.
     Returns:
         combined_samples (dict): A dictionary containing concatenated cml_id, time, and data arrays.
     """
@@ -182,7 +173,7 @@ def build_dataloader(data, window_size, batch_size, device, reflength=60):
         window_size (int): The size of each time series window.
         batch_size (int): The number of samples in each batch.
         device (torch.device): The device to run the model on.
-        reflength (int): The reference length for timestamp calculation (from config).
+        reflength (int): The reference length for timestamp calculation
     Returns:
         dataloader (torch.utils.data.DataLoader): A DataLoader for the input data.
     """
@@ -273,20 +264,16 @@ def cnn_wd(
     model_path_or_url,
     data,
     batch_size=32,
-    config_path=None,
     force_download=False,
 ):
     """
     Function to run wet/dry inference on input data using a trained CNN model.
     Args:
-        model_path_or_url (str): Either a path to the trained PyTorch model, a run_id,
+        model_path_or_url (str): Either a path to the trained PyTorch model,
                                           or a URL to download the model from.
-                                          If run_id, will look for model and config in results/{run_id}/
                                           If URL, will download and cache the model locally.
         data (xarray.DataArray): The input data array.
         batch_size (int): The number of samples in each batch.
-        config_path (str, optional): Path to config file. If None, uses default config location
-                                    or looks for config in results/{run_id}/config.yml if run_id is provided.
         force_download (bool): Force re-download of model if it's a URL (default: False).
     Returns:
         xarray.Dataset: Dataset with predictions added as a new variable.

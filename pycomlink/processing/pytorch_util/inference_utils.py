@@ -145,6 +145,7 @@ def get_model(model_path_or_url, force_download=False):
     Returns:
         model - The loaded PyTorch model.
     """
+    # TODO: this is the function that also could in the future decide if to use tensorflow or pytorch
     # Determine input type and delegate to appropriate handler
     if model_path_or_url.startswith(("http://", "https://")):
         # It's a URL

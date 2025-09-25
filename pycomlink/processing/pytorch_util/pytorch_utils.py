@@ -2,6 +2,9 @@ import torch
 import sys,os
 from pathlib import Path
 
+
+from pycomlink.processing.pytorch_util.run_inference import batchify_windows
+
 # This function is for pytorch model inference on a single batch
 def predict_batch(model, batch, device):
     """Run model inference on a single batch."""
@@ -49,7 +52,6 @@ def load_model(model_path, device):
     Returns:
         torch.nn.Module: Loaded PyTorch model.
     """
-
     model_path = Path(model_path)
     
     assert model_path.suffix == ".pt2", "Model file must be a .pt2 file"

@@ -91,13 +91,13 @@ from pycomlink.processing.pytorch_util.inference_utils import (
     set_device,
 )
 
-
+# This function is for pytorch model inference on a single batch
 def predict_batch(model, batch, device):
     """Run model inference on a single batch."""
     model.eval()
     with torch.no_grad():
         inputs = batch.to(device)
-        outputs = model(inputs)
+        outputs = model(inputs).cpu().numpy()
     return outputs
 
 
@@ -173,7 +173,7 @@ def batchify_windows(data, window_size, batch_size, reflength=60):
 
     return combined_samples
 
-
+# Build PyTorch DataLoader
 def build_dataloader(data, window_size, batch_size, device, reflength=60):
     """
     Builds a PyTorch DataLoader from the input data.
@@ -198,7 +198,7 @@ def build_dataloader(data, window_size, batch_size, device, reflength=60):
     # Return dataloader and metadata arrays
     return dataloader, combined_samples["cml_id"], combined_samples["time"]
 
-
+# Main inference function not relying on pytorch
 def run_inference(model, data, batch_size=32, reflength=60):
     device = set_device()
     window_size = model.window_size if hasattr(model, "window_size") else 180
@@ -210,9 +210,9 @@ def run_inference(model, data, batch_size=32, reflength=60):
     for batch in dataloader:
         inputs = batch.to(device)
         outputs = predict_batch(model, inputs, device)
-        predictions.append(outputs.cpu())
+        predictions.append(outputs)
 
-    all_predictions = torch.cat(predictions, dim=0)
+    all_predictions = np.concatenate(predictions, axis=0)
     # cml_ids and times are already numpy arrays, no need to collect per batch
     return {"predictions": all_predictions, "cml_ids": cml_ids, "times": times}
 
@@ -229,14 +229,14 @@ def redistribute_results(results, data):
         xarray.Dataset: Dataset with predictions added as a new variable
     """
     predictions = (
-        results["predictions"].numpy().squeeze()
+        results["predictions"]
     )  # Remove any extra dimensions
     cml_ids = results["cml_ids"]  # Already numpy array
     times = results["times"]  # Already numpy array
 
     # Get original dimensions
-    ref_times = data.time.to_numpy()
-    ref_cml_ids = data.cml_id.to_numpy()
+    ref_times = data.time
+    ref_cml_ids = data.cml_id
 
     # Initialize prediction array with NaN values
     pred_array = np.full((len(ref_times), len(ref_cml_ids)), np.nan)
@@ -302,43 +302,3 @@ def cnn_wd(
     final_results = redistribute_results(results, data)
     return final_results
 
-
-def test_cnn_wd():
-    """
-    Test function to run inference with a sample model and data.
-    This is for demonstration purposes and should be replaced with actual data and model paths.
-    """
-
-    # Example usage with model URL
-    model_url = "https://github.com/jpolz/cml_wd_pytorch/raw/main/data/dummy_model/model_epoch_15.pth"  # Relative path to model
-    data = xr.DataArray(
-        np.random.rand(1000, 2, 5),
-        dims=["time", "channels", "cml_id"],
-        coords={
-            "time": np.datetime64("2023-01-01") + np.arange(1000),
-            "channels": np.arange(2),
-            "cml_id": ["A", "B", "C", "D", "E"],
-        },
-    )
-    final_dataset = cnn_wd(str(model_url), data, batch_size=32)
-    import logging
-
-    logging.basicConfig(level=logging.INFO)
-    logging.info(f"Final dataset variables: {list(final_dataset.data_vars.keys())}")
-    logging.info(f"Final dataset dimensions: {final_dataset.dims}")
-    if "predictions" in final_dataset:
-        logging.info(f"Predictions shape: {final_dataset['predictions'].shape}")
-        logging.info(f"Predictions dimensions: {final_dataset['predictions'].dims}")
-        logging.info(
-            f"Sample predictions:\n{final_dataset['predictions'][500:505, :3].values}"
-        )
-
-    # Example usage with run_id (this would fail in test but shows the interface)
-    # final_dataset_from_run_id = cnn_wd("2025-01-15_12-34-56abc123", data, batch_size=32)
-
-    print("Test completed successfully!")
-    print(f"Cached models: {len(list_cached_models())}")
-
-
-if __name__ == "__main__":
-    test_cnn_wd()

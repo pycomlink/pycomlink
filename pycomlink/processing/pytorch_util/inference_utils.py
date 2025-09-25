@@ -16,7 +16,6 @@ Key Features:
 
 Main Functions:
     - get_model(): Universal model loader supporting multiple input types
-    - load_model(): Load PyTorch model from local path
     - download_and_cache_model(): Download and cache models from URLs
     - set_device(): Auto-detect and set appropriate device (GPU/CPU)
 
@@ -39,7 +38,7 @@ import urllib.request
 from pathlib import Path
 
 import torch
-
+from pytorch_utils import load_model
 
 
 def set_device():
@@ -112,50 +111,6 @@ def list_cached_models(cache_dir="~/.cml_wd_pytorch/models"):
     return []
 
 
-def load_model(model_path, device):
-    """
-    Load PyTorch model from file path.
-
-    Args:
-        model_path (str): Path to the model file.
-        device (torch.device): Device to load the model on.
-
-    Returns:
-        torch.nn.Module: Loaded PyTorch model.
-    """
-
-    # Add the model path into env
-    sys.path.append(os.path.abspath(Path(model_path).parent.absolute()))
-    #sys.path.append(os.path.abspath(Path(model_path).absolute()))
-    # TODO: new solution needed for when the path can be dir or .pth file
-    from cnn_polz_pytorch_2025 import cnn           # Temporary solution
-    
-    # Create the model instance first
-    model = cnn(
-        final_act="sigmoid"
-    )  # Default to sigmoid, might need to be configurable
-
-
-    # Load the state dict
-    try:
-        # First try with weights_only=True for security
-        state_dict = torch.load(model_path, map_location=device, weights_only=True)
-    except Exception:
-        # Fall back to weights_only=False for compatibility with older model files
-        # This should only be used with trusted model files
-        state_dict = torch.load(model_path, map_location=device, weights_only=False)
-    model.load_state_dict(state_dict)
-
-    # Move model to device
-    model.to(device)
-
-    # Add window_size attribute (based on the data preprocessing, it's 180)
-    model.window_size = 180
-    return model
-
-
-
-
 def _load_model_from_url(model_url, force_download=False):
     """Load model, weights from URL by downloading and caching it."""
     device = set_device()
@@ -175,8 +130,6 @@ def _load_model_from_local_path(model_path):
     # Load the model
     model = load_model(model_path, device)
     return model
-
-
 
 
 def get_model(model_path_or_url, force_download=False):
@@ -199,11 +152,14 @@ def get_model(model_path_or_url, force_download=False):
             model_path_or_url, force_download
         )
     elif (
-        model_path_or_url.endswith(".pth")
+        model_path_or_url.endswith(".pt2")
         or "/" in model_path_or_url
     ):
         # It's a local model path
         return _load_model_from_local_path(model_path_or_url)
+    elif model_path_or_url.endswith(".pth"):
+        # It's a legacy model path
+        raise Exception(".pth models are currently not supported. Please convert to .pt2 format.")
     else:
-        # It's neithe url, nor path
+        # It's neither url, nor path
         raise Exception(f"Provided string: '{model_path_or_url}' , is neither directory path, nor web url")

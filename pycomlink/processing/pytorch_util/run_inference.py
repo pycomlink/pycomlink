@@ -38,7 +38,7 @@ def rolling_window(timeseries, valid_times, window_size, reflength=60):
         timeseries (list or np.array): The time series data to be split.
         valid_times (list): A list of valid time indices.
         window_size (int): The size of each batch.
-        reflength (int): The reference length for timestamp calculation (from config).
+        reflength (int): The reference length for timestamp calculation.
     Returns:
         windowed_series (np.array): A list of batches, each containing a segment of the time series.
         timestep_indices (list): A list of indices corresponding to the target time (end of window - reflength).
@@ -69,7 +69,7 @@ def batchify_windows(data, window_size, batch_size, reflength=60):
         data (xarray.DataArray): The input data array.
         window_size (int): The size of each time series window.
         batch_size (int): The number of samples in each batch.
-        reflength (int): The reference length for timestamp calculation (from config).
+        reflength (int): The reference length for timestamp calculation.
     Returns:
         combined_samples (dict): A dictionary containing concatenated cml_id, time, and data arrays.
     """

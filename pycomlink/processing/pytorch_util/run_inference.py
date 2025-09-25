@@ -1,88 +1,21 @@
 """
-CML Wet/Dry Classification Inference Engine.
+CNN inference pipeline for CML wet/dry classification.
 
-This module provides the main inference pipeline for Commercial Microwave Link (CML)
-wet/dry classification using trained CNN models. It handles the complete workflow from
-raw xarray data to predictions, including data preprocessing, windowing, batching,
-model inference, and result reconstruction.
+This module provides functions to run inference on Commercial Microwave Link (CML) 
+data using trained CNN models. The main workflow includes creating sliding windows 
+from time series data, running batch inference, and redistributing predictions back 
+to the original data structure.
 
-Core Functionality:
-    The module implements a sliding window approach for time series classification,
-    where each prediction is made based on a temporal window of CML measurements.
-    The main entry point is the `cnn_wd()` function which provides a high-level
-    interface for running inference on CML data.
+Main Functions:
+    - cnn_wd(): High-level interface for wet/dry classification
+    - run_inference(): Core inference pipeline 
+    - rolling_window(): Creates sliding windows from time series
+    - redistribute_results(): Maps predictions back to original grid
 
-Data Flow:
-    1. Input: xarray.DataArray with shape (time, channels, cml_id)
-    2. Preprocessing: Create sliding windows across time dimension
-    3. Batching: Group windows into batches for efficient GPU processing
-    4. Inference: Run CNN model on batches to get predictions
-    5. Reconstruction: Map predictions back to original time/cml_id grid
-    6. Output: xarray.Dataset with original data + predictions
-
-Key Components:
-
-Data Preprocessing:
-    - rolling_window(): Creates sliding windows from time series data
-    - batchify_windows(): Organizes windows across all CML links
-    - build_dataloader(): Creates PyTorch DataLoader for batch processing
-
-Inference Pipeline:
-    - predict_batch(): Runs model inference on a single batch
-    - run_inference(): Orchestrates the complete inference process
-    - redistribute_results(): Maps batch predictions back to original structure
-
-Main Interface:
-    - cnn_wd(): High-level function for wet/dry classification
-    - Supports multiple model sources (local files, URLs, run IDs)
-    - Automatic model downloading and caching
-    - Configurable batch sizes and processing parameters
-
-Data Shapes and Transformations:
-    Input DataArray:    (time, channels, cml_id)
-    Windowed Data:      (n_windows, channels, window_size)
-    Model Input:        (batch_size, channels, window_size)
-    Model Output:       (batch_size, 1) - binary wet/dry predictions
-    Final Output:       (time, cml_id) - predictions mapped to original grid
-
-Configuration:
-    The module uses configuration parameters from YAML files to control:
-    - Window sizes and temporal offsets (reflength parameter)
-    - Model architecture and preprocessing parameters
-    - Batch sizes for efficient memory usage
-
-Example Usage:
-    # Basic usage with local model
-    import xarray as xr
-    data = xr.open_dataarray("cml_data.nc")
-    results = cnn_wd("path/to/model.pth", data)
-
-    # Usage with remote model (auto-download and cache)
-    results = cnn_wd("https://example.com/model.pth", data)
-
-    # Usage with training run ID
-    results = cnn_wd("2025-01-15_12-34-56abc123", data)
-
-    # Access predictions
-    wet_dry_predictions = results['predictions']
-    original_data = results['TL']
-
-Notes:
-    - The module assumes CML data follows specific naming conventions
-    - Window size is typically 180 time steps (3 hours for 1-minute data)
-    - Predictions are binary (0=dry, 1=wet) with sigmoid activation
-    - Missing data is handled gracefully with NaN placeholders
-    - GPU acceleration is used automatically when available
-
-Dependencies:
-    - PyTorch for model inference
-    - xarray for data handling
-    - numpy for numerical operations
-    - Custom inference_utils for model loading and device management
+The module supports local model files, URLs (with auto-download), and training run IDs.
 """
 
 import numpy as np
-import torch
 import xarray as xr
 
 from pycomlink.processing.pytorch_util.inference_utils import (
@@ -90,15 +23,10 @@ from pycomlink.processing.pytorch_util.inference_utils import (
     list_cached_models,
     set_device,
 )
-
-# This function is for pytorch model inference on a single batch
-def predict_batch(model, batch, device):
-    """Run model inference on a single batch."""
-    model.eval()
-    with torch.no_grad():
-        inputs = batch.to(device)
-        outputs = model(inputs).cpu().numpy()
-    return outputs
+from pycomlink.processing.pytorch_util.pytorch_utils import (
+    predict_batch,
+    build_dataloader,
+)
 
 
 # TODO: Add unit tests for these functions
@@ -173,30 +101,6 @@ def batchify_windows(data, window_size, batch_size, reflength=60):
 
     return combined_samples
 
-# Build PyTorch DataLoader
-def build_dataloader(data, window_size, batch_size, device, reflength=60):
-    """
-    Builds a PyTorch DataLoader from the input data.
-    Args:
-        data (xarray.DataArray): The input data array.
-        window_size (int): The size of each time series window.
-        batch_size (int): The number of samples in each batch.
-        device (torch.device): The device to run the model on.
-        reflength (int): The reference length for timestamp calculation (from config).
-    Returns:
-        dataloader (torch.utils.data.DataLoader): A DataLoader for the input data.
-    """
-    combined_samples = batchify_windows(data, window_size, batch_size, reflength)
-
-    # Only batch the data tensor; keep cml_id and time as arrays outside the DataLoader
-    tensor_data = torch.tensor(combined_samples["data"], dtype=torch.float32)
-    tensor_data = tensor_data.permute(0, 2, 1)  # (batch, channels, window)
-
-    dataloader = torch.utils.data.DataLoader(
-        tensor_data, batch_size=batch_size, shuffle=False
-    )
-    # Return dataloader and metadata arrays
-    return dataloader, combined_samples["cml_id"], combined_samples["time"]
 
 # Main inference function not relying on pytorch
 def run_inference(model, data, batch_size=32, reflength=60):
@@ -273,29 +177,24 @@ def cnn_wd(
     model_path_or_url,
     data,
     batch_size=32,
-    config_path=None,
     force_download=False,
+    reflength=60,  # TODO: may be generalized in future
 ):
     """
     Function to run wet/dry inference on input data using a trained CNN model.
     Args:
         model_path_or_url (str): Either a path to the trained PyTorch model, a run_id,
-                                          or a URL to download the model from.
-                                          If run_id, will look for model and config in results/{run_id}/
-                                          If URL, will download and cache the model locally.
+                                    or a URL to download the model from.
+                                    If run_id, will look for model and config in results/{run_id}/
+                                    If URL, will download and cache the model locally.
         data (xarray.DataArray): The input data array.
         batch_size (int): The number of samples in each batch.
-        config_path (str, optional): Path to config file. If None, uses default config location
-                                    or looks for config in results/{run_id}/config.yml if run_id is provided.
         force_download (bool): Force re-download of model if it's a URL (default: False).
     Returns:
         xarray.Dataset: Dataset with predictions added as a new variable.
     """
 
     model = get_model(model_path_or_url, force_download)
-
-    reflength = 60          # For now hardcoded, TODO: will be generalized in future
-    # cofig loaded when path provided, reflength set if config = NaN
 
     results = run_inference(model, data, batch_size, reflength)
     data = data.to_dataset(name="TL")  # Convert xarray DataArray to Dataset if needed

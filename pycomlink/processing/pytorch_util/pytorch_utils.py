@@ -24,8 +24,6 @@ def build_dataloader(combined_samples, batch_size):
     Returns:
         dataloader (torch.utils.data.DataLoader): A DataLoader for the input data.
     """
-    
-
     # Only batch the data tensor; keep cml_id and time as arrays outside the DataLoader
     tensor_data = torch.tensor(combined_samples["data"], dtype=torch.float32)
     tensor_data = tensor_data.permute(0, 2, 1)  # (batch, channels, window)
@@ -37,6 +35,10 @@ def build_dataloader(combined_samples, batch_size):
     return dataloader, combined_samples["cml_id"], combined_samples["time"]
 
 
+
+# TODO: update this to be able to load either pt2 file, or if not present, load pth weights and .py architecture
+# this way there could be some operability for all platforms: either download automatically from url and use pt2
+# or download .py and .pth manually and provide the directory
 def load_model(model_path, device):
     """
     Load PyTorch model from file path.
@@ -50,26 +52,30 @@ def load_model(model_path, device):
     """
     model_path = Path(model_path)
     
-    assert model_path.suffix == ".pt2", "Model file must be a .pt2 file"
+    if model_path.suffix == ".pt2":
+        # Load exported model using torch.export This option works only on Linux
+        try:
+            exported_program = torch.export.load(str(model_path))
+            model = exported_program.module()
+            model.to(device)
 
-    # Load exported model using torch.export
-    try:
-        exported_program = torch.export.load(str(model_path))
-        model = exported_program.module()
-        #model = torch.load(str(model_path))
-        # Move model to the specified device
-        model.to(device)
+            # Add window_size attribute (based on the data preprocessing, it's 180)
+            model.window_size = 180
+            print(f"✅ Loaded exported model from: {model_path}")
+            return model
 
-        # Add window_size attribute (based on the data preprocessing, it's 180)
-        model.window_size = 180
-        print(f"✅ Loaded exported model from: {model_path}")
-        return model
-
-    except Exception as e:
-        raise RuntimeError(f"Failed to load exported model {model_path}: {e}")
+        except Exception as e:
+            raise RuntimeError(f"Failed to load exported model {model_path}: {e}"
+                               "Note: loading .pt2 files is currently only compatible woth Linux os.")
+        
+    #elif model_path.suffix == ".pth":
+        # Load the model class and .pth weights, Supported on Windows
+        # TODO: write code here
+    
 
 
 # Starting attempt to load model using jit
+
 '''
 def load_model_jit(model_path, device):
     """

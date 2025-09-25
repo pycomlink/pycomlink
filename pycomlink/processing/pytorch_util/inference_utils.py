@@ -124,9 +124,6 @@ def _load_model_from_url(model_url, force_download=False):
 
 
 
-# TODO: update this to be able to load either pt2 file, or if not present, load pth weights and .py architecture
-# this way there could be some operability for all platforms: either download automatically from url and use pt2
-# or download .py and .pth manually and provide the directory
 def _load_model_from_local_path(model_path):
     """Load model from local file path."""
     device = set_device()

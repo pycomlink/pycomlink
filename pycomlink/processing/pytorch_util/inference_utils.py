@@ -38,7 +38,7 @@ import urllib.request
 from pathlib import Path
 
 import torch
-from pytorch_utils import load_model
+from pycomlink.processing.pytorch_util.pytorch_utils import load_model
 
 
 def set_device():
@@ -66,7 +66,7 @@ def download_and_cache_model(
 
     # Create filename from URL hash to avoid conflicts
     url_hash = hashlib.md5(model_url.encode()).hexdigest()
-    model_filename = f"model_{url_hash}.pth"
+    model_filename = f"model_{url_hash}.pt2"
     cached_path = cache_dir / model_filename
 
     if not cached_path.exists() or force_download:
@@ -88,14 +88,14 @@ def clear_model_cache(cache_dir="~/.cml_wd_pytorch/models"):
     """
     cache_dir = Path(cache_dir).expanduser()
     if cache_dir.exists():
-        for file in cache_dir.glob("*.pth"):
+        for file in cache_dir.glob("*"):
             file.unlink()
         print(f"Cleared cache at {cache_dir}")
     else:
         print(f"Cache directory {cache_dir} does not exist")
 
 
-def list_cached_models(cache_dir="~/.cml_wd_pytorch/models"):
+def list_cached_models(cache_dir="~/.cml_wd_pytorch/models", suffix=".pt2"):
     """
     List all cached models.
 
@@ -107,7 +107,7 @@ def list_cached_models(cache_dir="~/.cml_wd_pytorch/models"):
     """
     cache_dir = Path(cache_dir).expanduser()
     if cache_dir.exists():
-        return list(cache_dir.glob("*.pth"))
+        return list(cache_dir.glob(suffix))
     return []
 
 

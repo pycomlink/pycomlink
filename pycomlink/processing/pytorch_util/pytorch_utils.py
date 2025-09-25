@@ -1,5 +1,6 @@
 import torch
 from pathlib import Path
+import sys, os
 
 
 # This function is for pytorch model inference on a single batch
@@ -65,12 +66,36 @@ def load_model(model_path, device):
             return model
 
         except Exception as e:
-            raise RuntimeError(f"Failed to load exported model {model_path}: {e}"
+            raise RuntimeError(f"Failed to load exported model {model_path}: {e} \n"
                                "Note: loading .pt2 files is currently only compatible woth Linux os.")
         
-    #elif model_path.suffix == ".pth":
+    elif model_path.suffix == ".pth":
         # Load the model class and .pth weights, Supported on Windows
-        # TODO: write code here
+        # Add the model path into env
+        sys.path.append(os.path.abspath(Path(model_path).parent.absolute()))
+        
+        from cnn_polz_pytorch_2025 import cnn           # Temporary solution
+        model = cnn(
+            final_act="sigmoid"
+        )  # Default to sigmoid, might need to be configurable
+
+        # Load the state dict
+        try:
+            # First try with weights_only=True for security
+            state_dict = torch.load(model_path, map_location=device, weights_only=True)
+        except Exception:
+            # Fall back to weights_only=False for compatibility with older model files
+            # This should only be used with trusted model files
+            state_dict = torch.load(model_path, map_location=device, weights_only=False)
+        model.load_state_dict(state_dict)
+
+        # Move model to device
+        model.to(device)
+
+        # Add window_size attribute (based on the data preprocessing, it's 180)
+        model.window_size = 180
+
+        return model
     
 
 

@@ -1,9 +1,6 @@
 import torch
-import sys,os
 from pathlib import Path
 
-
-from pycomlink.processing.pytorch_util.run_inference import batchify_windows
 
 # This function is for pytorch model inference on a single batch
 def predict_batch(model, batch, device):
@@ -16,7 +13,7 @@ def predict_batch(model, batch, device):
 
 
 # Build PyTorch DataLoader
-def build_dataloader(data, window_size, batch_size, device, reflength=60):
+def build_dataloader(combined_samples, batch_size):
     """
     Builds a PyTorch DataLoader from the input data.
     Args:
@@ -28,7 +25,7 @@ def build_dataloader(data, window_size, batch_size, device, reflength=60):
     Returns:
         dataloader (torch.utils.data.DataLoader): A DataLoader for the input data.
     """
-    combined_samples = batchify_windows(data, window_size, batch_size, reflength)
+    
 
     # Only batch the data tensor; keep cml_id and time as arrays outside the DataLoader
     tensor_data = torch.tensor(combined_samples["data"], dtype=torch.float32)
@@ -60,7 +57,7 @@ def load_model(model_path, device):
     try:
         exported_program = torch.export.load(str(model_path))
         model = exported_program.module()
-
+        #model = torch.load(str(model_path))
         # Move model to the specified device
         model.to(device)
 

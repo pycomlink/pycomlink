@@ -106,8 +106,9 @@ def batchify_windows(data, window_size, batch_size, reflength=60):
 def run_inference(model, data, batch_size=32, reflength=60):
     device = set_device()
     window_size = model.window_size if hasattr(model, "window_size") else 180
+    combined_samples = batchify_windows(data, window_size, batch_size, reflength)
     dataloader, cml_ids, times = build_dataloader(
-        data, window_size, batch_size, device, reflength
+        combined_samples,  batch_size,
     )
     predictions = []
 

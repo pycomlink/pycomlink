@@ -67,18 +67,18 @@ def load_model(model_path, device):
 
         except Exception as e:
             raise RuntimeError(f"Failed to load exported model {model_path}: {e} \n"
-                               "Note: loading .pt2 files is currently only compatible woth Linux os.")
+                               "Note: loading .pt2 files is currently only possible on Linux os.")
         
     elif model_path.suffix == ".pth":
         # Load the model class and .pth weights, Supported on Windows
+  
         # Add the model path into env
         sys.path.append(os.path.abspath(Path(model_path).parent.absolute()))
-        
         from cnn_polz_pytorch_2025 import cnn           # Temporary solution
         model = cnn(
             final_act="sigmoid"
         )  # Default to sigmoid, might need to be configurable
-
+  
         # Load the state dict
         try:
             # First try with weights_only=True for security
@@ -92,7 +92,7 @@ def load_model(model_path, device):
         # Move model to device
         model.to(device)
 
-        # Add window_size attribute (based on the data preprocessing, it's 180)
+        # Add window_size attribute (Hardcoded based on the data preprocessing, it's 180)
         model.window_size = 180
 
         return model

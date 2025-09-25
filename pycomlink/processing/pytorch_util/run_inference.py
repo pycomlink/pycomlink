@@ -292,11 +292,10 @@ def cnn_wd(
         xarray.Dataset: Dataset with predictions added as a new variable.
     """
 
-    model, config = get_model(model_path_or_url, config_path, force_download)
+    model = get_model(model_path_or_url, force_download)
 
-    reflength = config.get("data", {}).get(
-        "reflength", 60
-    )  # Default to 60 if not found
+    reflength = 60          # For now hardcoded, TODO: will be generalized in future
+    # cofig loaded when path provided, reflength set if config = NaN
 
     results = run_inference(model, data, batch_size, reflength)
     data = data.to_dataset(name="TL")  # Convert xarray DataArray to Dataset if needed

@@ -154,22 +154,13 @@ def load_model(model_path, device):
 
     # Add window_size attribute (based on the data preprocessing, it's 180)
     model.window_size = 180
-
     return model
 
-
-def _load_config_from_path(config_path):
-    """Load config from specific path or use default."""
-    #if config_path is None:
-    #    return load_config()
-    #else:
-    with open(config_path, "r") as f:
-        return yaml.safe_load(f)
 
 
 
 def _load_model_from_url(model_url, force_download=False):
-    """Load model, weights and config from URL by downloading and caching it."""
+    """Load model, weights from URL by downloading and caching it."""
     device = set_device()
 
     # Download and cache the model
@@ -177,40 +168,28 @@ def _load_model_from_url(model_url, force_download=False):
 
     # Load model with weights
     model = load_model(str(model_path), device)
-    # Load config
-    config = _load_config_from_path(Path(os.path.abspath(model_path)).parent.absolute() / "config.yml")
+    return model
 
 
-    return model, config
-
-
-def _load_model_from_local_path(model_path, config_path=None):
+def _load_model_from_local_path(model_path):
     """Load model from local file path."""
     device = set_device()
 
     # Load the model
     model = load_model(model_path, device)
-    # Load config
-    if config_path is None:
-        config = _load_config_from_path(Path(os.path.abspath(model_path)).parent.absolute() / "config.yml")
-    else:
-        config = _load_config_from_path(config_path)
-
-    return model, config
+    return model
 
 
 
 
-def get_model(model_path_or_url, config_path=None, force_download=False):
+def get_model(model_path_or_url, force_download=False):
     """
-    Load a model from a local path, run_id, or URL.
+    Load a model from a local path, or URL.
 
     Args:
-        model_path_or_url (str): Either a path to the trained PyTorch model, a run_id,
+        model_path_or_url (str): Either a path to the trained PyTorch model,
                                           or a URL to download the model from.
                                           If URL, will download and cache the model locally.
-        config_path (str, optional): Path to config file. If None, uses default config location
-                                    or looks for config in results/{run_id}/config.yml if run_id is provided.
         force_download (bool): Force re-download of model if it's a URL (default: False).
 
     Returns:
@@ -227,7 +206,7 @@ def get_model(model_path_or_url, config_path=None, force_download=False):
         or "/" in model_path_or_url
     ):
         # It's a local model path
-        return _load_model_from_local_path(model_path_or_url, config_path)
+        return _load_model_from_local_path(model_path_or_url)
     else:
         # It's neithe url, nor path
         raise Exception(f"Provided string: '{model_path_or_url}' , is neither directory path, nor web url")

@@ -5,7 +5,6 @@ from pathlib import Path
 # This function is for pytorch model inference on a single batch
 def predict_batch(model, batch, device):
     """Run model inference on a single batch."""
-    model.eval()
     with torch.no_grad():
         inputs = batch.to(device)
         outputs = model(inputs).cpu().numpy()

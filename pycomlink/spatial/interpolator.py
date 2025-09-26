@@ -234,14 +234,15 @@ def clim_var_param(date_str="20130404", time_scale_hours=0.25):
     frequency_years = 1/365
 
     # Determine day of year (Julian day number):
-    date = datetime(int(date_str[0:4]),int(date_str[4:6]),int(date_str[6:8]))
+    date = pd.to_datetime(date_str)
+    #date = datetime(int(date_str[0:4]),int(date_str[4:6]),int(date_str[6:8]))
     julian_day = float(date.strftime('%j'))
 
     # Calculate sill, range and nugget of spherical variogram for this particular day:
-    range = (15.51 * time_scale_hours**0.09 + 2.06 * time_scale_hours**-0.12 * np.cos(2*pi*frequency_years * (julian_day - 7.37 * time_scale_hours**0.22) ) )**4  
+    range_m = (15.51 * time_scale_hours**0.09 + 2.06 * time_scale_hours**-0.12 * np.cos(2*pi*frequency_years * (julian_day - 7.37 * time_scale_hours**0.22) ) )**4  
     sill = (0.84 * time_scale_hours**-0.25 + 0.20 * time_scale_hours**-0.37 * np.cos(2*pi*frequency_years * (julian_day - 162 * time_scale_hours**-0.03) ) )**4
 	
     nugget = 0.1 * sill 
-    range = range/1000 # range (in kilometers)
+    range_km = range_m/1000 # range (in kilometers)
 
-    return(sill, range, nugget)
+    return {'sill': sill, 'range': range_km, 'nugget': nugget}

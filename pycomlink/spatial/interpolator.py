@@ -213,7 +213,7 @@ def clim_var_param(date_str="20130404", time_scale_hours=0.25):
     This is based on a climatological variogram based on 30-year automatic rain gauge data sets from The Netherlands. 
     Spherical variograms have been modelled as function of the day number and duration in Van de Beek et al. (2012). 
     They use durations of 1 - 24 h. In this function the relationships can be extrapolated to, e.g. 15-min, data.
-    Returns the values of sill, range and nugget.
+    Returns the values of sill, range and nugget. The nugget is set to 0.1 * sill.
     Python implementation of the function "ClimVarParam.R" from the R RAINLINK package: Retrieval algorithm for rainfall mapping from microwave links
     in a cellular communication network (Overeem et al., 2016).
 
@@ -225,9 +225,13 @@ def clim_var_param(date_str="20130404", time_scale_hours=0.25):
 
     Parameters
     ----------
-    date_str: the end date of the chosen daily period (YYYYMMDD; YYYY = year, MM = month, DD = day)
+    date_str: the end date of the chosen daily period in a format that pandas.to_datetime can parse e.g. 'YYYYMMDD'
     time_scale_hours: rainfall aggregation interval in hours
+    
     Returns
+    -------
+    dict with 'sill', 'range' and 'nugget' keys.
+
     """
 
     # Set frequency (1 day expressed in years):
@@ -239,8 +243,16 @@ def clim_var_param(date_str="20130404", time_scale_hours=0.25):
     julian_day = float(date.strftime('%j'))
 
     # Calculate sill, range and nugget of spherical variogram for this particular day:
-    range_m = (15.51 * time_scale_hours**0.09 + 2.06 * time_scale_hours**-0.12 * np.cos(2*pi*frequency_years * (julian_day - 7.37 * time_scale_hours**0.22) ) )**4  
-    sill = (0.84 * time_scale_hours**-0.25 + 0.20 * time_scale_hours**-0.37 * np.cos(2*pi*frequency_years * (julian_day - 162 * time_scale_hours**-0.03) ) )**4
+    range_m = (
+        15.51 * time_scale_hours**0.09 
+        + 2.06 * time_scale_hours**-0.12 
+        * np.cos(2*pi*frequency_years * (julian_day - 7.37 * time_scale_hours**0.22)) 
+    ) ** 4  
+    sill = (
+        0.84 * time_scale_hours**-0.25 
+        + 0.20 * time_scale_hours**-0.37 
+        * np.cos(2*pi*frequency_years * (julian_day - 162 * time_scale_hours**-0.03))
+    ) ** 4
 	
     nugget = 0.1 * sill 
     range_km = range_m/1000 # range (in kilometers)

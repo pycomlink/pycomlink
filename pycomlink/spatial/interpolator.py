@@ -247,7 +247,7 @@ def clim_var_param(date_str="20130404", time_scale_hours=0.25):
         15.51 * time_scale_hours**0.09 
         + 2.06 * time_scale_hours**-0.12 
         * np.cos(2*pi*frequency_years * (julian_day - 7.37 * time_scale_hours**0.22)) 
-    ) ** 3  
+    ) ** 4
     sill = (
         0.84 * time_scale_hours**-0.25 
         + 0.20 * time_scale_hours**-0.37 

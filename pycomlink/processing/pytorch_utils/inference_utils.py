@@ -5,7 +5,7 @@ This module provides utility functions for loading, caching, and managing PyTorc
 used for Commercial Microwave Link (CML) wet/dry classification inference. It supports
 multiple model loading mechanisms including:
 
-- Local file paths (.pth files)
+- Local file paths (.pt files)
 - Remote URLs with automatic download and caching
 
 Key Features:
@@ -33,12 +33,11 @@ Example Usage:
 """
 
 import hashlib
-import sys,os
 import urllib.request
 from pathlib import Path
 
 import torch
-from pycomlink.processing.pytorch_util.pytorch_utils import load_model
+from pycomlink.processing.pytorch_utils.pytorch_utils import load_model
 
 
 def set_device():

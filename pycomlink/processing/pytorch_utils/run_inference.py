@@ -18,12 +18,12 @@ The module supports local model files, URLs (with auto-download), and training r
 import numpy as np
 import xarray as xr
 
-from pycomlink.processing.pytorch_util.inference_utils import (
+from pycomlink.processing.pytorch_utils.inference_utils import (
     get_model,
     list_cached_models,
     set_device,
 )
-from pycomlink.processing.pytorch_util.pytorch_utils import (
+from pycomlink.processing.pytorch_utils.pytorch_utils import (
     predict_batch,
     build_dataloader,
 )

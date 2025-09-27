@@ -37,10 +37,7 @@ def build_dataloader(combined_samples, batch_size):
 
 
 
-# TODO: update this to be able to load either pt2 file, or if not present, load pth weights and .py architecture
-# this way there could be some operability for all platforms: either download automatically from url and use pt2
-# or download .py and .pth manually and provide the directory
-def load_model(model_path, device):
+def load_model_old(model_path, device):
     """
     Load PyTorch model from file path.
 
@@ -100,26 +97,24 @@ def load_model(model_path, device):
 
 
 # Starting attempt to load model using jit
-
-'''
-def load_model_jit(model_path, device):
+def load_model(model_path, device):
     """
     Load PyTorch model from file path using torch.jit.load
     """
     model_path = Path(model_path)
     
-    assert model_path.suffix == ".pt2", "Model file must be a .pt2 file"
+    # Check if this is a JIT scripted model
+    if model_path.suffix == ".pt":
+        # Load JIT scripted model
+        try:
+            model = torch.jit.load(str(model_path), map_location=device)
+            model.eval()  # Set to evaluation mode
 
-    # Load exported model using torch.export
-    try:
-        torch.jit.load(f, map_location=None, _extra_files=None, _restore_shapes=False)
+            # Add window_size attribute (based on the data preprocessing, it's 180)
+            model.window_size = 180
+            print(f"✅ Loaded exported model from: {model_path}")
+            return model
 
-        # Add window_size attribute (based on the data preprocessing, it's 180)
-        model.window_size = 180
-        print(f"✅ Loaded exported model from: {model_path}")
-        return model
+        except Exception as e:
+            raise RuntimeError(f"Failed to load exported model {model_path}: {e}")
 
-    except Exception as e:
-        raise RuntimeError(f"Failed to load exported model {model_path}: {e}")
-
-'''

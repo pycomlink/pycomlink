@@ -26,10 +26,10 @@ Cache Management:
 
 Example Usage:
     # Load from local path
-    model = get_model("path/to/model.pth")
+    model = get_model("path/to/model.pt")
 
     # Load from URL (with automatic caching)
-    model = get_model("https://example.com/model.pth")
+    model = get_model("https://example.com/model.pt")
 """
 
 import hashlib
@@ -66,7 +66,7 @@ def download_and_cache_model(
 
     # Create filename from URL hash to avoid conflicts
     url_hash = hashlib.md5(model_url.encode()).hexdigest()
-    model_filename = f"model_{url_hash}.pt2"
+    model_filename = f"model_{url_hash}.pt"
     cached_path = cache_dir / model_filename
 
     if not cached_path.exists() or force_download:
@@ -95,7 +95,7 @@ def clear_model_cache(cache_dir="~/.cml_wd_pytorch/models"):
         print(f"Cache directory {cache_dir} does not exist")
 
 
-def list_cached_models(cache_dir="~/.cml_wd_pytorch/models", suffix=".pt2"):
+def list_cached_models(cache_dir="~/.cml_wd_pytorch/models", suffix=".pt"):
     """
     List all cached models.
 
@@ -154,14 +154,14 @@ def get_model(model_path_or_url, force_download=False):
             model_path_or_url, force_download
         )
     elif (
-        model_path_or_url.endswith(".pt2")
+        model_path_or_url.endswith(".pt")
         or "/" in model_path_or_url
     ):
         # It's a local model path
         return _load_model_from_local_path(model_path_or_url)
-    elif model_path_or_url.endswith(".pth"):
+    elif model_path_or_url.endswith(".pth") or model_path_or_url.endswith(".pt2"):
         # It's a legacy model path
-        raise Exception(".pth models are currently not supported. Please convert to .pt2 format.")
+        raise Exception(".pth and .pt2 models are currently not supported. Please convert to .pt format using torch.jit.script().")
     else:
         # It's neither url, nor path
         raise Exception(f"Provided string: '{model_path_or_url}' , is neither directory path, nor web url")

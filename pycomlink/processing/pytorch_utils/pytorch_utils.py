@@ -2,7 +2,13 @@
 
 import torch
 from pathlib import Path
-import sys, os
+
+
+
+def set_device():
+    """Auto-detect and return appropriate device (GPU/CPU)."""
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    return device
 
 
 # This function is for pytorch model inference on a single batch

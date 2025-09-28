@@ -36,14 +36,12 @@ import hashlib
 import urllib.request
 from pathlib import Path
 
-import torch
-from pycomlink.processing.pytorch_utils.pytorch_utils import load_model
+from pycomlink.processing.pytorch_utils.pytorch_utils import (
+    load_model,
+    set_device,
+)
 
 
-def set_device():
-    """Auto-detect and return appropriate device (GPU/CPU)."""
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    return device
 
 
 def download_and_cache_model(

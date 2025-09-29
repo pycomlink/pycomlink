@@ -10,9 +10,12 @@ Main Functions:
     - cnn_wd(): High-level interface for wet/dry classification
     - run_inference(): Core inference pipeline
     - rolling_window(): Creates sliding windows from time series
-    - redistribute_results(): Maps predictions back to original grid
+    - batchify_windows(): Converts a data array into rolling-window batches of specified size.
+    - redistribute_results(): Maps predictions back to original coordinates
 
-The module supports local model files, URLs (with auto-download), and training run IDs.
+Example Usage:
+    # Run the inference function cnn_wd(). The rest is called automatically
+    result = run_inference.cnn_wd(model_path_or_url="url-path-string",data=total_loss_data)
 """
 
 import numpy as np
@@ -20,7 +23,6 @@ import xarray as xr
 
 from pycomlink.processing.pytorch_utils.inference_utils import (
     get_model,
-    list_cached_models,
     set_device,
 )
 from pycomlink.processing.pytorch_utils.pytorch_utils import (
@@ -30,15 +32,16 @@ from pycomlink.processing.pytorch_utils.pytorch_utils import (
 
 
 # TODO: Add unit tests for these functions
-# TODO: move to general utils?
 def rolling_window(timeseries, valid_times, window_size, reflength=60):
     """
-    Splits the time series into batches of specified size.
+    Define a rolling-window of specified size to load sorrounding TL samples for each timestep, .
+
     Args:
         timeseries (list or np.array): The time series data to be split.
         valid_times (list): A list of valid time indices.
         window_size (int): The size of each batch.
         reflength (int): The reference length for timestamp calculation.
+
     Returns:
         windowed_series (np.array): A list of batches, each containing a segment of the time series.
         timestep_indices (list): A list of indices corresponding to the target time (end of window - reflength).
@@ -62,14 +65,15 @@ def rolling_window(timeseries, valid_times, window_size, reflength=60):
     return windowed_series, timestep_indices
 
 
-def batchify_windows(data, window_size, batch_size, reflength=60):
+def batchify_windows(data, window_size, reflength=60):
     """
     Converts a data array into batches of specified window size.
+
     Args:
         data (xarray.DataArray): The input data array.
         window_size (int): The size of each time series window.
-        batch_size (int): The number of samples in each batch.
         reflength (int): The reference length for timestamp calculation.
+
     Returns:
         combined_samples (dict): A dictionary containing concatenated cml_id, time, and data arrays.
     """
@@ -102,8 +106,21 @@ def batchify_windows(data, window_size, batch_size, reflength=60):
     return combined_samples
 
 
-# Main inference function not relying on pytorch
+# Main inference function, pytorch specific
 def run_inference(model, data, batch_size=32, reflength=60):
+    """
+    Function to run inference loop on dataloader batched input data.
+
+    Args:
+        model (torch.nn.Module): Loaded PyTorch model.
+        data (xarray.DataArray): The input total loss data.
+        batch_size (int): The number of samples in each batch.
+        reflength (int): The reference length for timestamp calculation.
+
+    Returns:
+        dict: dictionary with numpy arrays of predictions cml_ids and time series.
+    """
+
     device = set_device()
     window_size = model.window_size if hasattr(model, "window_size") else 180
     combined_samples = batchify_windows(data, window_size, batch_size, reflength)
@@ -129,7 +146,7 @@ def redistribute_results(results, data):
 
     Args:
         results (dict): Dictionary containing predictions, cml_ids, and times from inference
-        data (xarray.Dataset): Original dataset to add predictions to
+        data (xarray.Dataset): Original dataset to add predictions to.
 
     Returns:
         xarray.Dataset: Dataset with predictions added as a new variable
@@ -181,15 +198,15 @@ def cnn_wd(
     reflength=60,  # TODO: may be generalized in future
 ):
     """
-    Function to run wet/dry inference on input data using a trained CNN model.
+    Function to run wet/dry inference on input data using loaded trained CNN model.
+
     Args:
-        model_path_or_url (str): Either a path to the trained PyTorch model, a run_id,
-                                    or a URL to download the model from.
-                                    If run_id, will look for model and config in results/{run_id}/
-                                    If URL, will download and cache the model locally.
-        data (xarray.DataArray): The input data array.
+        model_path_or_url (str): Either a path to the trained PyTorch model, or a URL to download 
+                                 the model from. If URL, will download and cache the model locally.
+        data (xarray.DataArray): The input cml total loss data as dataarray.
         batch_size (int): The number of samples in each batch.
         force_download (bool): Force re-download of model if it's a URL (default: False).
+
     Returns:
         xarray.Dataset: Dataset with predictions added as a new variable.
     """

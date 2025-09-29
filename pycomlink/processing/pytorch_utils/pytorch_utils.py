@@ -1,9 +1,42 @@
+"""
+PyTorch utilities for model inference and data handling.
+
+Central PyTorch utility toolkit for device selection, batch prediction, 
+DataLoader construction, and TorchScript model loading utilities.
+
+Key Features:
+- Automatically select the appropriate device (CPU/GPU) for PyTorch operations.
+- Run model inference on single batches.
+- Build PyTorch DataLoaders from preprocessed sample data.
+- Load TorchScript-exported models for inference.
+
+Main Functions:
+    set_device(): Detects and returns the optimal torch.device.
+    predict_batch(model, batch, device): Performs inference on a single batch.
+    build_dataloader(combined_samples, batch_size): Constructs a DataLoader and returns associated metadata.
+    load_model(model_path, device): Loads cached TorchScript model and prepares it for inference.
+
+Example Usage:
+    # Set device
+    device = set_device()
+
+    # Load model
+    model = load_model("path/to/model.pt", device)
+    
+    # Build dataloader
+    dataloader, cml_ids, times = build_dataloader(combined_samples, batch_size)
+    
+    # Run batch inference in loop
+    for batch in dataloader:
+        outputs = predict_batch(model, batch, device)
+"""
+
 import torch
 from pathlib import Path
 
 
 def set_device():
-    """Auto-detect and return appropriate device (GPU/CPU)."""
+    """Auto-detect and return optimal torch.device (GPU/CPU)."""
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     return device
 
@@ -21,12 +54,14 @@ def predict_batch(model, batch, device):
 def build_dataloader(combined_samples, batch_size):
     """
     Builds a PyTorch DataLoader from the input data.
+
     Args:
-        data (xarray.DataArray): The input data array.
+        data (xarray.DataArray): Batched input data array.
         window_size (int): The size of each time series window.
         batch_size (int): The number of samples in each batch.
         device (torch.device): The device to run the model on.
         reflength (int): The reference length for timestamp calculation (from config).
+
     Returns:
         dataloader (torch.utils.data.DataLoader): A DataLoader for the input data.
     """

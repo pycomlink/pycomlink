@@ -21,8 +21,8 @@ Main Functions:
 
 Cache Management:
     Models downloaded from URLs are cached locally in ~/.cml_wd_pytorch/models/
-    to avoid repeated downloads. Cache can be managed with clear_model_cache()
-    and list_cached_models() functions.
+    to avoid repeated downloads, function checks if the file already exists.
+    Cache can be managed with clear_model_cache() and list_cached_models() functions.
 
 Example Usage:
     # Load from local path

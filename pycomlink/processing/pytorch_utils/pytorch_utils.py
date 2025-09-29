@@ -1,7 +1,7 @@
 """
 PyTorch utilities for model inference and data handling.
 
-Central PyTorch utility toolkit for device selection, batch prediction, 
+Central PyTorch utility toolkit for device selection, batch prediction,
 DataLoader construction, and TorchScript model loading utilities.
 
 Key Features:
@@ -22,10 +22,10 @@ Example Usage:
 
     # Load model
     model = load_model("path/to/model.pt", device)
-    
+
     # Build dataloader
     dataloader, cml_ids, times = build_dataloader(combined_samples, batch_size)
-    
+
     # Run batch inference in loop
     for batch in dataloader:
         outputs = predict_batch(model, batch, device)

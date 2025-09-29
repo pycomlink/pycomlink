@@ -123,7 +123,7 @@ def run_inference(model, data, batch_size=32, reflength=60):
 
     device = set_device()
     window_size = model.window_size if hasattr(model, "window_size") else 180
-    combined_samples = batchify_windows(data, window_size, batch_size, reflength)
+    combined_samples = batchify_windows(data, window_size, reflength)
     dataloader, cml_ids, times = build_dataloader(
         combined_samples,
         batch_size,
@@ -201,7 +201,7 @@ def cnn_wd(
     Function to run wet/dry inference on input data using loaded trained CNN model.
 
     Args:
-        model_path_or_url (str): Either a path to the trained PyTorch model, or a URL to download 
+        model_path_or_url (str): Either a path to the trained PyTorch model, or a URL to download
                                  the model from. If URL, will download and cache the model locally.
         data (xarray.DataArray): The input cml total loss data as dataarray.
         batch_size (int): The number of samples in each batch.

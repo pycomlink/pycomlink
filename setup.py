@@ -43,7 +43,4 @@ setup(
     # A list of all available classifiers can be found at 
     # https://pypi.python.org/pypi?%3Aaction=list_classifiers
     install_requires=INSTALL_REQUIRES,
-    extras_require={    
-        "torch": ["torch"],     # optional for torch cnn wd, install with pycomlink[torch]
-    },
 )

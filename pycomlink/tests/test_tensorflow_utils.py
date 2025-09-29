@@ -2,7 +2,7 @@ import unittest
 import numpy as np
 import pandas as pd
 import xarray as xr
-from pycomlink.processing.tensorflow_utils import wet_dry_1d_cnn
+from pycomlink.processing.tensorflow_utils import run_inference
 import subprocess
 import sys
 
@@ -18,7 +18,7 @@ class TestCNNModelExactOutput(unittest.TestCase):
         # --- Step 1: Create synthetic dataset ---
 
         # Define dimensions
-        n_time = 180
+        n_time = 180 
         n_cml = 1
         n_channel = 2
 
@@ -42,7 +42,7 @@ class TestCNNModelExactOutput(unittest.TestCase):
         tl1 = np.full((n_cml, n_time), 59.0)
         tl2 = np.full((n_cml, n_time), 56.0)
         cnn = np.full((n_time, n_cml), np.nan, dtype=np.float32)
-        cnn[0, 0] = 0.07733  # first value, rest NaN
+        cnn[-1, -1] = 0.07733  # first value, rest NaN
 
         # Dataset
         ds_constant = xr.Dataset(
@@ -70,7 +70,7 @@ class TestCNNModelExactOutput(unittest.TestCase):
 
 
         # --- Step 3: Run model on synthetic dataset ---
-        results = wet_dry_1d_cnn.wet_dry_1d_cnn(ds=ds_constant, return_ds=True, prob_name="CNN_test",)
+        results = run_inference.wet_dry_1d_cnn(ds=ds_constant, return_ds=True, prob_name="CNN_test",)
 
         # --- Step 4: Compare predictions ---
         stored_probs = ds_constant["CNN"].values.flatten()

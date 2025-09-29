@@ -95,3 +95,55 @@ class TestOrdiniaryKrigingInterpolator(unittest.TestCase):
 
     def test_with_nans(self):
         pass
+
+
+class Test_clim_var_param(unittest.TestCase):
+    def test_different_dates_and_accumulation_times(self):
+        result = pycml.spatial.interpolator.clim_var_param(date_str='2022-01-01', time_scale_hours=1)
+        expected = {
+            'sill': np.float64(0.18242923191258903),
+            'range': np.float64(95.03056923400595),
+            'nugget': np.float64(0.018242923191258902)
+        }
+        for var_name in ['sill', 'range', 'nugget']:
+            np.testing.assert_almost_equal(result[var_name], expected[var_name])
+
+        # same with different date format in input
+        result = pycml.spatial.interpolator.clim_var_param(date_str='20220101', time_scale_hours=1)
+        expected = {
+            'sill': np.float64(0.18242923191258903),
+            'range': np.float64(95.03056923400595),
+            'nugget': np.float64(0.018242923191258902)
+        }
+        for var_name in ['sill', 'range', 'nugget']:
+            np.testing.assert_almost_equal(result[var_name], expected[var_name])
+
+        # for different date
+        result = pycml.spatial.interpolator.clim_var_param(date_str='2022-06-01', time_scale_hours=1)
+        expected = {
+            'sill': np.float64(1.156614861651765),
+            'range': np.float64(37.03493709851056),
+            'nugget': np.float64(0.11566148616517652)
+        }
+        for var_name in ['sill', 'range', 'nugget']:
+            np.testing.assert_almost_equal(result[var_name], expected[var_name])
+
+        # for different date, now just shifting by some days
+        result = pycml.spatial.interpolator.clim_var_param(date_str='2022-06-13', time_scale_hours=1)
+        expected = {
+            'sill': np.float64(1.1693253762927298),
+            'range': np.float64(34.72539464500359),
+            'nugget': np.float64(0.11693253762927298)
+        }
+        for var_name in ['sill', 'range', 'nugget']:
+            np.testing.assert_almost_equal(result[var_name], expected[var_name])
+
+        # getting the values for 24h accumulation instead of 1h
+        result = pycml.spatial.interpolator.clim_var_param(date_str='2022-06-13', time_scale_hours=24)
+        expected = {
+            'sill': np.float64(0.03703330177339283),
+            'range': np.float64(143.5307984247159),
+            'nugget': np.float64(0.003703330177339283)
+        }
+        for var_name in ['sill', 'range', 'nugget']:
+            np.testing.assert_almost_equal(result[var_name], expected[var_name])

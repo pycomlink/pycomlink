@@ -9,6 +9,9 @@ import pandas as pd
 import xarray as xr
 from tqdm import tqdm
 from pykrige import OrdinaryKriging
+import math
+pi = math.pi
+from datetime import datetime
 
 from .idw import Invdisttree
 from ..util.temporal import aggregate_df_onto_DatetimeIndex
@@ -203,3 +206,55 @@ def _parse_grid_kwargs(x_list, y_list, xgrid, ygrid, resolution):
     else:
         pass
     return xgrid, ygrid
+
+
+def clim_var_param(date_str="20130404", time_scale_hours=0.25):
+    """ Obtain climatological values of sill, range, and nugget of spherical variogram model
+    This is based on a climatological variogram based on 30-year automatic rain gauge data sets from The Netherlands. 
+    Spherical variograms have been modelled as function of the day number and duration in Van de Beek et al. (2012). 
+    They use durations of 1 - 24 h. In this function the relationships can be extrapolated to, e.g. 15-min, data.
+    Returns the values of sill, range and nugget. The nugget is set to 0.1 * sill.
+    Python implementation of the function "ClimVarParam.R" from the R RAINLINK package: Retrieval algorithm for rainfall mapping from microwave links
+    in a cellular communication network (Overeem et al., 2016).
+
+    References:
+    Overeem, A., Leijnse, H., and Uijlenhoet, R., 2016: Retrieval algorithm for rainfall mapping from microwave links in a 
+    cellular communication network, Atmospheric Measurement Techniques, 9, 2425-2444, https://doi.org/10.5194/amt-9-2425-2016.
+    Van de Beek, C. Z., Leijnse, H., Torfs, P. J. J. F., and Uijlenhoet, R., 2012: Seasonal semi-variance of Dutch 
+    rainfall at hourly to daily scales, Adv. Water Resour., 45, 76-85, doi:10.1016/j.advwatres.2012.03.023.
+
+    Parameters
+    ----------
+    date_str: the end date of the chosen daily period in a format that pandas.to_datetime can parse e.g. 'YYYYMMDD'
+    time_scale_hours: rainfall aggregation interval in hours
+    
+    Returns
+    -------
+    dict with 'sill', 'range' and 'nugget' keys.
+
+    """
+
+    # Set frequency (1 day expressed in years):
+    frequency_years = 1/365
+
+    # Determine day of year (Julian day number):
+    date = pd.to_datetime(date_str)
+    #date = datetime(int(date_str[0:4]),int(date_str[4:6]),int(date_str[6:8]))
+    julian_day = float(date.strftime('%j'))
+
+    # Calculate sill, range and nugget of spherical variogram for this particular day:
+    range_m = (
+        15.51 * time_scale_hours**0.09 
+        + 2.06 * time_scale_hours**-0.12 
+        * np.cos(2*pi*frequency_years * (julian_day - 7.37 * time_scale_hours**0.22)) 
+    ) ** 4
+    sill = (
+        0.84 * time_scale_hours**-0.25 
+        + 0.20 * time_scale_hours**-0.37 
+        * np.cos(2*pi*frequency_years * (julian_day - 162 * time_scale_hours**-0.03))
+    ) ** 4
+	
+    nugget = 0.1 * sill 
+    range_km = range_m/1000 # range (in kilometers)
+
+    return {'sill': sill, 'range': range_km, 'nugget': nugget}

@@ -32,11 +32,8 @@ class TestTorchCnnInference(unittest.TestCase):
             -0.3, 0, 0, 1, 1, 0.7, 0, 0, 0.7, 1.
         ], dtype=float).reshape(260, 2, 1)
         
-        # Create wrong example data with 2 channels and 1 cml_id
-        tl_random = np.random.normal(0, 1, (260, 2, 1))
-
         norm_tl_sample = xr.DataArray(
-            tl_random,
+            tl_norm,
             dims=['time', 'channel_id', 'cml_id'],
             coords={
                 'time': np.datetime64('today', 's') + np.arange(len(tl_norm)) * np.timedelta64(1, 'm'),

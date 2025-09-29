@@ -42,8 +42,6 @@ from pycomlink.processing.pytorch_utils.pytorch_utils import (
 )
 
 
-
-
 def download_and_cache_model(
     model_url, cache_dir="~/.cml_wd_pytorch/models", force_download=False
 ):
@@ -120,7 +118,6 @@ def _load_model_from_url(model_url, force_download=False):
     return model
 
 
-
 def _load_model_from_local_path(model_path):
     """Load model from local file path."""
     device = set_device()
@@ -147,18 +144,17 @@ def get_model(model_path_or_url, force_download=False):
     # Determine input type and delegate to appropriate handler
     if model_path_or_url.startswith(("http://", "https://")):
         # It's a URL
-        return _load_model_from_url(
-            model_path_or_url, force_download
-        )
-    elif (
-        model_path_or_url.endswith(".pt")
-        or "/" in model_path_or_url
-    ):
+        return _load_model_from_url(model_path_or_url, force_download)
+    elif model_path_or_url.endswith(".pt") or "/" in model_path_or_url:
         # It's a local model path
         return _load_model_from_local_path(model_path_or_url)
     elif model_path_or_url.endswith(".pth") or model_path_or_url.endswith(".pt2"):
         # It's a legacy model path
-        raise Exception(".pth and .pt2 models are currently not supported. Please convert to .pt format using torch.jit.script().")
+        raise Exception(
+            ".pth and .pt2 models are currently not supported. Please convert to .pt format using torch.jit.script()."
+        )
     else:
         # It's neither url, nor path
-        raise Exception(f"Provided string: '{model_path_or_url}' , is neither directory path, nor web url")
+        raise Exception(
+            f"Provided string: '{model_path_or_url}' , is neither directory path, nor web url"
+        )

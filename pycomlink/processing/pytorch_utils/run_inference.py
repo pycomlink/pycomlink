@@ -1,14 +1,14 @@
 """
 CNN inference pipeline for CML wet/dry classification.
 
-This module provides functions to run inference on Commercial Microwave Link (CML) 
-data using trained CNN models. The main workflow includes creating sliding windows 
-from time series data, running batch inference, and redistributing predictions back 
+This module provides functions to run inference on Commercial Microwave Link (CML)
+data using trained CNN models. The main workflow includes creating sliding windows
+from time series data, running batch inference, and redistributing predictions back
 to the original data structure.
 
 Main Functions:
     - cnn_wd(): High-level interface for wet/dry classification
-    - run_inference(): Core inference pipeline 
+    - run_inference(): Core inference pipeline
     - rolling_window(): Creates sliding windows from time series
     - redistribute_results(): Maps predictions back to original grid
 
@@ -44,9 +44,9 @@ def rolling_window(timeseries, valid_times, window_size, reflength=60):
         timestep_indices (list): A list of indices corresponding to the target time (end of window - reflength).
     """
     assert window_size > 0, "Window size must be greater than 0"
-    assert len(valid_times) == len(timeseries), (
-        "Valid times must match the length of the timeseries"
-    )
+    assert len(valid_times) == len(
+        timeseries
+    ), "Valid times must match the length of the timeseries"
     windowed_series = []
     timestep_indices = []
     for start in range(len(timeseries)):
@@ -108,7 +108,8 @@ def run_inference(model, data, batch_size=32, reflength=60):
     window_size = model.window_size if hasattr(model, "window_size") else 180
     combined_samples = batchify_windows(data, window_size, batch_size, reflength)
     dataloader, cml_ids, times = build_dataloader(
-        combined_samples,  batch_size,
+        combined_samples,
+        batch_size,
     )
     predictions = []
 
@@ -133,9 +134,7 @@ def redistribute_results(results, data):
     Returns:
         xarray.Dataset: Dataset with predictions added as a new variable
     """
-    predictions = (
-        results["predictions"]
-    )  # Remove any extra dimensions
+    predictions = results["predictions"]  # Remove any extra dimensions
     cml_ids = results["cml_ids"]  # Already numpy array
     times = results["times"]  # Already numpy array
 
@@ -201,4 +200,3 @@ def cnn_wd(
     data = data.to_dataset(name="TL")  # Convert xarray DataArray to Dataset if needed
     final_results = redistribute_results(results, data)
     return final_results
-

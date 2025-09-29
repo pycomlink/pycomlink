@@ -11,5 +11,7 @@ if FOUND_TORCH:
 else:
     # If torch and torchinfo is not installed,
     # we raise an exception when trying to use these functions.
-    raise Exception("pycomlink.pytorch_utility requires PyTorch.\n"
-            "Install it with: `pip install pycomlink[torch]` or manualy using: `pip install pytorch`. ")
+    raise Exception(
+        "pycomlink.pytorch_utility requires PyTorch.\n"
+        "Install it with: `pip install pycomlink[torch]` or manualy using: `pip install torch`. "
+    )

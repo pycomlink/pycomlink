@@ -32,7 +32,6 @@ class TestTorchCnnInference(unittest.TestCase):
             -0.3, 0, 0, 1, 1, 0.7, 0, 0, 0.7, 1.
         ], dtype=float).reshape(260, 2, 1)
         
-
         norm_tl_sample = xr.DataArray(
             tl_norm,
             dims=['time', 'channel_id', 'cml_id'],
@@ -44,11 +43,13 @@ class TestTorchCnnInference(unittest.TestCase):
             name='tl'
         )
 
+        # Load model for inference and run the wet_dry classification 
         model_URL = "https://github.com/jpolz/cml_wd_pytorch/raw/be2b15fa987838ea1f709dd0180917eebf66271a/data/dummy_model/best_model_jit.pt"
         result = run_inference.cnn_wd(model_path_or_url=model_URL,data=norm_tl_sample)
 
         result_array = result.predictions[150:230].values.reshape(-1)
 
+        # Expected results array
         correct_res = np.array([
             0.1060552, 0.10901334, 0.11198409, 0.11430503, 0.11642854,
             0.11070773, 0.0709348, 0.08168192, 0.07762136, 0.07497578,
@@ -68,6 +69,7 @@ class TestTorchCnnInference(unittest.TestCase):
             0.23284966, 0.22505884, 0.21777135, 0.2251005, 0.18549199
         ])
 
+        # Compare model results with saved expected results
         np.testing.assert_array_almost_equal(
             result_array, correct_res, decimal=5
         )

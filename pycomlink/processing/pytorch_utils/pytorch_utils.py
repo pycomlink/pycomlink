@@ -1,8 +1,5 @@
-
-
 import torch
 from pathlib import Path
-
 
 
 def set_device():
@@ -57,7 +54,7 @@ def load_model(model_path, device):
         torch.nn.Module: Loaded PyTorch model.
     """
     model_path = Path(model_path)
-    
+
     # Load JIT scripted model
     try:
         model = torch.jit.load(str(model_path), map_location=device)
@@ -70,4 +67,3 @@ def load_model(model_path, device):
 
     except Exception as e:
         raise RuntimeError(f"Failed to load exported model {model_path}: {e}")
-

@@ -1,4 +1,6 @@
 import xarray as xr
+from pycomlink.processing.tensorflow_utils import inference_utils
+from pycomlink.processing.tensorflow_utils import lazy_tf
 
 DEFAULT_INPUT_VARS = ["tl1", "tl2"]
 DEFAULT_SEQ_LEN = 180
@@ -37,9 +39,8 @@ def wet_dry_1d_cnn(
         Name of the coordinate in `ds` that holds the link/channel IDs.
     ...
     """
-    import pycomlink.processing.tensorflow_utils.cnn as cnn
 
-    tf = cnn.get_tf(auto_install=install_tensorflow)
+    tf = lazy_tf.get_tf(auto_install=install_tensorflow)
 
     # Set defaults if not provided
     if input_vars is None:
@@ -71,20 +72,20 @@ def wet_dry_1d_cnn(
 
 
     # Load model
-    json_path, weights_path = cnn.resolve_model_paths(
+    json_path, weights_path = inference_utils.resolve_model_paths(
         json_source=json_url,
         weights_source=weights_url,
         cache_dir=cache_dir,
         force_download=force_download
     )
-    model = cnn.load_model_from_local(json_path, weights_path, lr=lr)
+    model = inference_utils.load_model_from_local(json_path, weights_path, lr=lr)
 
     # Prepare samples and scale
-    X, ids, t_idx = cnn.create_samples(ds=ds, cml_ids=cml_ids, input_vars=input_vars, seq_len=seq_len)
-    X_scaled = cnn.scale_features(input_seq=X, input_vars=input_vars)
+    X, ids, t_idx = inference_utils.create_samples(ds=ds, cml_ids=cml_ids, input_vars=input_vars, seq_len=seq_len)
+    X_scaled = inference_utils.scale_features(input_seq=X, input_vars=input_vars)
 
     # Predict
-    y_prob = cnn.run_inference(
+    y_prob = inference_utils.run_inference(
         model=model,
         model_input=X_scaled,
         batch_size=batch_size
@@ -92,7 +93,7 @@ def wet_dry_1d_cnn(
     del X_scaled
     
     # Store predictions as DataArray
-    pred_array = cnn.store_predictions(
+    pred_array = inference_utils.store_predictions(
         ds = ds,
         model_prob=y_prob,
         time_indices = t_idx,

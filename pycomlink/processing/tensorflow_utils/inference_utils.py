@@ -5,22 +5,21 @@ from pathlib import Path
 
 # Standard library imports
 import hashlib
-import logging
 import os
 import shutil
 import subprocess
 import sys
 import tempfile
 import urllib.request
-from pathlib import Path
+
 
 # Third-party imports
 import numpy as np
-import pandas as pd
-import requests
-import xarray as xr
 from sklearn.preprocessing import StandardScaler
 from tqdm import tqdm
+
+
+
 
 # -----------------------
 # TensorFlow Component Accessors
@@ -110,7 +109,6 @@ def load_model_from_local(json_path=None, weights_path=None, lr=0.05, loss="bina
 
 def run_inference(model, model_input, batch_size=128):
     y_prob = model.predict(model_input.astype(np.float32), batch_size=batch_size, verbose=1)
-    print(f"[✓] Prediction Completed — {len(y_prob)} Samples.")
     return np.ravel(y_prob).astype(np.float32)
 
 def store_predictions(
@@ -163,5 +161,5 @@ def store_predictions(
         dims=(time_dim, cml_dim),
         coords={time_dim: all_time, cml_dim: all_cml_ids},
         name=var_name,
-        attrs={"description": f"Predicted probabilities from CNN model", "source": f"Czech Republic"}
+        attrs={"description": f"Predicted probabilities from CNN model", "source": f"Model Trained on Czechia D"}
     )

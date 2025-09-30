@@ -3,15 +3,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 from pycomlink.processing.tensorflow_utils import run_inference
-import subprocess
-import sys
 
-try:
-    import requests
-except ImportError:
-    print("[!] 'requests' not found. Installing it now...")
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "requests"])
-    import requests
 
 class TestCNNModelExactOutput(unittest.TestCase):
     def test_cnn_prediction_against_truth(self):

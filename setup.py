@@ -39,6 +39,8 @@ setup(
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
+        'Programming Language :: Python :: 3.13',
     ],
     # A list of all available classifiers can be found at 
     # https://pypi.python.org/pypi?%3Aaction=list_classifiers

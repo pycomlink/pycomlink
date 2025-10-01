@@ -4,12 +4,7 @@ import xarray as xr
 from pathlib import Path
 
 # Standard library imports
-import hashlib
 import os
-import shutil
-import subprocess
-import sys
-import tempfile
 import urllib.request
 
 

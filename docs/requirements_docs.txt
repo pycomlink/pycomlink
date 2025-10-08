@@ -2,7 +2,7 @@
 sphinx
 sphinx-autobuild
 sphinx_rtd_theme
-m2r2
+#m2r2
 lxml_html_clean
 nbsphinx
 ipython

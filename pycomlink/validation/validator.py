@@ -7,8 +7,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from shapely.geometry import LineString, Polygon
+import poligrain as plg
 
-from .. spatial import grid_intersection
 from .. util.maintenance import deprecated
 
 class Validator(object):
@@ -44,7 +44,7 @@ class GridValidator(Validator):
         cml_coords = cml.get_coordinates()
 
         # get intersect weights
-        self.intersect_weights = grid_intersection.calc_intersect_weights(
+        self.intersect_weights = plg.spatial.calc_intersect_weights(
             x1_line=cml_coords.lon_a,
             y1_line=cml_coords.lat_a,
             x2_line=cml_coords.lon_b,
@@ -121,7 +121,7 @@ class GridValidator(Validator):
         grid = np.stack(
             [self.xr_ds.longitudes.values, self.xr_ds.latitudes.values], axis=2
         )
-        grid_corners = grid_intersection._calc_grid_corners_for_center_location(grid)
+        grid_corners = plg.spatial._calc_grid_corners_for_center_location(grid)
 
         lons[:-1, :-1] = grid_corners.ll_grid[:, :, 0]
         lons[-1, :-1] = grid_corners.ul_grid[-1, :, 0]
@@ -136,7 +136,7 @@ class GridValidator(Validator):
         cml_coords = cml.get_coordinates()
 
         # get intersect weights
-        intersect, pixel_poly_list = grid_intersection.calc_intersect_weights(
+        intersect, pixel_poly_list = plg.spatial.calc_intersect_weights(
             x1_line=cml_coords.lon_a,
             y1_line=cml_coords.lat_a,
             x2_line=cml_coords.lon_b,

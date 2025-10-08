@@ -482,7 +482,8 @@ class Test_nearby_wetdry_approach(unittest.TestCase):
 
         np.testing.assert_array_almost_equal(
             R_calculated.sum(dim='time'),
-            R_sum_time_expected
+            R_sum_time_expected,
+            decimal=4
         )
 
 

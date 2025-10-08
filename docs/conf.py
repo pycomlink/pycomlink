@@ -35,6 +35,7 @@ extensions = [
     'sphinx.ext.napoleon',
     'm2r2',
     'nbsphinx',
+    'myst_parser'
 ]
 
 napoleon_google_docstring = False

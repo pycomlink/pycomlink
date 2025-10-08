@@ -138,7 +138,7 @@ def _numba_idw_loop(distances, ixs, z, z_shape, p):
         ix = ix[ix < len(z)]
 
         if len(ix) == 0:
-            wz = np.NaN
+            wz = np.nan
         elif dist[0] < 1e-10:
             wz = z[ix[0]]
         else:  # weight z s by 1/dist --

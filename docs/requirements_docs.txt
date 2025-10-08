@@ -6,3 +6,4 @@ m2r2
 lxml_html_clean
 nbsphinx
 ipython
+myst-parser

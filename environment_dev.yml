@@ -15,9 +15,11 @@ dependencies:
  - pyproj
  - tqdm
  - pykrige
- - tensorflow
+ - scikit-learn
  - future
  - jupyterlab
  - notebook
  - bottleneck
  - pytest
+ - poligrain
+

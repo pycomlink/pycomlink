@@ -54,7 +54,7 @@ def _numba_baseline_constant(trsl, wet, n_average_last_dry):
     baseline[0:n_average_last_dry] = trsl[0:n_average_last_dry]
     for i in range(n_average_last_dry, len(trsl)):
         if np.isnan(wet[i]):
-            baseline[i] = np.NaN
+            baseline[i] = np.nan
         elif wet[i] & ~wet[i - 1]:
             baseline[i] = np.mean(baseline[(i - n_average_last_dry) : i])
         elif wet[i] & wet[i - 1]:
@@ -134,7 +134,7 @@ def _numba_baseline_linear(rsl, wet, ignore_nan=False):
         # at the end of a wet period, do the baseline interpolation
         elif last_i_is_wet and not is_wet:
             if found_nan:
-                baseline[last_dry_i : i + 1] = np.NaN
+                baseline[last_dry_i : i + 1] = np.nan
             else:
                 # !! Only works correctly with 'i+1'. With 'i' the first dry
                 # !! baseline value is kept at 0. No clue why we need the '+1'
@@ -148,7 +148,7 @@ def _numba_baseline_linear(rsl, wet, ignore_nan=False):
         # within a dry period
         elif not last_i_is_wet and not is_wet:
             if found_nan:
-                baseline[i] = np.NaN
+                baseline[i] = np.nan
             else:
                 baseline[i] = rsl_i
             found_nan = False

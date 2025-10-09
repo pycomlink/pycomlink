@@ -33,6 +33,7 @@ release = '0.3.0'
 extensions = [
     "sphinx.ext.autodoc",
     'sphinx.ext.napoleon',
+    'nbsphinx',
     'myst_parser'
 ]
 

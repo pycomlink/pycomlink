@@ -2,4 +2,7 @@
 sphinx
 sphinx-autobuild
 sphinx_rtd_theme
+lxml_html_clean
+nbsphinx
+ipython
 myst-parser

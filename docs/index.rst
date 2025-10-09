@@ -29,6 +29,7 @@ Usage
    notebooks/Basic CML processing workflow
    notebooks/Compare interpolation methods
    notebooks/Wet antenna attenuation
+   notebooks/Nearby link approach processing example
 
 .. toctree::
   :maxdepth: 1

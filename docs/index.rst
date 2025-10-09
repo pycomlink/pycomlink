@@ -27,6 +27,7 @@ Usage
    :caption: Examples
 
    notebooks/Basic CML processing workflow
+   notebooks/Compare interpolation methods
 
 .. toctree::
   :maxdepth: 1

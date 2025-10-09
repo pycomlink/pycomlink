@@ -2,6 +2,26 @@
 What's New
 **********************
 
+v0.5.0
+------
+
+Enhancements
+~~~~~~~~~~~~
+
+* Climatological variogram model parameters by @overeem11 in https://github.com/pycomlink/pycomlink/pull/166
+* Integrate code for pytorch inference and dynamically load model from URL by @xkalet07 in https://github.com/pycomlink/pycomlink/pull/164
+* Integrate code for TensorFlow inference and dynamically load model from URL by @toufikshit in https://github.com/pycomlink/pycomlink/pull/163
+
+Maintenance
+~~~~~~~~~~~~
+
+* Extend supported Python versions to 3.11, 3.12 and 3.13 by @cchwala in https://github.com/pycomlink/pycomlink/pull/167
+* Add notebooks to docs by @cchwala in https://github.com/pycomlink/pycomlink/pull/142
+
+Bug fixes
+~~~~~~~~~
+
+
 v0.4.1
 -------
 

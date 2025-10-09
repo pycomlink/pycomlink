@@ -32,6 +32,8 @@ Usage
    notebooks/Wet-dry classification methods
    notebooks/Nearby link approach processing example
    notebooks/Get radar rainfall along CML paths
+   notebooks/Use pytorch models
+   notebooks/Use tensorflow models.ipynb
 
 .. toctree::
   :maxdepth: 1

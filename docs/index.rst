@@ -29,7 +29,9 @@ Usage
    notebooks/Basic CML processing workflow
    notebooks/Compare interpolation methods
    notebooks/Wet antenna attenuation
+   notebooks/Wet-dry classification methods
    notebooks/Nearby link approach processing example
+   notebooks/Get radar rainfall along CML paths
 
 .. toctree::
   :maxdepth: 1

@@ -210,10 +210,14 @@ def cnn_wd(
         batch_size (int): The number of samples in each batch.
         force_download (bool): Force re-download of model if it's a URL (default: False).
         reflength (int): The reference length for timestamp calculation (from config).
-        reshape (bool or list): Whether to reshape the input before passing to the model (default: False).
+        reshape (tuple or bool): Whether to reshape the input before passing to the model (default: False).
 
     Returns:
         xarray.Dataset: Dataset with predictions added as a new variable.
+
+    Reshaping:
+        If reshape is False (default), input data is permuted to (batch, channels, window) which equivalent to passing (0, 2, 1). 
+        For other reshaping, pass a tuple with the desired permutation, e.g. (0,1,2) for (batch, window, channels).
     """
 
     model = get_model(model_path_or_url, force_download)

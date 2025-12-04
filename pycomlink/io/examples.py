@@ -9,7 +9,6 @@ def get_example_data_path():
     with resources.as_file(examples) as real_path:
         return str(real_path)
 
-
 def get_one_cml():
     data_path = get_example_data_path()
     fn = "one_cml.h5"
@@ -27,6 +26,4 @@ def get_75_cmls_min_max():
     fn = "75_cmls_min_max.h5"
     return read_cmlh5_file_to_xarray(path.join(data_path, fn))
 
-
-import importlib.resources as resources
 

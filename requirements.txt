@@ -3,7 +3,7 @@ scipy
 pandas
 matplotlib
 numba
-h5py
+h5py>=3.14
 xarray
 sparse
 netcdf4

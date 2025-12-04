@@ -1,11 +1,11 @@
-import pkg_resources
+import importlib.resources as resources
 from os import path
 
 from .. io.cmlh5_to_xarray import read_cmlh5_file_to_xarray
 
 
 def get_example_data_path():
-    return pkg_resources.resource_filename("pycomlink", "io/example_data")
+    return str(resources.files("pycomlink.io").joinpath("example_data"))
 
 
 def get_one_cml():

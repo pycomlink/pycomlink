@@ -107,7 +107,7 @@ def batchify_windows(data, window_size, reflength=60):
 
 
 # Main inference function, pytorch specific
-def run_inference(model, data, batch_size=32, reflength=60):
+def run_inference(model, data, batch_size=32, reflength=60, reshape=False):
     """
     Function to run inference loop on dataloader batched input data.
 
@@ -116,6 +116,7 @@ def run_inference(model, data, batch_size=32, reflength=60):
         data (xarray.DataArray): The input total loss data.
         batch_size (int): The number of samples in each batch.
         reflength (int): The reference length for timestamp calculation.
+        reshape (bool or tuple): Whether to reshape the input before passing to the model (default: False).
 
     Returns:
         dict: dictionary with numpy arrays of predictions cml_ids and time series.
@@ -127,6 +128,7 @@ def run_inference(model, data, batch_size=32, reflength=60):
     dataloader, cml_ids, times = build_dataloader(
         combined_samples,
         batch_size,
+        reshape=reshape,
     )
     predictions = []
 
@@ -196,6 +198,7 @@ def cnn_wd(
     batch_size=32,
     force_download=False,
     reflength=60,  # TODO: may be generalized in future
+    reshape=False,
 ):
     """
     Function to run wet/dry inference on input data using loaded trained CNN model.
@@ -206,14 +209,20 @@ def cnn_wd(
         data (xarray.DataArray): The input cml total loss data as dataarray.
         batch_size (int): The number of samples in each batch.
         force_download (bool): Force re-download of model if it's a URL (default: False).
+        reflength (int): The reference length for timestamp calculation (from config).
+        reshape (tuple or bool): Whether to reshape the input before passing to the model (default: False).
 
     Returns:
         xarray.Dataset: Dataset with predictions added as a new variable.
+
+    Reshaping:
+        If reshape is False (default), input data is permuted to (batch, channels, window) which equivalent to passing (0, 2, 1). 
+        For other reshaping, pass a tuple with the desired permutation, e.g. (0,1,2) for (batch, window, channels).
     """
 
     model = get_model(model_path_or_url, force_download)
 
-    results = run_inference(model, data, batch_size, reflength)
+    results = run_inference(model, data, batch_size, reflength, reshape)
     data = data.to_dataset(name="TL")  # Convert xarray DataArray to Dataset if needed
     final_results = redistribute_results(results, data)
     return final_results

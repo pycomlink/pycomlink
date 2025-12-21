@@ -31,8 +31,9 @@ Example Usage:
         outputs = predict_batch(model, batch, device)
 """
 
-import torch
 from pathlib import Path
+
+import torch
 
 
 def set_device():
@@ -66,8 +67,18 @@ def build_dataloader(combined_samples, batch_size, reshape=(0, 2, 1)):
     """
     # Only batch the data tensor; keep cml_id and time as arrays outside the DataLoader
     tensor_data = torch.tensor(combined_samples["data"], dtype=torch.float32)
-    reshape = reshape.astype(int)
-    tensor_data = tensor_data.permute(reshape)  # (batch, channels, window)
+
+    # Handle reshape parameter - can be bool or tuple
+    if isinstance(reshape, bool):
+        if reshape:
+            reshape = (0, 2, 1)  # Use default reshape
+        else:
+            reshape = None  # No reshape
+    elif isinstance(reshape, tuple):
+        reshape = tuple(int(x) for x in reshape)
+
+    if reshape is not None:
+        tensor_data = tensor_data.permute(*reshape)  # (batch, channels, window)
 
     dataloader = torch.utils.data.DataLoader(
         tensor_data, batch_size=batch_size, shuffle=False

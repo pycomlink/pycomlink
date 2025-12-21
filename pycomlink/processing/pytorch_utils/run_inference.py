@@ -198,7 +198,7 @@ def cnn_wd(
     batch_size=32,
     force_download=False,
     reflength=60,  # TODO: may be generalized in future
-    reshape=False,
+    reshape=(0, 2, 1),
 ):
     """
     Function to run wet/dry inference on input data using loaded trained CNN model.
@@ -210,7 +210,7 @@ def cnn_wd(
         batch_size (int): The number of samples in each batch.
         force_download (bool): Force re-download of model if it's a URL (default: False).
         reflength (int): The reference length for timestamp calculation (from config).
-        reshape (tuple or bool): Whether to reshape the input before passing to the model (default: False).
+        reshape (bool or tuple): Whether to reshape the input before passing to the model (default: (0, 2, 1)).
 
     Returns:
         xarray.Dataset: Dataset with predictions added as a new variable.

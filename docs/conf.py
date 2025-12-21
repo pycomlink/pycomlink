@@ -22,7 +22,7 @@ copyright = '2021, Christian Chwala'
 author = 'Christian Chwala'
 
 # The full version, including alpha/beta/rc tags
-release = '0.3.0'
+release = '0.5.0'
 
 
 # -- General configuration ---------------------------------------------------
@@ -33,6 +33,7 @@ release = '0.3.0'
 extensions = [
     "sphinx.ext.autodoc",
     'sphinx.ext.napoleon',
+    'nbsphinx',
     'myst_parser'
 ]
 

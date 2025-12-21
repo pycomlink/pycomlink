@@ -9,30 +9,35 @@ Welcome to pycomlink's documentation!
 
 A Python library to process commercial microwave link data.
 
+Checkt the examples to learn how to use it.
+
 .. mdinclude:: ../README.md
-
-Usage
------
-
-.. ifconfig:: internal
-  .. toctree::
-     :maxdepth: 1
-     :hidden:
-     :caption: Getting Started
-
-     README <readme_link>
-
 
 .. toctree::
    :maxdepth: 1
    :hidden:
-   :caption: User Guide
+   :caption: Getting Started
 
-   API <source/pycomlink>
+   README
+
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+   :caption: Examples
+
+   notebooks/Basic CML processing workflow
+   notebooks/Compare interpolation methods
+   notebooks/Wet antenna attenuation
+   notebooks/Wet-dry classification methods
+   notebooks/Nearby link approach processing example
+   notebooks/Get radar rainfall along CML paths
+   notebooks/Use pytorch models
+   notebooks/Use tensorflow models.ipynb
 
 .. toctree::
   :maxdepth: 1
   :hidden:
   :caption: Help & reference
 
+   API <source/pycomlink>
    What's new <whats-new>

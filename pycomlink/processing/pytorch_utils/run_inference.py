@@ -216,7 +216,7 @@ def cnn_wd(
         xarray.Dataset: Dataset with predictions added as a new variable.
 
     Reshaping:
-        If reshape is False (default), input data is permuted to (batch, channels, window) which equivalent to passing (0, 2, 1). 
+        By default input data is permuted to (batch, channels, window) which equivalent to passing (0, 2, 1). 
         For other reshaping, pass a tuple with the desired permutation, e.g. (0,1,2) for (batch, window, channels).
     """
 

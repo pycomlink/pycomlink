@@ -66,7 +66,7 @@ def build_dataloader(combined_samples, batch_size, reshape=(0, 2, 1)):
     """
     # Only batch the data tensor; keep cml_id and time as arrays outside the DataLoader
     tensor_data = torch.tensor(combined_samples["data"], dtype=torch.float32)
-    tensor_data = tensor_data.permute(*reshape)  # (batch, channels, window)
+    tensor_data = tensor_data.permute(reshape)  # (batch, channels, window)
 
     dataloader = torch.utils.data.DataLoader(
         tensor_data, batch_size=batch_size, shuffle=False

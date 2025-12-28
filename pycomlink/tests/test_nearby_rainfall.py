@@ -20,7 +20,8 @@ class Test_nearby_wetdry_approach(unittest.TestCase):
         pmax = xr.DataArray(np.linspace(0, 10, len(wet)),
                             coords=dict(time=time))
 
-        res = nearby_rain.nearby_determine_reference_level(pmin, pmax, wet)
+        res = nearby_rain.nearby_determine_reference_level(
+	    pmin, pmax, wet,n_average_dry=96, min_periods=1)
 
         result = np.array(
             [np.nan, np.nan, np.nan, np.nan, np.nan,

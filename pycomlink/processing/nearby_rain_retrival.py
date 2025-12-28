@@ -4,7 +4,7 @@ from pycomlink.processing.k_R_relation import a_b
 from pycomlink.processing.xarray_wrapper import xarray_apply_along_time_dim
 
 def nearby_determine_reference_level(
-        pmin, pmax, wet, n_average_dry=96, min_periods=1):
+        pmin, pmax, wet, n_average_dry=96, min_periods=10):
     """
     Determine reference/baseline level during rain events as Overeem et al.
     (2016). The baseline ist the median of all dry time steps during the last
@@ -22,15 +22,17 @@ def nearby_determine_reference_level(
         the rainfall estimation in nearby_rainfall_retrival() uses a weighted
         average between the rain rate derived from pmin and pmax. Using
         pmin to substitute pmax can lead to overestimation of rainfall.
-
     wet : xarray.DataArray
          DataArray consisting of time series with wet-dry classification.
     n_average_dry: int
-        Number of timesteps which are used to calculate the reference levek
-        (baseline) from.
+        Number of timesteps which are used to calculate the reference level
+        (baseline) from. Default is 96, based on Overeem et al 2016 which 
+	equals to 24 hours with 15 minute (min-max) data.
     min_periods: int
         Number of periods which have to be available in the last n_average_dry
-        time steps to calculate a reference level.
+        time steps to calculate a reference level. Default is 96, based on 
+	Overeem et al 2016 which equals to 2.5 hours with 15 minute (min-max) 
+	data.
 
 
     Returns

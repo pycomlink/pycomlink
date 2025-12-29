@@ -2,6 +2,26 @@
 What's New
 **********************
 
+v0.6.0
+------
+
+Enhancements
+~~~~~~~~~~~~
+
+* Removed deprecated setuptools in favor for importlib by @maxmargraf in https://github.com/pycomlink/pycomlink/pull/179
+* Clarified cnn-based wet-dry classification docstrings by jpolz in https://github.com/pycomlink/pycomlink/pull/180
+* Updated default value and docstring for a part of the nearby rainfall retrival by @maxmargraf in https://github.com/pycomlink/pycomlink/pull/181
+
+Maintenance
+~~~~~~~~~~~~
+
+* Dropped support for python 3.9. in https://github.com/pycomlink/pycomlink/pull/181
+
+Bug fixes
+~~~~~~~~~
+
+* added a correct reshape option for cnn-based wet-dry classification by @jpolz in https://github.com/pycomlink/pycomlink/pull/176
+
 v0.5.0
 ------
 

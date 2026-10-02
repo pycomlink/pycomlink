@@ -4,11 +4,11 @@ channels:
 dependencies:
  - numpy
  - scipy
- - pandas
+ - pandas<3
  - matplotlib
  - numba
  - h5py
- - xarray
+ - xarray<2025.0.0
  - sparse
  - netcdf4
  - shapely

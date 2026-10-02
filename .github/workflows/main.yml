@@ -50,4 +50,32 @@ jobs:
         file: ./coverage.xml
         flags: unittests
 
+  notebooks:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: "3.11"
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        # Install pycomlink itself so it is importable from the notebook
+        # working directory (docs/notebooks)
+        pip install -e .
+        # Notebook execution dependencies
+        pip install nbmake
+        # For the "Use pytorch models" notebook to run
+        pip install torch --extra-index-url https://download.pytorch.org/whl/cpu
+        # For the "Use tensorflow models" notebook to run
+        pip install tensorflow
+    - name: Execute documentation notebooks
+      run: |
+        # Execute all documentation notebooks via pytest --nbmake.
+        # --nbmake-kernel=python3: the notebooks declare a "pycomlink-dev"
+        # kernelspec, which does not exist in CI. Use the standard python3 kernel.
+        python -m pytest --nbmake --nbmake-kernel=python3 docs/notebooks/*.ipynb
+
 

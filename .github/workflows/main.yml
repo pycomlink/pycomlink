@@ -73,19 +73,9 @@ jobs:
         pip install tensorflow
     - name: Execute documentation notebooks
       run: |
-        # Execute a curated subset of the documentation notebooks via
-        # pytest --nbmake.
+        # Execute all documentation notebooks via pytest --nbmake.
         # --nbmake-kernel=python3: the notebooks declare a "pycomlink-dev"
         # kernelspec, which does not exist in CI. Use the standard python3 kernel.
-        python -m pytest --nbmake --nbmake-kernel=python3 \
-          "docs/notebooks/Basic CML processing workflow.ipynb" \
-          "docs/notebooks/Blackout gap detection examples.ipynb" \
-          "docs/notebooks/Compare interpolation methods.ipynb" \
-          "docs/notebooks/Get radar rainfall along CML paths.ipynb" \
-          "docs/notebooks/Nearby link approach processing example.ipynb" \
-          "docs/notebooks/Use pytorch models.ipynb" \
-          "docs/notebooks/Use tensorflow models.ipynb" \
-          "docs/notebooks/Wet antenna attenuation.ipynb" \
-          "docs/notebooks/Wet-dry classification methods.ipynb"
+        python -m pytest --nbmake --nbmake-kernel=python3 "docs/notebooks/*.ipynb"
 
 

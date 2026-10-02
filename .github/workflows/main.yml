@@ -62,12 +62,15 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        # Install pycomlink itself so it is importable from the notebook
+        # working directory (docs/notebooks)
+        pip install -e .
         # Notebook execution dependencies
-        pip install jupyter nbconvert ipykernel
+        pip install nbmake
     - name: Execute documentation notebooks
       run: |
-        # Execute a curated subset of the documentation notebooks.
-        # Excluded notebooks:
+        # Execute a curated subset of the documentation notebooks via
+        # pytest --nbmake. Excluded notebooks:
         #   - "Blackout gap detection examples.ipynb": downloads data from Zenodo
         #     at runtime (network dependency, not reliable in CI).
         #   - "Use pytorch models.ipynb": contains a cell with a placeholder local
@@ -76,17 +79,11 @@ jobs:
         #     installed in this job.
         #   - "Wet-dry classification methods.ipynb": loads pickled MLP models that
         #     are incompatible with the numpy version installed by requirements.txt.
-        for nb in \
-          "Basic CML processing workflow.ipynb" \
-          "Compare interpolation methods.ipynb" \
-          "Get radar rainfall along CML paths.ipynb" \
-          "Nearby link approach processing example.ipynb" \
-          "Wet antenna attenuation.ipynb"
-        do
-          echo "Executing notebook: $nb"
-          jupyter nbconvert --to notebook --execute --inplace \
-            --ExecutePreprocessor.timeout=600 \
-            "docs/notebooks/$nb"
-        done
+        python -m pytest --nbmake \
+          "docs/notebooks/Basic CML processing workflow.ipynb" \
+          "docs/notebooks/Compare interpolation methods.ipynb" \
+          "docs/notebooks/Get radar rainfall along CML paths.ipynb" \
+          "docs/notebooks/Nearby link approach processing example.ipynb" \
+          "docs/notebooks/Wet antenna attenuation.ipynb"
 
 

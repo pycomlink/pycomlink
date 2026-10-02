@@ -67,14 +67,14 @@ jobs:
         pip install -e .
         # Notebook execution dependencies
         pip install nbmake
+        # For the "Use pytorch models" notebook to run
+        pip install torch --extra-index-url https://download.pytorch.org/whl/cpu
     - name: Execute documentation notebooks
       run: |
         # Execute a curated subset of the documentation notebooks via
         # pytest --nbmake. Excluded notebooks:
         #   - "Blackout gap detection examples.ipynb": downloads data from Zenodo
         #     at runtime (network dependency, not reliable in CI).
-        #   - "Use pytorch models.ipynb": contains a cell with a placeholder local
-        #     model path that fails during execution.
         #   - "Use tensorflow models.ipynb": requires TensorFlow, which is not
         #     installed in this job.
         #   - "Wet-dry classification methods.ipynb": loads pickled MLP models that
@@ -86,6 +86,7 @@ jobs:
           "docs/notebooks/Compare interpolation methods.ipynb" \
           "docs/notebooks/Get radar rainfall along CML paths.ipynb" \
           "docs/notebooks/Nearby link approach processing example.ipynb" \
+          "docs/notebooks/Use pytorch models.ipynb" \
           "docs/notebooks/Wet antenna attenuation.ipynb"
 
 

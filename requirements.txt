@@ -1,10 +1,10 @@
-numpy==1.26.4
+numpy
 scipy
-pandas<3
+pandas
 matplotlib
 numba
 h5py<=3.14
-xarray<2025.0.0
+xarray
 sparse
 netcdf4
 shapely

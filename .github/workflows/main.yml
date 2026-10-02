@@ -26,9 +26,6 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install flake8 pytest pytest-cov
-        # Keep the scientific stack compatible with the project's older xarray/pandas assumptions.
-        # NumPy 1.26.x is the last widely compatible 1.x line for this stack on Python 3.11+.
-        pip install "numpy==1.26.4" "pandas<3" "xarray<2025.0.0"
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         # For test_tensorflow_utils to run
         pip install tensorflow

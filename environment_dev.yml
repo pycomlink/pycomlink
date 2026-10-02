@@ -2,13 +2,13 @@ name: pycomlink-dev
 channels:
   - conda-forge
 dependencies:
- - numpy==1.26.4
+ - numpy
  - scipy
- - pandas<3
+ - pandas
  - matplotlib
  - numba
  - h5py
- - xarray<2025.0.0
+ - xarray
  - sparse
  - netcdf4
  - shapely

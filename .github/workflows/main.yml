@@ -29,8 +29,9 @@ jobs:
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         # For test_tensorflow_utils to run
         pip install tensorflow
-        # For test_pytorch_utils to run
-        pip install torch --extra-index-url https://download.pytorch.org/whl/cpu
+        # For test_pytorch_utils to run: pin to a known-good release because newer
+        # PyTorch builds have caused NaN-producing inference regressions in CI.
+        pip install "torch==2.6.0" --extra-index-url https://download.pytorch.org/whl/cpu
 
 
     - name: Lint with flake8

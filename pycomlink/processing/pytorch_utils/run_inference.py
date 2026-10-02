@@ -152,6 +152,9 @@ def redistribute_results(results, data):
 
     Returns:
         xarray.Dataset: Dataset with predictions added as a new variable
+
+    Raises:
+        ValueError: If a predicted time or cml_id cannot be matched back to the source grid.
     """
     predictions = results["predictions"]  # Remove any extra dimensions
     cml_ids = results["cml_ids"]  # Already numpy array
@@ -165,17 +168,33 @@ def redistribute_results(results, data):
     pred_array = np.full((len(ref_times), len(ref_cml_ids)), np.nan)
 
     # Map predictions back to the original grid
-    for i, (pred_cml_id, pred_time, pred_value) in enumerate(
-        zip(cml_ids, times, predictions)
-    ):
-        # Find indices in the original data
-        try:
-            cml_idx = np.where(ref_cml_ids == pred_cml_id)[0][0]
-            time_idx = np.where(ref_times == pred_time)[0][0]
-            pred_array[time_idx, cml_idx] = pred_value
-        except (IndexError, ValueError):
-            # Skip if the time or cml_id is not found in the original data
-            continue
+    for pred_cml_id, pred_time, pred_value in zip(cml_ids, times, predictions):
+        pred_value = np.asarray(pred_value)
+        if pred_value.size != 1:
+            raise ValueError(
+                "Each model prediction must resolve to a single scalar value, "
+                f"but got shape {pred_value.shape}."
+            )
+
+        pred_value = float(pred_value.reshape(-1)[0])
+
+        cml_matches = np.where(ref_cml_ids == pred_cml_id)[0]
+        time_matches = np.where(ref_times == pred_time)[0]
+
+        if len(cml_matches) == 0:
+            raise ValueError(
+                f"Prediction cml_id '{pred_cml_id}' not found in reference data. "
+                f"Available cml_ids: {list(ref_cml_ids.values)}"
+            )
+        if len(time_matches) == 0:
+            raise ValueError(
+                f"Prediction time '{pred_time}' not found in reference data. "
+                f"Available times: {list(ref_times.values[:10])}..."
+            )
+
+        cml_idx = cml_matches[0]
+        time_idx = time_matches[0]
+        pred_array[time_idx, cml_idx] = pred_value
 
     # Create a new DataArray to hold the predictions
     pred_data = xr.DataArray(
@@ -216,7 +235,7 @@ def cnn_wd(
         xarray.Dataset: Dataset with predictions added as a new variable.
 
     Reshaping:
-        By default input data is permuted to (batch, channels, window) which equivalent to passing (0, 2, 1). 
+        By default input data is permuted to (batch, channels, window) which equivalent to passing (0, 2, 1).
         For other reshaping, pass a tuple with the desired permutation, e.g. (0,1,2) for (batch, window, channels).
     """
 

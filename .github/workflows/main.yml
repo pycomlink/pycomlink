@@ -75,14 +75,13 @@ jobs:
       run: |
         # Execute a curated subset of the documentation notebooks via
         # pytest --nbmake. Excluded notebooks:
-        #   - "Blackout gap detection examples.ipynb": downloads data from Zenodo
-        #     at runtime (network dependency, not reliable in CI).
         #   - "Wet-dry classification methods.ipynb": loads pickled MLP models that
         #     are incompatible with the numpy version installed by requirements.txt.
         # --nbmake-kernel=python3: the notebooks declare a "pycomlink-dev"
         # kernelspec, which does not exist in CI. Use the standard python3 kernel.
         python -m pytest --nbmake --nbmake-kernel=python3 \
           "docs/notebooks/Basic CML processing workflow.ipynb" \
+          "docs/notebooks/Blackout gap detection examples.ipynb" \
           "docs/notebooks/Compare interpolation methods.ipynb" \
           "docs/notebooks/Get radar rainfall along CML paths.ipynb" \
           "docs/notebooks/Nearby link approach processing example.ipynb" \

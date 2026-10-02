@@ -1,10 +1,12 @@
-import pkg_resources
+import importlib.resources as resources
 import os.path
 import pycomlink as pycml
 
 
 def get_test_data_path():
-    return pkg_resources.resource_filename("pycomlink", "tests/test_data")
+    test_data = resources.files("pycomlink.tests").joinpath("test_data")
+    with resources.as_file(test_data) as real_path:
+        return str(real_path)
 
 
 def load_and_clean_example_cml():

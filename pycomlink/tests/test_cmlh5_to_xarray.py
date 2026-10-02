@@ -1,11 +1,13 @@
+import importlib.resources as resources
 import unittest
 from pycomlink.io.cmlh5_to_xarray import read_cmlh5_file_to_xarray
 import numpy as np
-import pkg_resources
 
 
 def get_test_data_path():
-    return pkg_resources.resource_filename("pycomlink", "tests/test_data")
+    test_data = resources.files("pycomlink.tests").joinpath("test_data")
+    with resources.as_file(test_data) as real_path:
+        return str(real_path)
 
 
 testdata_fn = str(get_test_data_path() + "/75_cmls_processed.h5")

@@ -168,9 +168,16 @@ def redistribute_results(results, data):
     pred_array = np.full((len(ref_times), len(ref_cml_ids)), np.nan)
 
     # Map predictions back to the original grid
-    for i, (pred_cml_id, pred_time, pred_value) in enumerate(
-        zip(cml_ids, times, predictions)
-    ):
+    for pred_cml_id, pred_time, pred_value in zip(cml_ids, times, predictions):
+        pred_value = np.asarray(pred_value)
+        if pred_value.size != 1:
+            raise ValueError(
+                "Each model prediction must resolve to a single scalar value, "
+                f"but got shape {pred_value.shape}."
+            )
+
+        pred_value = float(pred_value.reshape(-1)[0])
+
         cml_matches = np.where(ref_cml_ids == pred_cml_id)[0]
         time_matches = np.where(ref_times == pred_time)[0]
 
@@ -228,7 +235,7 @@ def cnn_wd(
         xarray.Dataset: Dataset with predictions added as a new variable.
 
     Reshaping:
-        By default input data is permuted to (batch, channels, window) which equivalent to passing (0, 2, 1). 
+        By default input data is permuted to (batch, channels, window) which equivalent to passing (0, 2, 1).
         For other reshaping, pass a tuple with the desired permutation, e.g. (0,1,2) for (batch, window, channels).
     """
 

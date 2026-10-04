@@ -40,7 +40,7 @@ setup(
     author="Christian Chwala",
     author_email="christian.chwala@kit.edu",
     description=("Python tools for CML (commercial microwave link) data processing"),
-    license="BSD",
+    license="BSD-3-Clause",
     keywords="microwave links precipitation radar cml",
     url="https://github.com/pycomlink/pycomlink",
     download_url=(f"https://github.com/pycomlink/pycomlink/archive/{VERSION}.tar.gz"),
@@ -50,7 +50,7 @@ setup(
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Topic :: Scientific/Engineering :: Atmospheric Science",
-        "License :: OSI Approved :: BSD License",
+        "License :: OSI Approved :: BSD 3-Clause License",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
